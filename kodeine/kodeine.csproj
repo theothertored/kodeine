@@ -32,7 +32,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptTarget>ES6</TypeScriptTarget>
     <TypeScriptJSXEmit>React</TypeScriptJSXEmit>
     <TypeScriptModuleKind />
     <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
@@ -69,18 +69,32 @@
     <TypeScriptSourceRoot />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="**\*.min.css">
+      <DependentUpon>$([System.String]::Copy(%(Filename)).Replace('.min', '.scss'))</DependentUpon>
+    </Content>
+    <Content Include="**\*.css">
+      <DependentUpon>%(Filename).scss</DependentUpon>
+    </Content>
+    <Content Include="**\*.scss" />
+    <TypeScriptCompile Include="**\*.ts" />
+    <Content Include="**\*.html" />
+    <Content Include="**\*.js">
+      <DependentUpon>%(Filename).ts</DependentUpon>
+    </Content>
+    <Content Include="**\*.js.map">
+      <DependentUpon>$([System.String]::Copy(%(Filename)).Replace('.js', '.ts'))</DependentUpon>
+    </Content>
+    <Content Include="Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".editorconfig" />
     <None Include="compilerconfig.json" />
     <None Include="compilerconfig.json.defaults">
       <DependentUpon>compilerconfig.json</DependentUpon>
     </None>
-    <None Include="css\site.scss" />
-    <Content Include="css\site.css">
-      <DependentUpon>site.scss</DependentUpon>
-    </Content>
-    <Content Include="css\site.min.css">
-      <DependentUpon>site.css</DependentUpon>
-    </Content>
-    <Content Include="js\app.js.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -88,20 +102,26 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="app.css" />
-    <Content Include="js\app.js" />
-    <Content Include="index.html" />
-    <Content Include="Web.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="js\app.ts" />
-  </ItemGroup>
+  <!-- nest .css under .scss and .min.css under .css -->
+  <!-- <ItemGroup>
+    <Content Update="css\**\*.css">
+      <DependentUpon>%(Filename).scss</DependentUpon>
+    </Content>
+    <Content Update="css\**\*.min.css">
+      <DependentUpon>$([System.String]::Copy(%(Filename)).Replace('.min', '.scss'))</DependentUpon>
+    </Content>
+  </ItemGroup> -->
+  <!-- nest .js under .ts and .js.map under .js -->
+  <!-- <ItemGroup>
+    <Content Update="js\**\*.js">
+      <DependentUpon>%(Filename).ts</DependentUpon>
+    </Content>
+    <Content Update="js\**\*.js.map">
+      <DependentUpon>$([System.String]::Copy(%(Filename)).Replace('.js', '.ts'))</DependentUpon>
+    </Content>
+  </ItemGroup> -->
   <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

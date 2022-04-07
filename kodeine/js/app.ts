@@ -1,27 +1,46 @@
-﻿class Greeter {
-    private element: HTMLElement;
-    private span: HTMLElement;
-    private timerToken: number;
+﻿const initialFormula = '$2 + 2$';
 
-    constructor(element: HTMLElement) {
-        this.element = element;
-        this.element.innerHTML += "The time is: ";
-        this.span = document.createElement("span");
-        this.element.appendChild(this.span);
-        this.span.innerText = new Date().toUTCString();
+var formulaInputEl: HTMLTextAreaElement;
+var btnParse: HTMLButtonElement;
+var tmplTokenRow: HTMLTemplateElement;
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    formulaInputEl = document.getElementById('formula_input') as HTMLTextAreaElement;
+    formulaInputEl.value = initialFormula;
+
+    btnParse = document.getElementById('btn_parse') as HTMLButtonElement;
+    btnParse.addEventListener('click', formulaInputEl_input);
+
+    tmplTokenRow = document.getElementById('tmpl_token_row') as HTMLTemplateElement;
+});
+
+function formulaInputEl_input(ev: InputEvent) {
+
+    let formulaText = formulaInputEl.value;
+    let charReader = new StringCharReader(formulaText);
+    let lexer = new KodeineLexer(charReader);
+
+    let tokens: IFormulaToken[] = [];
+
+    while (!lexer.EOF()) {
+        tokens.push(lexer.consume(1)[0]);
     }
 
-    public start() {
-        this.timerToken = setInterval(() => this.span.innerHTML = new Date().toUTCString(), 500);
+    let tbody = document.querySelector('tbody');
+    tbody.innerHTML = '';
+
+    for (var token of tokens) {
+
+        let tr = tmplTokenRow.content.firstElementChild.cloneNode(true) as HTMLTableRowElement;
+        tr.innerHTML = tr.innerHTML
+            .replace('[token_type]', token.constructor.name.replace('Token', ''))
+            .replace('[token_text]', token.getStringRepresentation())
+            .replace('[start_index]', token.getStartIndex().toString())
+            .replace('[end_index]', token.getEndIndex().toString());
+
+        tbody.appendChild(tr);
     }
 
-    public stop() {
-        clearTimeout(this.timerToken);
-    }
+    console.log(tokens);
 }
-
-window.onload = () => {
-    const el = document.getElementById("content");
-    const greeter = new Greeter(el);
-    greeter.start();
-};
