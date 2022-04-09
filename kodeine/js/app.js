@@ -4,13 +4,14 @@ var btnParse;
 var tmplTokenRow;
 document.addEventListener('DOMContentLoaded', () => {
     formulaInputEl = document.getElementById('formula_input');
-    formulaInputEl.value = initialFormula;
+    formulaInputEl.value = localStorage.getItem('formula') || initialFormula;
     btnParse = document.getElementById('btn_parse');
     btnParse.addEventListener('click', formulaInputEl_input);
     tmplTokenRow = document.getElementById('tmpl_token_row');
 });
 function formulaInputEl_input(ev) {
     let formulaText = formulaInputEl.value;
+    localStorage.setItem('formula', formulaText);
     let parsingEnv = ParsingEnvironment.createDefault();
     let charReader = new StringCharReader(formulaText);
     let lexer = new KodeineLexer(charReader, parsingEnv.getSortedOperatorSymbols());

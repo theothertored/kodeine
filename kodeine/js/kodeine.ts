@@ -254,9 +254,6 @@ class SubtractionOperator extends IBinaryOperator {
 
 //#region evaluables
 
-class EvaluationEnvironment { }
-
-
 abstract class IEvaluable {
     abstract evaluate(env: EvaluationEnvironment): KodeValue;
 }
@@ -710,7 +707,9 @@ class UnrecognizedTokenError extends KodeParseError {
 //#endregion
 
 
-class ParsingEnvironment implements IOperatorSymbolProvider {
+//#region environments
+
+class ParsingEnvironment {
 
     private readonly _functions: Record<string, IKodeFunction> = {};
     private readonly _unaryOperators: Record<string, IUnaryOperator> = {};
@@ -784,6 +783,10 @@ class ParsingEnvironment implements IOperatorSymbolProvider {
     }
 }
 
+class EvaluationEnvironment { }
+
+//#endregion
+
 
 //#region char reader
 
@@ -836,10 +839,6 @@ interface ILexer {
     peek(tokenCount: number): IFormulaToken[];
     consume(tokenCount: number): IFormulaToken[];
     EOF(): boolean;
-}
-
-interface IOperatorSymbolProvider {
-    getSortedOperatorSymbols(): string[];
 }
 
 enum KodeineLexerState {
@@ -1140,9 +1139,11 @@ class KodeineLexer implements ILexer {
 
 //#region parser
 
+
 interface IParser {
     parse(formulaText: string): Formula;
 }
+
 
 enum KodeineParserState {
     Default, Kode
@@ -1196,6 +1197,8 @@ class KodeineParser implements IParser {
             // read token
             let token = this._lexer.consume(1)[0];
 
+            let skipPushingToBuffer = false;
+
             if (this._state === KodeineParserState.Default) {
 
                 // we are currently not in a formula
@@ -1230,10 +1233,48 @@ class KodeineParser implements IParser {
                 // formula tokens:
                 // WhitespaceToken, OpeningParenthesisToken, ClosingParenthesisToken, CommaToken, UnclosedQuotedValueToken, QuotedValueToken, UnquotedValueToken, OperatorToken
 
-                if (token instanceof UnquotedValueToken || token instanceof QuotedValueToken) {
+                if (token instanceof UnquotedValueToken) {
+
+                    let nextToken = this._lexer.peek(1)[0];
+
+                    if (nextToken instanceof OpeningParenthesisToken) {
+
+                        // consume the opening parenthesis immediately
+                        this._lexer.consume(1);
+
+                        // override the default buffer behaviour
+                        skipPushingToBuffer = true;
+                        tokenBuffer.push(token);
+                        tokenBuffer.push(nextToken);
+
+                        // find a function by name
+                        let funcName = token.getValue();
+                        let func = this._env.findFunction(funcName);
+
+                        if (func) {
+
+                            // found a function call, start a function call builder
+                            exprBuilderStack.push(new FunctionCallBuilder(this._env, func));
+
+                        } else {
+
+                            // function not found, throw
+                            throw new KodeFunctionNotFoundError(token);
+
+                        }
+
+                    } else {
+
+                        getLastExprBuilder().addValue(token);
+
+                    }
+
+
+                } else if (token instanceof QuotedValueToken) {
 
                     // pass the token to the current expression builder and let it throw exceptions if necessary
                     getLastExprBuilder().addValue(token);
+
 
                 } else if (token instanceof OperatorToken) {
 
@@ -1275,7 +1316,7 @@ class KodeineParser implements IParser {
 
                     let prevToken = getPrevNonWhitespaceToken();
 
-                    if (prevToken === null || prevToken instanceof OperatorToken) {
+                    if (prevToken === null || prevToken instanceof OperatorToken || prevToken instanceof OpeningParenthesisToken) {
 
                         // if there is no previous token or this parenthesis follows an operator,
                         // the parenthesis starts a subexpression
@@ -1284,23 +1325,7 @@ class KodeineParser implements IParser {
                     } else if (prevToken instanceof UnquotedValueToken) {
 
                         // if the previous token is an unquoted value token, interpret this as a function call
-
-                        // find a function by name
-                        let funcName = prevToken.getSourceText();
-                        let func = this._env.findFunction(funcName);
-
-                        if (func) {
-
-                            // found a function call, start a function call builder
-                            exprBuilderStack.push(new FunctionCallBuilder(this._env, func));
-
-                        } else {
-
-                            // function not found, throw
-                            throw new KodeFunctionNotFoundError(prevToken);
-
-                        }
-
+                        throw new KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
 
                     } else {
 
@@ -1332,7 +1357,6 @@ class KodeineParser implements IParser {
                     } else {
 
                         let evaluable = exprBuilderStack.pop().build(token);
-
                         getLastExprBuilder().addEvaluable(evaluable, token);
 
                     }
@@ -1370,7 +1394,9 @@ class KodeineParser implements IParser {
                     throw new UnrecognizedTokenError(token);
                 }
 
-                tokenBuffer.push(token);
+                if (!skipPushingToBuffer) {
+                    tokenBuffer.push(token);
+                }
 
             } else {
                 throw new Error('Invalid parser state.');

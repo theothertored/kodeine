@@ -7,7 +7,7 @@ var tmplTokenRow: HTMLTemplateElement;
 document.addEventListener('DOMContentLoaded', () => {
 
     formulaInputEl = document.getElementById('formula_input') as HTMLTextAreaElement;
-    formulaInputEl.value = initialFormula;
+    formulaInputEl.value = localStorage.getItem('formula') || initialFormula;
 
     btnParse = document.getElementById('btn_parse') as HTMLButtonElement;
     btnParse.addEventListener('click', formulaInputEl_input);
@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function formulaInputEl_input(ev: InputEvent) {
 
     let formulaText = formulaInputEl.value;
+    localStorage.setItem('formula', formulaText);
 
     let parsingEnv = ParsingEnvironment.createDefault();
     let charReader = new StringCharReader(formulaText);
