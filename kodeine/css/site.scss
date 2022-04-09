@@ -46,6 +46,9 @@ main {
 
     output:empty:before {
         content: " ";
+    }
+
+    output {
         white-space: pre;
     }
 }

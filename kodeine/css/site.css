@@ -32,7 +32,8 @@ main {
       width: 100%;
       padding: 8px 8px; }
   .field output:empty:before {
-    content: " ";
+    content: " "; }
+  .field output {
     white-space: pre; }
 
 textarea {

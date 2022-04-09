@@ -1,13 +1,15 @@
 const initialFormula = '$2 + 2$';
 var formulaInputEl;
-var btnParse;
+var formulaOutputEl;
+var btnDoIt;
 var tmplTokenRow;
 document.addEventListener('DOMContentLoaded', () => {
     formulaInputEl = document.getElementById('formula_input');
     formulaInputEl.value = localStorage.getItem('formula') || initialFormula;
-    btnParse = document.getElementById('btn_parse');
-    btnParse.addEventListener('click', formulaInputEl_input);
+    btnDoIt = document.getElementById('btn_doit');
+    btnDoIt.addEventListener('click', formulaInputEl_input);
     tmplTokenRow = document.getElementById('tmpl_token_row');
+    formulaOutputEl = document.getElementById('evaluation_output');
 });
 function formulaInputEl_input(ev) {
     let formulaText = formulaInputEl.value;
@@ -17,7 +19,10 @@ function formulaInputEl_input(ev) {
     let lexer = new KodeineLexer(charReader, parsingEnv.getSortedOperatorSymbols());
     let parser = new KodeineParser(lexer, parsingEnv);
     let formula = parser.parse();
+    console.log('input text: ', formulaText);
     console.log('parsed formula: ', formula);
+    let evaluationEnv = new EvaluationEnvironment();
+    formulaOutputEl.value = formula.evaluateToString(evaluationEnv);
     //let tokens: IFormulaToken[] = [];
     //while (!lexer.EOF()) {
     //    tokens.push(lexer.consume(1)[0]);

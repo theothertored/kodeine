@@ -1,7 +1,8 @@
 ﻿const initialFormula = '$2 + 2$';
 
 var formulaInputEl: HTMLTextAreaElement;
-var btnParse: HTMLButtonElement;
+var formulaOutputEl: HTMLOutputElement;
+var btnDoIt: HTMLButtonElement;
 var tmplTokenRow: HTMLTemplateElement;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,10 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     formulaInputEl = document.getElementById('formula_input') as HTMLTextAreaElement;
     formulaInputEl.value = localStorage.getItem('formula') || initialFormula;
 
-    btnParse = document.getElementById('btn_parse') as HTMLButtonElement;
-    btnParse.addEventListener('click', formulaInputEl_input);
+    btnDoIt = document.getElementById('btn_doit') as HTMLButtonElement;
+    btnDoIt.addEventListener('click', formulaInputEl_input);
 
     tmplTokenRow = document.getElementById('tmpl_token_row') as HTMLTemplateElement;
+
+    formulaOutputEl = document.getElementById('evaluation_output') as HTMLOutputElement;
 });
 
 function formulaInputEl_input(ev: InputEvent) {
@@ -26,7 +29,11 @@ function formulaInputEl_input(ev: InputEvent) {
     let parser = new KodeineParser(lexer, parsingEnv);
 
     let formula = parser.parse();
+    console.log('input text: ', formulaText);
     console.log('parsed formula: ', formula);
+
+    let evaluationEnv = new EvaluationEnvironment();
+    formulaOutputEl.value = formula.evaluateToString(evaluationEnv);
 
     //let tokens: IFormulaToken[] = [];
 

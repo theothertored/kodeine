@@ -409,7 +409,11 @@ class NegationOperator extends IUnaryOperator {
     getSymbol() { return '-'; }
 
     operation(a: KodeValue): KodeValue {
-        throw new Error('Not implemented.');
+        if (a.isNumeric) {
+            return new KodeValue(-a.numericValue);
+        } else {
+            return new KodeValue(a.text + '-null');
+        }
     }
 
 }
@@ -427,6 +431,33 @@ abstract class IBinaryOperator {
     abstract operation(a: KodeValue, b: KodeValue): KodeValue;
 }
 
+abstract class TwoModeBinaryOperator extends IBinaryOperator {
+
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+
+        if (a.isNumeric && b.isNumeric) {
+            return new KodeValue(this.numericMode(a.numericValue, b.numericValue));
+        } else {
+            return this.textMode(a, b);
+        }
+    }
+
+    abstract numericMode(a: number, b: number): (number | boolean);
+
+    textMode(a: KodeValue, b: KodeValue): KodeValue {
+
+        if (a.isNumeric)
+            return new KodeValue(a.numericValue + this.getSymbol() + b.text);
+
+        else if (b.isNumeric)
+            return new KodeValue(a.text + this.getSymbol() + b.numericValue);
+
+        else
+            return new KodeValue(a.text + this.getSymbol() + b.text);
+
+    }
+}
+
 // operator precedence values:
 // 5    ^
 // 4    * / %
@@ -437,38 +468,38 @@ abstract class IBinaryOperator {
 
 // 5
 
-class ExponentiationOperator extends IBinaryOperator {
+class ExponentiationOperator extends TwoModeBinaryOperator {
     getSymbol() { return '^'; }
     getPrecedence() { return 5; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a ** b;
     }
 }
 
 
 // 4
 
-class MultiplicationOperator extends IBinaryOperator {
+class MultiplicationOperator extends TwoModeBinaryOperator {
     getSymbol() { return '*'; }
     getPrecedence() { return 4; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a * b;
     }
 }
 
-class DivisionOperator extends IBinaryOperator {
+class DivisionOperator extends TwoModeBinaryOperator {
     getSymbol() { return '/'; }
     getPrecedence() { return 4; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a / b;
     }
 }
 
-class ModuloOperator extends IBinaryOperator {
+class ModuloOperator extends TwoModeBinaryOperator {
     getSymbol() { return '%'; }
     getPrecedence() { return 4; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a % b;
     }
 }
 
@@ -479,15 +510,24 @@ class AdditionOperator extends IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
     operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+        if (a.isNumeric && b.isNumeric) {
+            return new KodeValue(a.numericValue + b.numericValue);
+        } else {
+            if (a.isNumeric)
+                return new KodeValue(a.numericValue + b.text);
+            else if (b.isNumeric)
+                return new KodeValue(a.text + b.numericValue);
+            else
+                return new KodeValue(a.text + b.text);
+        }
     }
 }
 
-class SubtractionOperator extends IBinaryOperator {
+class SubtractionOperator extends TwoModeBinaryOperator {
     getSymbol() { return '-'; }
     getPrecedence() { return 3; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a - b;
     }
 }
 
@@ -498,7 +538,12 @@ class EqualityOperator extends IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
     operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+        if (a.isNumeric && b.isNumeric)
+            return new KodeValue(a.numericValue == b.numericValue);
+        else if (a.isNumeric || b.isNumeric)
+            return new KodeValue(0);
+        else 
+            return new KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase());
     }
 }
 
@@ -506,39 +551,44 @@ class InequalityOperator extends IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
     operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+        if (a.isNumeric && b.isNumeric)
+            return new KodeValue(a.numericValue != b.numericValue);
+        else if (a.isNumeric || b.isNumeric)
+            return new KodeValue(1);
+        else
+            return new KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase());
     }
 }
 
-class LesserThanOperator extends IBinaryOperator {
+class LesserThanOperator extends TwoModeBinaryOperator {
     getSymbol() { return '<'; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): boolean {
+        return a < b;
     }
 }
 
-class GreaterThanOperator extends IBinaryOperator {
+class GreaterThanOperator extends TwoModeBinaryOperator {
     getSymbol() { return '>'; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): boolean {
+        return a > b;
     }
 }
 
-class LesserThanOrEqualToOperator extends IBinaryOperator {
+class LesserThanOrEqualToOperator extends TwoModeBinaryOperator {
     getSymbol() { return '<='; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): boolean {
+        return a <= b;
     }
 }
 
-class GreaterThanOrEqualToOperator extends IBinaryOperator {
+class GreaterThanOrEqualToOperator extends TwoModeBinaryOperator {
     getSymbol() { return '>='; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): boolean {
+        return a >= b;
     }
 }
 
@@ -546,26 +596,26 @@ class RegexMatchOperator extends IBinaryOperator {
     getSymbol() { return '~='; }
     getPrecedence() { return 2; }
     operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+        return new KodeValue(new RegExp(b.text).test(a.text));
     }
 }
 
 
 // 1
 
-class LogicalOrOperator extends IBinaryOperator {
+class LogicalOrOperator extends TwoModeBinaryOperator {
     getSymbol() { return '|'; }
     getPrecedence() { return 1; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a == 1 || b == 1 ? 1 : 0;
     }
 }
 
-class LogicalAndOperator extends IBinaryOperator {
+class LogicalAndOperator extends TwoModeBinaryOperator {
     getSymbol() { return '&'; }
     getPrecedence() { return 1; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        throw new Error("Method not implemented.");
+    numericMode(a: number, b: number): number {
+        return a == 1 && b == 1 ? 1 : 0;
     }
 }
 
@@ -583,16 +633,43 @@ abstract class IEvaluable {
 class KodeValue extends IEvaluable {
 
     public readonly text: string;
+    public readonly isNumeric: boolean;
+    public readonly numericValue: number;
+
     public readonly source: any;
 
-    constructor(token: (QuotedValueToken | UnquotedValueToken)) {
+    constructor(value: (string | number | boolean), source?: any) {
         super();
-        this.source = token;
-        this.text = token.getValue();
+
+        if (typeof value === 'boolean') {
+
+            this.numericValue = value ? 1 : 0;
+            this.text = this.numericValue.toString();
+            this.isNumeric = true;
+
+        } else if (typeof value === 'string') {
+
+            this.text = value;
+            this.numericValue = Number(value);
+            this.isNumeric = !isNaN(this.numericValue);
+
+        } else {
+
+            this.numericValue = value;
+            this.text = value.toString();
+            this.isNumeric = true;
+
+        }
+
+        this.source = source;
     }
 
     evaluate(env: EvaluationEnvironment): KodeValue {
         return this;
+    }
+
+    static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue {
+        return new KodeValue(token.getValue(), token);
     }
 }
 
@@ -644,7 +721,7 @@ class UnaryOperation extends IEvaluable {
     }
 
     public evaluate(env: EvaluationEnvironment): KodeValue {
-        throw new Error('Not implemented.');
+        return this.operator.operation(this.arg.evaluate(env));
     }
 
 }
@@ -675,7 +752,7 @@ class ExpressionBuilder {
 
         }
 
-        this._elements.push(new KodeValue(token));
+        this._elements.push(KodeValue.fromToken(token));
     }
 
     addEvaluable(evaluable: IEvaluable, token: IFormulaToken) {
@@ -957,11 +1034,22 @@ class FunctionCallBuilder extends ExpressionBuilder {
 class Formula {
     public text: string;
     public parts: IFormulaPart[] = [];
+
+    public evaluateToString(env: EvaluationEnvironment): string {
+
+        let output = '';
+
+        for (var part of this.parts) {
+            output += part.evaluateToString(env);
+        }
+
+        return output;
+    }
 }
 
 
 interface IFormulaPart {
-    evaluate(env: EvaluationEnvironment): string;
+    evaluateToString(env: EvaluationEnvironment): string;
 }
 
 
@@ -972,7 +1060,7 @@ class PlainTextPart implements IFormulaPart {
         this.tokens = tokens || [];
     }
 
-    evaluate(env: EvaluationEnvironment): string {
+    evaluateToString(env: EvaluationEnvironment): string {
         let output = '';
         for (var token of this.tokens) output += token.getSourceText();
         return output;
@@ -989,7 +1077,7 @@ class EvaluablePart implements IFormulaPart {
         this.evaluable = evaluable;
     }
 
-    evaluate(env: EvaluationEnvironment): string {
+    evaluateToString(env: EvaluationEnvironment): string {
         return this.evaluable.evaluate(env).text;
     }
 }
@@ -1279,7 +1367,7 @@ class KodeineLexer implements ILexer {
     }
 
     EOF(): boolean {
-        return this._charReader.EOF();
+        return this._charReader.EOF() && this._tokenQueue.length === 0;
     }
 
 
@@ -1581,7 +1669,7 @@ class KodeineParser implements IParser {
                 if (token instanceof DollarSignToken) {
 
                     // this is a dollar sign token, a formula is beginning
-                    this._state = KodeineParserState.Kode
+                    this._state = KodeineParserState.Kode;
 
                     // add a base expression builder to the stack
                     exprBuilderStack = [new ExpressionBuilder(this._env)];
@@ -1591,7 +1679,7 @@ class KodeineParser implements IParser {
                         // we read some plain text tokens before this point, add a plain text part
                         formula.parts.push(new PlainTextPart(tokenBuffer));
                         // clear the buffer. no matter what, the dollar sign is not going into the output.
-                        tokenBuffer = [];
+                        tokenBuffer = [token];
 
                     }
 
@@ -1610,6 +1698,7 @@ class KodeineParser implements IParser {
 
                 if (token instanceof UnquotedValueToken) {
 
+                    // TODO: peek next non-whitespace
                     let nextToken = this._lexer.peek(1)[0];
 
                     if (nextToken instanceof OpeningParenthesisToken) {
@@ -1738,10 +1827,13 @@ class KodeineParser implements IParser {
 
                 } else if (token instanceof DollarSignToken) {
 
-                    // a dollar sign token ends the current evaluable part 
+                    // a dollar sign token ends the current evaluable part
+
+                    skipPushingToBuffer = true;
+                    tokenBuffer.push(token);
 
                     if (exprBuilderStack.length > 1) {
-                        throw new KodeSyntaxError(tokenBuffer[tokenBuffer.length - 1], `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
+                        throw new KodeSyntaxError(tokenBuffer[tokenBuffer.length], `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
                     }
 
                     formula.parts.push(new EvaluablePart(tokenBuffer, exprBuilderStack.pop().build(token)));
