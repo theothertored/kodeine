@@ -1,15 +1,17 @@
 const initialFormula = '$2 + 2$';
 var formulaInputEl;
-var formulaOutputEl;
+var formulaErrorEl;
+var evaluationOutputEl;
 var btnDoIt;
 var tmplTokenRow;
 document.addEventListener('DOMContentLoaded', () => {
     formulaInputEl = document.getElementById('formula_input');
     formulaInputEl.value = localStorage.getItem('formula') || initialFormula;
+    formulaErrorEl = document.getElementById('formula_error');
     btnDoIt = document.getElementById('btn_doit');
     btnDoIt.addEventListener('click', formulaInputEl_input);
     tmplTokenRow = document.getElementById('tmpl_token_row');
-    formulaOutputEl = document.getElementById('evaluation_output');
+    evaluationOutputEl = document.getElementById('evaluation_output');
 });
 function formulaInputEl_input(ev) {
     let formulaText = formulaInputEl.value;
@@ -18,11 +20,22 @@ function formulaInputEl_input(ev) {
     let charReader = new StringCharReader(formulaText);
     let lexer = new KodeineLexer(charReader, parsingEnv.getSortedOperatorSymbols());
     let parser = new KodeineParser(lexer, parsingEnv);
-    let formula = parser.parse();
-    console.log('input text: ', formulaText);
-    console.log('parsed formula: ', formula);
-    let evaluationEnv = new EvaluationEnvironment();
-    formulaOutputEl.value = formula.evaluateToString(evaluationEnv);
+    try {
+        let formula = parser.parse();
+        console.log('input text: ', formulaText);
+        console.log('parsed formula: ', formula);
+        let evaluationEnv = new EvaluationEnvironment();
+        evaluationOutputEl.value = formula.evaluateToString(evaluationEnv);
+    }
+    catch (error) {
+        if (error instanceof KodeParseError || error instanceof EvaluationError) {
+            formulaErrorEl.innerText = error.message;
+        }
+        else {
+            formulaErrorEl.innerText = 'crash: ' + error.message;
+        }
+        console.error(error);
+    }
     //let tokens: IFormulaToken[] = [];
     //while (!lexer.EOF()) {
     //    tokens.push(lexer.consume(1)[0]);

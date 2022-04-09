@@ -192,7 +192,22 @@ class SystemInfoFunction extends IKodeFunction {
 class IfFunction extends IKodeFunction {
     getName() { return 'if'; }
     call(env, args) {
-        throw new Error('Not implemented.');
+        if (args.length <= 1)
+            throw new NotEnoughArgumentsError(this, 'At least two arguments required.');
+        let lastCondArgI = Math.floor((args.length - 2) / 2) * 2;
+        ;
+        for (var i = 0; i <= lastCondArgI; i += 2) {
+            let arg = args[i];
+            if ((!arg.isNumeric && arg.text !== '') || (arg.isNumeric && arg.numericValue !== 0)) {
+                return args[i + 1];
+            }
+        }
+        if (lastCondArgI + 2 < args.length) {
+            return args[lastCondArgI + 2];
+        }
+        else {
+            return new KodeValue('');
+        }
     }
 }
 class MusicQueueFunction extends IKodeFunction {
@@ -600,10 +615,13 @@ class ExpressionBuilder {
             }
         }
     }
+    getIsEmpty() {
+        return this._elements.length === 0;
+    }
     build(closingToken) {
         if (this._elements.length === 0) {
             // empty parentheses - throw
-            throw new KodeSyntaxError(closingToken, 'Empty parentheses.');
+            throw new KodeSyntaxError(closingToken, 'Empty expression.');
         }
         else if (this._elements.length === 1) {
             // only one element in the parentheses
@@ -717,8 +735,14 @@ class FunctionCallBuilder extends ExpressionBuilder {
         this._currentArgumentBuilder = new ExpressionBuilder(this._env);
     }
     build(closingParenthesis) {
-        this._args.push(this._currentArgumentBuilder.build(closingParenthesis));
-        return new FunctionCall(this._func, this._args);
+        if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
+            // allow for a function call with no arguments
+            return new FunctionCall(this._func, this._args);
+        }
+        else {
+            this._args.push(this._currentArgumentBuilder.build(closingParenthesis));
+            return new FunctionCall(this._func, this._args);
+        }
     }
 }
 //#endregion
@@ -775,6 +799,16 @@ class KodeFunctionNotFoundError extends KodeParseError {
 class UnrecognizedTokenError extends KodeParseError {
     constructor(token) {
         super('Unrecognized token', token, `Token "${token.getDescription()}" was not recognized by the parser.`);
+    }
+}
+class EvaluationError extends Error {
+    constructor(message) {
+        super(`Evaluation error: ${message}`);
+    }
+}
+class NotEnoughArgumentsError extends EvaluationError {
+    constructor(func, message) {
+        super(`Not enough arguments given for ${func.getName()}(): ${message}`);
     }
 }
 //#endregion

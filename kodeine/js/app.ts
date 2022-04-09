@@ -1,7 +1,8 @@
 ﻿const initialFormula = '$2 + 2$';
 
 var formulaInputEl: HTMLTextAreaElement;
-var formulaOutputEl: HTMLOutputElement;
+var formulaErrorEl: HTMLElement;
+var evaluationOutputEl: HTMLOutputElement;
 var btnDoIt: HTMLButtonElement;
 var tmplTokenRow: HTMLTemplateElement;
 
@@ -10,12 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     formulaInputEl = document.getElementById('formula_input') as HTMLTextAreaElement;
     formulaInputEl.value = localStorage.getItem('formula') || initialFormula;
 
+    formulaErrorEl = document.getElementById('formula_error');
+
     btnDoIt = document.getElementById('btn_doit') as HTMLButtonElement;
     btnDoIt.addEventListener('click', formulaInputEl_input);
 
     tmplTokenRow = document.getElementById('tmpl_token_row') as HTMLTemplateElement;
 
-    formulaOutputEl = document.getElementById('evaluation_output') as HTMLOutputElement;
+    evaluationOutputEl = document.getElementById('evaluation_output') as HTMLOutputElement;
 });
 
 function formulaInputEl_input(ev: InputEvent) {
@@ -28,12 +31,26 @@ function formulaInputEl_input(ev: InputEvent) {
     let lexer = new KodeineLexer(charReader, parsingEnv.getSortedOperatorSymbols());
     let parser = new KodeineParser(lexer, parsingEnv);
 
-    let formula = parser.parse();
-    console.log('input text: ', formulaText);
-    console.log('parsed formula: ', formula);
+    try {
 
-    let evaluationEnv = new EvaluationEnvironment();
-    formulaOutputEl.value = formula.evaluateToString(evaluationEnv);
+        let formula = parser.parse();
+        console.log('input text: ', formulaText);
+        console.log('parsed formula: ', formula);
+
+        let evaluationEnv = new EvaluationEnvironment();
+        evaluationOutputEl.value = formula.evaluateToString(evaluationEnv);
+
+    } catch (error) {
+
+        if (error instanceof KodeParseError || error instanceof EvaluationError) {
+            formulaErrorEl.innerText = error.message;
+        } else {
+            formulaErrorEl.innerText = 'crash: ' + error.message;
+        }
+
+        console.error(error);
+
+    }
 
     //let tokens: IFormulaToken[] = [];
 
@@ -57,5 +74,5 @@ function formulaInputEl_input(ev: InputEvent) {
     //}
 
     //console.log(tokens);
-    
+
 }
