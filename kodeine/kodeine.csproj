@@ -72,8 +72,11 @@
     <Content Include="**\*.min.css">
       <DependentUpon>$([System.String]::Copy(%(Filename)).Replace('.min', '.scss'))</DependentUpon>
     </Content>
-    <Content Include="**\*.css">
-      <DependentUpon>%(Filename).scss</DependentUpon>
+    <Content Include="css\site.css">
+      <DependentUpon>site.scss</DependentUpon>
+    </Content>
+    <Content Include="css\site.min.css">
+      <DependentUpon>site.min.scss</DependentUpon>
     </Content>
     <Content Include="**\*.scss" />
     <TypeScriptCompile Include="**\*.ts" />
@@ -90,7 +93,6 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include=".editorconfig" />
     <None Include="compilerconfig.json" />
     <None Include="compilerconfig.json.defaults">
       <DependentUpon>compilerconfig.json</DependentUpon>

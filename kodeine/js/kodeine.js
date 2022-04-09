@@ -1,4 +1,496 @@
-//#region char reader
+//#region formula tokens
+class BaseToken {
+    constructor(text, startIndex) {
+        this._text = text;
+        this._startIndex = startIndex;
+    }
+    getSourceText() {
+        return this._text;
+    }
+    getStartIndex() {
+        return this._startIndex;
+    }
+    getEndIndex() {
+        return this._startIndex + this._text.length;
+    }
+}
+class PlainTextToken extends BaseToken {
+    constructor(text, startIndex) {
+        super(text, startIndex);
+    }
+    getDescription() { return 'plain text'; }
+}
+class EscapedDollarSignToken extends BaseToken {
+    constructor(startIndex) {
+        super('$$', startIndex);
+    }
+    getDescription() { return 'escaped dollar sign'; }
+}
+class DollarSignToken extends BaseToken {
+    constructor(startIndex) {
+        super('$', startIndex);
+    }
+    getDescription() { return 'dollar sign'; }
+}
+class WhitespaceToken extends BaseToken {
+    constructor(text, startIndex) {
+        super(text, startIndex);
+    }
+    getDescription() { return 'whitespace'; }
+}
+class OpeningParenthesisToken extends BaseToken {
+    constructor(startIndex) {
+        super('(', startIndex);
+    }
+    getDescription() { return 'opening parenthesis'; }
+}
+class ClosingParenthesisToken extends BaseToken {
+    constructor(startIndex) {
+        super(')', startIndex);
+    }
+    getDescription() { return 'closing parenthesis'; }
+}
+class CommaToken extends BaseToken {
+    constructor(startIndex) {
+        super(')', startIndex);
+    }
+    getDescription() { return 'comma'; }
+}
+class UnclosedQuotedValueToken {
+    constructor(text, startIndex) {
+        this._text = text;
+        this._startIndex = startIndex;
+    }
+    getValue() {
+        return this._text;
+    }
+    getStartIndex() {
+        return this._startIndex;
+    }
+    getEndIndex() {
+        return this._startIndex + 1 + this._text.length;
+    }
+    getSourceText() { return `"${this._text}`; }
+    getDescription() { return 'unclosed quoted value'; }
+}
+class QuotedValueToken {
+    constructor(text, startIndex) {
+        this._text = text;
+        this._startIndex = startIndex;
+    }
+    getValue() {
+        return this._text;
+    }
+    getStartIndex() {
+        return this._startIndex;
+    }
+    getEndIndex() {
+        return this._startIndex + 1 + this._text.length + 1;
+    }
+    getSourceText() { return `"${this._text}"`; }
+    getDescription() { return 'quoted value'; }
+}
+class UnquotedValueToken extends BaseToken {
+    constructor(text, startIndex) {
+        super(text, startIndex);
+    }
+    getValue() {
+        return this._text;
+    }
+    getDescription() { return 'unquoted value'; }
+}
+class OperatorToken extends BaseToken {
+    constructor(text, startIndex) {
+        super(text, startIndex);
+    }
+    getSymbol() { return this._text; }
+    is(operatorText) { return this._text === operatorText; }
+    getDescription() { return 'operator'; }
+}
+// #endregion
+//#region functions
+class IKodeFunction {
+}
+class DateFormatFunction extends IKodeFunction {
+    getName() { return 'df'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class MathUtilsFunction extends IKodeFunction {
+    getName() { return 'mu'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class TimerUtilsFunction extends IKodeFunction {
+    getName() { return 'tu'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+//#endregion
+//#region unary operators
+class IUnaryOperator {
+}
+class NegationOperator extends IUnaryOperator {
+    getSymbol() { return '-'; }
+    operation(a) {
+        throw new Error('Not implemented.');
+    }
+}
+//#endregion
+//#region binary operators
+class IBinaryOperator {
+}
+class AdditionOperator extends IBinaryOperator {
+    getSymbol() { return '+'; }
+    getPrecedence() { return 1; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class SubtractionOperator extends IBinaryOperator {
+    getSymbol() { return '-'; }
+    getPrecedence() { return 1; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+//#endregion
+//#region evaluables
+class EvaluationEnvironment {
+}
+class IEvaluable {
+}
+class KodeValue extends IEvaluable {
+    constructor(token) {
+        super();
+        this.source = token;
+        this.text = token.getValue();
+    }
+    evaluate(env) {
+        return this;
+    }
+}
+class FunctionCall extends IEvaluable {
+    constructor(func, args) {
+        super();
+        this.func = func;
+        this.args = args;
+    }
+    evaluate(env) {
+        return this.func.call(env, this.args.map(a => a.evaluate(env)));
+    }
+}
+class BinaryOperation extends IEvaluable {
+    constructor(operator, argA, argB) {
+        super();
+        this.operator = operator;
+        this.argA = argA;
+        this.argB = argB;
+    }
+    evaluate(env) {
+        return this.operator.operation(this.argA.evaluate(env), this.argB.evaluate(env));
+    }
+}
+class UnaryOperation extends IEvaluable {
+    constructor(operator, arg) {
+        super();
+        this.operator = operator;
+        this.arg = arg;
+    }
+    evaluate(env) {
+        throw new Error('Not implemented.');
+    }
+}
+class ExpressionBuilder {
+    constructor(env) {
+        this._elements = [];
+        this._env = env;
+    }
+    _getLastElement() {
+        return this._elements[this._elements.length - 1];
+    }
+    addValue(token) {
+        let lastElement = this._getLastElement();
+        if (lastElement instanceof IEvaluable) {
+            // cannot have two values one after another
+            throw new KodeSyntaxError(token, 'A value cannot follow another value.');
+        }
+        this._elements.push(new KodeValue(token));
+    }
+    addEvaluable(evaluable, token) {
+        let lastElement = this._getLastElement();
+        if (lastElement instanceof IEvaluable) {
+            // cannot have two values one after another
+            throw new KodeSyntaxError(token, 'A value cannot follow another value.');
+        }
+        this._elements.push(evaluable);
+    }
+    addOperator(token) {
+        let lastElement = this._getLastElement();
+        let tokenShouldBeUnaryOperator = !lastElement
+            || lastElement instanceof IBinaryOperator
+            || lastElement instanceof IUnaryOperator;
+        if (tokenShouldBeUnaryOperator) {
+            let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
+            if (unaryOperator) {
+                // found an unary operator
+                this._elements.push(unaryOperator);
+            }
+            else {
+                // unary operator not found
+                let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
+                if (binaryOperator) {
+                    // cannot have a binary operator at the start or after another operator
+                    throw new KodeSyntaxError(token, `Left hand side argument for binary operator "${token.getSymbol()}" missing.`);
+                }
+                else {
+                    // completely unknown operator encountered
+                    throw new KodeSyntaxError(token, `Unrecognized operator "${token.getSymbol()}".`);
+                }
+            }
+        }
+        else {
+            // token should be a binary operator
+            let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
+            if (binaryOperator) {
+                this._elements.push(binaryOperator);
+            }
+            else {
+                // binary operator not found
+                let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
+                if (unaryOperator) {
+                    // cannot have an unary operator with a left hand side argument
+                    throw new KodeSyntaxError(token, `Unary operator "${token.getSymbol()}" cannot have a left hand side argument.`);
+                }
+                else {
+                    // completely unknown operator encountered
+                    throw new KodeSyntaxError(token, `Unrecognized operator "${token.getSymbol()}".`);
+                }
+            }
+        }
+    }
+    build(closingToken) {
+        if (this._elements.length === 0) {
+            // empty parentheses - throw
+            throw new KodeSyntaxError(closingToken, 'Empty parentheses.');
+        }
+        else if (this._elements.length === 1) {
+            // only one element in the parentheses
+            let onlyElement = this._elements[0];
+            if (onlyElement instanceof IEvaluable) {
+                return onlyElement;
+            }
+            else {
+                throw new KodeSyntaxError(closingToken, `Expression cannot consist of only the "${onlyElement.getSymbol()}" operator.`);
+            }
+        }
+        else {
+            // multiple elements - construct operations
+            // first pass - collapse any unary operators to IEvaluables
+            for (var i = 0; i < this._elements.length; i++) {
+                let element = this._elements[i];
+                if (element instanceof IUnaryOperator) {
+                    // if we encountered an unary operator, take every unary operator immediately following it
+                    // and the value after all those unary operators and collapse them all into one evaluable
+                    let firstElI = i; // the index of the first unary operator in the chain
+                    let unaryOpStack = [element];
+                    // start a second loop using the same i variable
+                    for (i = i + 1; i < this._elements.length; i++) {
+                        element = this._elements[i];
+                        if (element instanceof IUnaryOperator) {
+                            // add all unary operators to the stack
+                            unaryOpStack.push(element);
+                        }
+                        else if (element instanceof IEvaluable) {
+                            // if we encountered a value, we need to collapse the entire stack + value into a tree
+                            // basically like this: UnaryOperation(UnaryOperation(IEvaluable))
+                            let unaryOpCount = unaryOpStack.length;
+                            let evaluable = element;
+                            while (unaryOpStack.length > 0) {
+                                // apply operations in a reverse order by popping the stack
+                                let unaryOp = unaryOpStack.pop();
+                                evaluable = new UnaryOperation(unaryOp, evaluable);
+                            }
+                            // replace array elements from first unary operator to last + 1, meaning replace the value too
+                            this._elements.splice(firstElI, unaryOpCount + 1, evaluable);
+                            // reset i to pretend this collapse didn't happen
+                            i = firstElI;
+                            // exit this loop
+                            break;
+                        }
+                        else {
+                            // this should never happen since we're checking for it when adding operators.
+                            throw new KodeSyntaxError(closingToken, `Binary operator cannot follow an unary operator.`);
+                        }
+                    }
+                }
+            }
+            // after the first pass we should only be left with binary operators and evaluables
+            // second pass - determine the order of operations for binary operators and collapse them in the proper order
+            while (this._elements.length > 1) {
+                // step 1: find binary operator with the highest precedence
+                let maxPrecedence = -1;
+                let maxPrecedenceI = -1;
+                for (var i = 0; i < this._elements.length; i++) {
+                    let element = this._elements[i];
+                    if (element instanceof IBinaryOperator) {
+                        if (element.getPrecedence() > maxPrecedence) {
+                            maxPrecedence = element.getPrecedence();
+                            maxPrecedenceI = i;
+                        }
+                    }
+                }
+                if (maxPrecedenceI === -1) {
+                    // this should never happen
+                    throw new KodeSyntaxError(closingToken, 'No binary operators found in the expression.');
+                }
+                else {
+                    let operator = this._elements[maxPrecedenceI];
+                    if (maxPrecedenceI === 0 || !(this._elements[maxPrecedenceI - 1] instanceof IEvaluable)) {
+                        throw new KodeSyntaxError(closingToken, `Left hand side argument for binary operator "${operator.getSymbol()}" missing.`);
+                    }
+                    else if (maxPrecedenceI === this._elements.length - 1 || !(this._elements[maxPrecedenceI + 1] instanceof IEvaluable)) {
+                        throw new KodeSyntaxError(closingToken, `Right hand side argument for binary operator "${operator.getSymbol()}" missing.`);
+                    }
+                    else {
+                        // collapse the operator and its two arguments into a one evaluable binary operation
+                        let a = this._elements[maxPrecedenceI - 1];
+                        let b = this._elements[maxPrecedenceI + 1];
+                        let operation = new BinaryOperation(operator, a, b);
+                        this._elements.splice(maxPrecedenceI - 1, 3, operation);
+                        // reset i like this collapse never happened
+                        i = maxPrecedenceI - 1;
+                    }
+                }
+            }
+            // after the second pass there should only be one element, being an instance of IEvaluable, so we succeeded
+            return this._elements[0];
+        }
+    }
+}
+class FunctionCallBuilder extends ExpressionBuilder {
+    constructor(env, func) {
+        super(env);
+        this._args = [];
+        this._func = func;
+        this._currentArgumentBuilder = new ExpressionBuilder(env);
+    }
+    addValue(token) {
+        this._currentArgumentBuilder.addValue(token);
+    }
+    addOperator(token) {
+        this._currentArgumentBuilder.addOperator(token);
+    }
+    nextArgument(comma) {
+        this._args.push(this._currentArgumentBuilder.build(comma));
+        this._currentArgumentBuilder = new ExpressionBuilder(this._env);
+    }
+    build(closingParenthesis) {
+        this._args.push(this._currentArgumentBuilder.build(closingParenthesis));
+        return new FunctionCall(this._func, this._args);
+    }
+}
+//#endregion
+//#region formula parts
+class Formula {
+    constructor() {
+        this.parts = [];
+    }
+}
+class PlainTextPart {
+    constructor(tokens) {
+        this.tokens = tokens || [];
+    }
+    evaluate(env) {
+        let output = '';
+        for (var token of this.tokens)
+            output += token.getSourceText();
+        return output;
+    }
+}
+class EvaluablePart {
+    constructor(tokens, evaluable) {
+        this.tokens = tokens;
+        this.evaluable = evaluable;
+    }
+    evaluate(env) {
+        return this.evaluable.evaluate(env).text;
+    }
+}
+//#endregion
+//#region errors
+class KodeParseError extends Error {
+    constructor(prefix, token, message) {
+        super(`${prefix} at index ${token.getStartIndex()}: ${message}`);
+    }
+}
+class KodeSyntaxError extends KodeParseError {
+    constructor(token, message) {
+        super('Syntax error', token, message);
+    }
+}
+class KodeFunctionNotFoundError extends KodeParseError {
+    constructor(token) {
+        super('Function not found', token, `Function with name "${token.getSourceText()}" was not found.`);
+    }
+}
+class UnrecognizedTokenError extends KodeParseError {
+    constructor(token) {
+        super('Unrecognized token', token, `Token "${token.getDescription()}" was not recognized by the parser.`);
+    }
+}
+//#endregion
+class ParsingEnvironment {
+    constructor(...args) {
+        this._functions = {};
+        this._unaryOperators = {};
+        this._binaryOperators = {};
+        this._operatorSymbols = new Set();
+        args.forEach(arg => this.register(arg));
+    }
+    register(arg) {
+        if (arg instanceof IKodeFunction)
+            return this.registerFunction(arg);
+        else if (arg instanceof IUnaryOperator)
+            return this.registerUnaryOperator(arg);
+        else if (arg instanceof IBinaryOperator)
+            return this.registerBinaryOperator(arg);
+        else
+            throw new Error('Attempted to register an unknown object in the parsing environment.');
+    }
+    registerFunction(func) {
+        this._functions[func.getName()] = func;
+        return this;
+    }
+    registerUnaryOperator(operator) {
+        this._unaryOperators[operator.getSymbol()] = operator;
+        this._operatorSymbols.add(operator.getSymbol());
+        return this;
+    }
+    registerBinaryOperator(operator) {
+        this._binaryOperators[operator.getSymbol()] = operator;
+        this._operatorSymbols.add(operator.getSymbol());
+        return this;
+    }
+    findFunction(funcName) {
+        return this._functions[funcName];
+    }
+    findUnaryOperator(symbol) {
+        return this._unaryOperators[symbol];
+    }
+    findBinaryOperator(symbol) {
+        return this._binaryOperators[symbol];
+    }
+    getSortedOperatorSymbols() {
+        return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
+    }
+    static createDefault() {
+        return new ParsingEnvironment(new MathUtilsFunction(), new TimerUtilsFunction(), new DateFormatFunction(), new NegationOperator(), new AdditionOperator(), new SubtractionOperator());
+    }
+}
 class StringCharReader {
     constructor(text) {
         this._text = text;
@@ -19,129 +511,17 @@ class StringCharReader {
         return this._position >= this._text.length;
     }
 }
-class BaseToken {
-    constructor(text, startIndex, endIndex) {
-        this._text = text;
-        this._startIndex = startIndex;
-        this._endIndex = endIndex;
-    }
-    getStringRepresentation() {
-        return this._text;
-    }
-    getStartIndex() {
-        return this._startIndex;
-    }
-    getEndIndex() {
-        return this._endIndex;
-    }
-}
-class PlainTextToken extends BaseToken {
-    constructor(text, startIndex, endIndex) {
-        super(text, startIndex, endIndex);
-    }
-}
-class EscapedDollarSignToken extends BaseToken {
-    constructor(startIndex) {
-        super('$$', startIndex, startIndex + 2);
-    }
-}
-class DollarSignToken extends BaseToken {
-    constructor(startIndex) {
-        super('$', startIndex, startIndex + 1);
-    }
-}
-class OpeningParenthesisToken extends BaseToken {
-    constructor(startIndex) {
-        super('(', startIndex, startIndex + 1);
-    }
-}
-class ClosingParenthesisToken extends BaseToken {
-    constructor(startIndex) {
-        super(')', startIndex, startIndex + 1);
-    }
-}
-class CommaToken extends BaseToken {
-    constructor(startIndex) {
-        super(')', startIndex, startIndex + 1);
-    }
-}
-class UnclosedQuotedValueToken {
-    constructor(text, startIndex, endIndex) {
-        this._text = text;
-        this._startIndex = startIndex;
-        this._endIndex = endIndex;
-    }
-    getText() {
-        return this._text;
-    }
-    getStartIndex() {
-        return this._startIndex;
-    }
-    getEndIndex() {
-        return this._endIndex;
-    }
-    getStringRepresentation() { return `"${this._text}`; }
-}
-class QuotedValueToken {
-    constructor(text, startIndex, endIndex) {
-        this._text = text;
-        this._startIndex = startIndex;
-        this._endIndex = endIndex;
-    }
-    getText() {
-        return this._text;
-    }
-    getStartIndex() {
-        return this._startIndex;
-    }
-    getEndIndex() {
-        return this._endIndex;
-    }
-    getStringRepresentation() { return `"${this._text}"`; }
-}
-class UnquotedValueToken extends BaseToken {
-    constructor(text, startIndex, endIndex) {
-        super(text, startIndex, endIndex);
-    }
-}
-class OperatorToken extends BaseToken {
-    constructor(text, startIndex, endIndex) {
-        super(text, startIndex, endIndex);
-    }
-    is(operatorText) {
-        return this._text === operatorText;
-    }
-}
-class FunctionCallToken {
-    constructor(text, startIndex, endIndex) {
-        this._text = text;
-        this._startIndex = startIndex;
-        this._endIndex = endIndex;
-    }
-    getText() {
-        return this._text;
-    }
-    getStartIndex() {
-        return this._startIndex;
-    }
-    getEndIndex() {
-        return this._endIndex;
-    }
-    getStringRepresentation() { return `${this._text}(`; }
-}
 var KodeineLexerState;
 (function (KodeineLexerState) {
     KodeineLexerState[KodeineLexerState["Default"] = 0] = "Default";
     KodeineLexerState[KodeineLexerState["Kode"] = 1] = "Kode";
 })(KodeineLexerState || (KodeineLexerState = {}));
 class KodeineLexer {
-    constructor(charReader) {
-        this._operators = [
-            '<=', '>=', '!=', '~=', '+', '-', '*', '/', '^', '%', '<', '>', '=', '&', '|'
-        ].sort((op1, op2) => op1.length - op2.length);
-        this._tokenQueue = [];
+    constructor(charReader, operatorSymbols) {
         this._state = KodeineLexerState.Default;
+        this._tokenQueue = [];
         this._charReader = charReader;
+        this._operatorSymbols = operatorSymbols;
     }
     peek(tokenCount) {
         let outTokens;
@@ -209,16 +589,21 @@ class KodeineLexer {
                     buffer += this._charReader.consume(1);
                 }
                 // we read all plain text into the buffer, next run will start with EOF or $
-                return new PlainTextToken(buffer, startIndex, this._charReader.getPosition());
+                return new PlainTextToken(buffer, startIndex);
             }
         }
         else if (this._state === KodeineLexerState.Kode) {
             // we are currently reading kode
-            // read and discard leading whitespace by default
-            while (this._isWhitespace(char)) {
-                char = this._charReader.consume(1);
+            // read leading whitespace
+            if (this._isWhitespace(char)) {
+                let buffer = char;
+                while (!this._charReader.EOF()
+                    && this._isWhitespace(this._charReader.peek(1))) {
+                    buffer += this._charReader.consume(1);
+                }
+                return new WhitespaceToken(buffer, startIndex);
             }
-            if (char === '$') {
+            else if (char === '$') {
                 // encountered a dollar sign - reached formula end
                 this._state = KodeineLexerState.Default;
                 return new DollarSignToken(startIndex);
@@ -243,17 +628,17 @@ class KodeineLexer {
                 if (this._charReader.EOF()) {
                     // we found an unclosed quoted value, which is an error, but we don't throw syntax errors in the lexer
                     // instead we return an unclosed quoted value token and let the parser decide what to do with it
-                    return new UnclosedQuotedValueToken(buffer, startIndex, this._charReader.getPosition());
+                    return new UnclosedQuotedValueToken(buffer, startIndex);
                 }
                 else {
                     // we found a closing quotation mark, consume the ending quote and return a quoted value token
                     this._charReader.consume(1);
-                    return new QuotedValueToken(buffer, startIndex, this._charReader.getPosition());
+                    return new QuotedValueToken(buffer, startIndex);
                 }
             }
             else {
                 // find any operators that match
-                let initiallyMatchingOperators = this._operators.filter(op => op.startsWith(char));
+                let initiallyMatchingOperators = this._operatorSymbols.filter(op => op.startsWith(char));
                 if (initiallyMatchingOperators.length > 0) {
                     // found at least one operator with first char matching
                     // with kustom's default set of operators, there are no two multi-char operators with the same first character
@@ -273,13 +658,13 @@ class KodeineLexer {
                     if (longestMatchingOperator) {
                         // matched an operator
                         this._charReader.consume(longestMatchingOperator.length - 1);
-                        return new OperatorToken(longestMatchingOperator, startIndex, this._charReader.getPosition());
+                        return new OperatorToken(longestMatchingOperator, startIndex);
                     }
                     else {
                         // matched first character of operator, but not the entire operator
                         // with kustom's default set that means we have got a ~ or ! (problematic chars)
                         // those chars basically work like value tokens all by themselves
-                        return new UnquotedValueToken(char, startIndex, this._charReader.getPosition());
+                        return new UnquotedValueToken(char, startIndex);
                     }
                 }
                 else {
@@ -291,18 +676,15 @@ class KodeineLexer {
                         && this._isUnquotedTextChar(this._charReader.peek(1))) {
                         buffer += this._charReader.consume(1);
                     }
-                    // regardless of whether this is a function call or an unquoted value token, we don't want leading or trailing whitespace
-                    buffer = buffer.trim();
-                    let nextChar = this._charReader.peek(1);
-                    if (nextChar === '(') {
-                        // unquoted string ending with ( means a function call
-                        this._charReader.consume(1);
-                        return new FunctionCallToken(buffer, startIndex, this._charReader.getPosition());
+                    // make a trimmed copy of the buffer
+                    let trimmedBuffer = buffer.trim();
+                    if (trimmedBuffer.length < buffer.length) {
+                        // if the trimmed buffer is of different length than the untrimmed buffer,
+                        // there was trailing whitespace, put it in a whitespace token and put that token in the queue
+                        this._enqueueToken(new WhitespaceToken(buffer.substr(trimmedBuffer.length), startIndex + trimmedBuffer.length));
                     }
-                    else {
-                        // regular unquoted string
-                        return new UnquotedValueToken(buffer, startIndex, this._charReader.getPosition());
-                    }
+                    // regular unquoted string
+                    return new UnquotedValueToken(trimmedBuffer, startIndex);
                 }
             }
         }
@@ -319,7 +701,7 @@ class KodeineLexer {
             || char === '"'
             || char === ','
             || char === '$'
-            || this._operators.some(op => op.startsWith(char));
+            || this._operatorSymbols.some(op => op.startsWith(char));
         return !isSpecialChar;
     }
     _enqueueToken(token) {
@@ -329,56 +711,180 @@ class KodeineLexer {
         return this._tokenQueue.shift();
     }
 }
-class PlainTextPart {
-    constructor() {
-        this.tokens = [];
-    }
-    getOutput() {
-        let output = '';
-        for (var token of this.tokens)
-            output += token.getStringRepresentation();
-        return output;
-    }
-}
-//#endregion
-class Formula {
-    constructor() {
-        this.parts = [];
-    }
-}
 var KodeineParserState;
 (function (KodeineParserState) {
     KodeineParserState[KodeineParserState["Default"] = 0] = "Default";
     KodeineParserState[KodeineParserState["Kode"] = 1] = "Kode";
 })(KodeineParserState || (KodeineParserState = {}));
 class KodeineParser {
-    constructor(lexer) {
+    constructor(lexer, env) {
+        this._state = KodeineParserState.Default;
         this._lexer = lexer;
+        this._env = env;
     }
     parse() {
         let formula = new Formula();
+        let tokenBuffer = [];
+        let exprBuilderStack = [];
+        function getPrevNonWhitespaceToken(backIndex = 1) {
+            // start from this index
+            let index = tokenBuffer.length - backIndex;
+            if (index < 0) {
+                // token buffer too small
+                return null;
+            }
+            else {
+                let token = tokenBuffer[index];
+                while (token && token instanceof WhitespaceToken) {
+                    index--;
+                    token = tokenBuffer[index];
+                }
+                return token;
+            }
+        }
+        ;
+        function getLastExprBuilder() {
+            return exprBuilderStack[exprBuilderStack.length - 1];
+        }
         while (!this._lexer.EOF()) {
-            formula.parts.push(this._parseNextPart());
+            // read token
+            let token = this._lexer.consume(1)[0];
+            if (this._state === KodeineParserState.Default) {
+                // we are currently not in a formula
+                if (token instanceof DollarSignToken) {
+                    // this is a dollar sign token, a formula is beginning
+                    this._state = KodeineParserState.Kode;
+                    // add a base expression builder to the stack
+                    exprBuilderStack = [new ExpressionBuilder(this._env)];
+                    if (tokenBuffer.length > 0) {
+                        // we read some plain text tokens before this point, add a plain text part
+                        formula.parts.push(new PlainTextPart(tokenBuffer));
+                        // clear the buffer. no matter what, the dollar sign is not going into the output.
+                        tokenBuffer = [];
+                    }
+                }
+                else {
+                    // add any other token to the buffer
+                    tokenBuffer.push(token);
+                }
+            }
+            else if (this._state === KodeineParserState.Kode) {
+                // we are currently parsing a formula
+                // formula tokens:
+                // WhitespaceToken, OpeningParenthesisToken, ClosingParenthesisToken, CommaToken, UnclosedQuotedValueToken, QuotedValueToken, UnquotedValueToken, OperatorToken
+                if (token instanceof UnquotedValueToken || token instanceof QuotedValueToken) {
+                    // pass the token to the current expression builder and let it throw exceptions if necessary
+                    getLastExprBuilder().addValue(token);
+                }
+                else if (token instanceof OperatorToken) {
+                    // pass the token to the current expression builder and let it throw exceptions if necessary
+                    getLastExprBuilder().addOperator(token);
+                }
+                else if (token instanceof OpeningParenthesisToken) {
+                    // found an opening parenthesis - it's either a subexpression or a function call
+                    // TODO: kustom has some funky behaviour around parentheses:
+                    // empty parentheses don't throw even when the function name is invalid
+                    // asdf() -> asdf
+                    // non-empty parentheses arguments throw
+                    // asdf(2) -> err: null
+                    // a comma not followed by a value throws
+                    // asdf(2,) -> err: argument is missing
+                    // binary operators inside of parentheses work and take whatever is in front of the parenthesis as the second argument
+                    // regardless of which side the operator got a value on
+                    // 1(/2) -> 1/2 -> 0.5
+                    // 1(2/) -> 1/2 -> 0.5
+                    // 1(2-) -> -1
+                    // unary minus with a value gets treated the same as a value, so it throws
+                    // 1(-2) -> err: null
+                    // unary minus without a value works like it was in front of the value before the parenthesis:
+                    // 1(-) -> -1.0
+                    // this behaviour overrides operator precedence:
+                    // 2 / 2 (a +) -> 22a (a got appended first despite / having a higher precedence)
+                    // and it works with subexpressions on the left as well:
+                    // (2 + 2)(a +) -> 4a
+                    // it does not work with following expressions:
+                    // (a+)1 -> err: null
+                    // but if you have an unclosed operator following the parenthesis it works:
+                    // (a)1/ -> 1/a
+                    // when there are multiple operators with missing arguments, the one with the highest precedence gets the value from in front of the parenthesis
+                    // 2(2+/2) -> 2 / 2 + 2 -> 3
+                    // this is probably a bug, but because it doesn't crash or throw, we need to find a way to simulate it
+                    let prevToken = getPrevNonWhitespaceToken();
+                    if (prevToken === null || prevToken instanceof OperatorToken) {
+                        // if there is no previous token or this parenthesis follows an operator,
+                        // the parenthesis starts a subexpression
+                        exprBuilderStack.push(new ExpressionBuilder(this._env));
+                    }
+                    else if (prevToken instanceof UnquotedValueToken) {
+                        // if the previous token is an unquoted value token, interpret this as a function call
+                        // find a function by name
+                        let funcName = prevToken.getSourceText();
+                        let func = this._env.findFunction(funcName);
+                        if (func) {
+                            // found a function call, start a function call builder
+                            exprBuilderStack.push(new FunctionCallBuilder(this._env, func));
+                        }
+                        else {
+                            // function not found, throw
+                            throw new KodeFunctionNotFoundError(prevToken);
+                        }
+                    }
+                    else {
+                        throw new KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${token.getDescription()}.`);
+                    }
+                }
+                else if (token instanceof CommaToken) {
+                    let lastExprBuilder = getLastExprBuilder();
+                    if (lastExprBuilder instanceof FunctionCallBuilder) {
+                        lastExprBuilder.nextArgument(token);
+                    }
+                    else {
+                        throw new KodeSyntaxError(token, `A comma cannot appear outside of function calls.`);
+                    }
+                }
+                else if (token instanceof ClosingParenthesisToken) {
+                    if (exprBuilderStack.length <= 1) {
+                        throw new KodeSyntaxError(token, `Too many closing parentheses.`);
+                    }
+                    else {
+                        let evaluable = exprBuilderStack.pop().build(token);
+                        getLastExprBuilder().addEvaluable(evaluable, token);
+                    }
+                }
+                else if (token instanceof DollarSignToken) {
+                    // a dollar sign token ends the current evaluable part 
+                    if (exprBuilderStack.length > 1) {
+                        throw new KodeSyntaxError(tokenBuffer[tokenBuffer.length - 1], `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
+                    }
+                    formula.parts.push(new EvaluablePart(tokenBuffer, exprBuilderStack.pop().build(token)));
+                    this._state = KodeineParserState.Default;
+                    tokenBuffer = [];
+                }
+                else if (token instanceof UnclosedQuotedValueToken) {
+                    // an unclosed quoted value token causes the entire formula to be treated like plain text,
+                    // except the leading $ gets removed from the output.
+                    this._state = KodeineParserState.Default;
+                    formula.parts.push(new PlainTextPart(tokenBuffer));
+                    tokenBuffer = [];
+                    // there should be no more tokens after an unclosed quoted value token
+                }
+                else if (token instanceof WhitespaceToken) {
+                    // do nothing with whitespace, but don't throw UnrecognizedTokenError
+                }
+                else {
+                    throw new UnrecognizedTokenError(token);
+                }
+                tokenBuffer.push(token);
+            }
+            else {
+                throw new Error('Invalid parser state.');
+            }
+        }
+        if (tokenBuffer.length > 0) {
+            formula.parts.push(new PlainTextPart(tokenBuffer));
+            tokenBuffer = [];
         }
         return formula;
-    }
-    _parseNextPart() {
-        let token = this._lexer.consume(1)[0];
-        if (token instanceof DollarSignToken) {
-            // current token is a dollar sign token
-        }
-        else {
-            // current token is a plain text token or an escaped dollar sign token
-            // we are reading a plain text part until a dollar sign token
-            let plainTextPart = new PlainTextPart();
-            plainTextPart.tokens.push(token);
-            // read any following plain text tokens into the plain text part's token list
-            while (!this._lexer.EOF()
-                && !(this._lexer.peek(1) instanceof DollarSignToken)) {
-                plainTextPart.tokens.push(this._lexer.consume(1)[0]);
-            }
-            return plainTextPart;
-        }
     }
 }
 //#endregion

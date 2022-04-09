@@ -18,29 +18,36 @@ document.addEventListener('DOMContentLoaded', () => {
 function formulaInputEl_input(ev: InputEvent) {
 
     let formulaText = formulaInputEl.value;
+
+    let parsingEnv = ParsingEnvironment.createDefault();
     let charReader = new StringCharReader(formulaText);
-    let lexer = new KodeineLexer(charReader);
+    let lexer = new KodeineLexer(charReader, parsingEnv.getSortedOperatorSymbols());
+    let parser = new KodeineParser(lexer, parsingEnv);
 
-    let tokens: IFormulaToken[] = [];
+    let formula = parser.parse();
+    console.log('parsed formula: ', formula);
 
-    while (!lexer.EOF()) {
-        tokens.push(lexer.consume(1)[0]);
-    }
+    //let tokens: IFormulaToken[] = [];
 
-    let tbody = document.querySelector('tbody');
-    tbody.innerHTML = '';
+    //while (!lexer.EOF()) {
+    //    tokens.push(lexer.consume(1)[0]);
+    //}
 
-    for (var token of tokens) {
+    //let tbody = document.querySelector('tbody');
+    //tbody.innerHTML = '';
 
-        let tr = tmplTokenRow.content.firstElementChild.cloneNode(true) as HTMLTableRowElement;
-        tr.innerHTML = tr.innerHTML
-            .replace('[token_type]', token.constructor.name.replace('Token', ''))
-            .replace('[token_text]', token.getStringRepresentation())
-            .replace('[start_index]', token.getStartIndex().toString())
-            .replace('[end_index]', token.getEndIndex().toString());
+    //for (var token of tokens) {
 
-        tbody.appendChild(tr);
-    }
+    //    let tr = tmplTokenRow.content.firstElementChild.cloneNode(true) as HTMLTableRowElement;
+    //    tr.innerHTML = tr.innerHTML
+    //        .replace('[token_type]', token.constructor.name.replace('Token', ''))
+    //        .replace('[token_text]', token.getSourceText())
+    //        .replace('[start_index]', token.getStartIndex().toString())
+    //        .replace('[end_index]', token.getEndIndex().toString());
 
-    console.log(tokens);
+    //    tbody.appendChild(tr);
+    //}
+
+    //console.log(tokens);
+    
 }
