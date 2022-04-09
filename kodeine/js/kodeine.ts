@@ -175,8 +175,197 @@ abstract class IKodeFunction {
 }
 
 
+class LocationInfoFunction extends IKodeFunction {
+    getName() { return 'li'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class AirQualityFunction extends IKodeFunction {
+    getName() { return 'aq'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class NetworkConnectivityFunction extends IKodeFunction {
+    getName() { return 'nc'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class SystemNotificationsFunction extends IKodeFunction {
+    getName() { return 'ni'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class TextConverterFunction extends IKodeFunction {
+    getName() { return 'tc'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class WebGetFunction extends IKodeFunction {
+    getName() { return 'wg'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class ResourceMonitorFunction extends IKodeFunction {
+    getName() { return 'rm'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class ColorEditorFunction extends IKodeFunction {
+    getName() { return 'ce'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class GlobalVariableFunction extends IKodeFunction {
+    getName() { return 'gv'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class ShellCommandFunction extends IKodeFunction {
+    getName() { return 'sh'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class CurrentWeatherFunction extends IKodeFunction {
+    getName() { return 'wi'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class BatteryInfoFunction extends IKodeFunction {
+    getName() { return 'bi'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class SystemInfoFunction extends IKodeFunction {
+    getName() { return 'si'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class IfFunction extends IKodeFunction {
+    getName() { return 'if'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class MusicQueueFunction extends IKodeFunction {
+    getName() { return 'mq'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class TrafficStatsFunction extends IKodeFunction {
+    getName() { return 'ts'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class BitmapPaletteFunction extends IKodeFunction {
+    getName() { return 'bp'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class ColorMakerFunction extends IKodeFunction {
+    getName() { return 'cm'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class BroadcastReceiverFunction extends IKodeFunction {
+    getName() { return 'br'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class ForLoopFunction extends IKodeFunction {
+    getName() { return 'fl'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
 class DateFormatFunction extends IKodeFunction {
     getName() { return 'df'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class MusicInfoFunction extends IKodeFunction {
+    getName() { return 'mi'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class WeatherForecastFunction extends IKodeFunction {
+    getName() { return 'wf'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class TimeSpanFunction extends IKodeFunction {
+    getName() { return 'tf'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class UnreadCounterFunction extends IKodeFunction {
+    getName() { return 'uc'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class CalendarEventFunction extends IKodeFunction {
+    getName() { return 'ci'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class AstronomicalInfoFunction extends IKodeFunction {
+    getName() { return 'ai'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
+class FitnessDataFunction extends IKodeFunction {
+    getName() { return 'fd'; }
     call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
         throw new Error('Not implemented.');
     }
@@ -189,13 +378,19 @@ class MathUtilsFunction extends IKodeFunction {
     }
 }
 
+class DateParserFunction extends IKodeFunction {
+    getName() { return 'dp'; }
+    call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
+        throw new Error('Not implemented.');
+    }
+}
+
 class TimerUtilsFunction extends IKodeFunction {
     getName() { return 'tu'; }
     call(env: EvaluationEnvironment, args: KodeValue[]): KodeValue {
         throw new Error('Not implemented.');
     }
 }
-
 
 //#endregion
 
@@ -232,10 +427,57 @@ abstract class IBinaryOperator {
     abstract operation(a: KodeValue, b: KodeValue): KodeValue;
 }
 
+// operator precedence values:
+// 5    ^
+// 4    * / %
+// 3    + -
+// 2    = != < > <= >= ~=
+// 1    | &
+
+
+// 5
+
+class ExponentiationOperator extends IBinaryOperator {
+    getSymbol() { return '^'; }
+    getPrecedence() { return 5; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+
+// 4
+
+class MultiplicationOperator extends IBinaryOperator {
+    getSymbol() { return '*'; }
+    getPrecedence() { return 4; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class DivisionOperator extends IBinaryOperator {
+    getSymbol() { return '/'; }
+    getPrecedence() { return 4; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class ModuloOperator extends IBinaryOperator {
+    getSymbol() { return '%'; }
+    getPrecedence() { return 4; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+
+// 3
 
 class AdditionOperator extends IBinaryOperator {
     getSymbol() { return '+'; }
-    getPrecedence() { return 1; }
+    getPrecedence() { return 3; }
     operation(a: KodeValue, b: KodeValue): KodeValue {
         throw new Error("Method not implemented.");
     }
@@ -243,11 +485,90 @@ class AdditionOperator extends IBinaryOperator {
 
 class SubtractionOperator extends IBinaryOperator {
     getSymbol() { return '-'; }
+    getPrecedence() { return 3; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+
+// 2
+
+class EqualityOperator extends IBinaryOperator {
+    getSymbol() { return '='; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class InequalityOperator extends IBinaryOperator {
+    getSymbol() { return '!='; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class LesserThanOperator extends IBinaryOperator {
+    getSymbol() { return '<'; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class GreaterThanOperator extends IBinaryOperator {
+    getSymbol() { return '>'; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class LesserThanOrEqualToOperator extends IBinaryOperator {
+    getSymbol() { return '<='; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class GreaterThanOrEqualToOperator extends IBinaryOperator {
+    getSymbol() { return '>='; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+class RegexMatchOperator extends IBinaryOperator {
+    getSymbol() { return '~='; }
+    getPrecedence() { return 2; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
+
+// 1
+
+class LogicalOrOperator extends IBinaryOperator {
+    getSymbol() { return '|'; }
     getPrecedence() { return 1; }
     operation(a: KodeValue, b: KodeValue): KodeValue {
         throw new Error("Method not implemented.");
     }
 }
+
+class LogicalAndOperator extends IBinaryOperator {
+    getSymbol() { return '&'; }
+    getPrecedence() { return 1; }
+    operation(a: KodeValue, b: KodeValue): KodeValue {
+        throw new Error("Method not implemented.");
+    }
+}
+
 
 //#endregion
 
@@ -771,14 +1092,68 @@ class ParsingEnvironment {
 
     static createDefault(): ParsingEnvironment {
         return new ParsingEnvironment(
-            new MathUtilsFunction(),
-            new TimerUtilsFunction(),
+
+            // functions
+
+            new LocationInfoFunction(),
+            new AirQualityFunction(),
+            new NetworkConnectivityFunction(),
+            new SystemNotificationsFunction(),
+            new TextConverterFunction(),
+            new WebGetFunction(),
+            new ResourceMonitorFunction(),
+            new ColorEditorFunction(),
+            new GlobalVariableFunction(),
+            new ShellCommandFunction(),
+            new CurrentWeatherFunction(),
+            new BatteryInfoFunction(),
+            new SystemInfoFunction(),
+            new IfFunction(),
+            new MusicQueueFunction(),
+            new TrafficStatsFunction(),
+            new BitmapPaletteFunction(),
+            new ColorMakerFunction(),
+            new BroadcastReceiverFunction(),
+            new ForLoopFunction(),
             new DateFormatFunction(),
+            new MusicInfoFunction(),
+            new WeatherForecastFunction(),
+            new TimeSpanFunction(),
+            new UnreadCounterFunction(),
+            new CalendarEventFunction(),
+            new AstronomicalInfoFunction(),
+            new FitnessDataFunction(),
+            new MathUtilsFunction(),
+            new DateParserFunction(),
+            new TimerUtilsFunction(),
+
+
+            // unary operators
 
             new NegationOperator(),
 
+
+            // binary operators
+
+            new ExponentiationOperator(),
+
+            new MultiplicationOperator(),
+            new DivisionOperator(),
+            new ModuloOperator(),
+
             new AdditionOperator(),
-            new SubtractionOperator()
+            new SubtractionOperator(),
+
+            new EqualityOperator(),
+            new InequalityOperator(),
+            new LesserThanOperator(),
+            new GreaterThanOperator(),
+            new LesserThanOrEqualToOperator(),
+            new GreaterThanOrEqualToOperator(),
+            new RegexMatchOperator(),
+
+            new LogicalOrOperator(),
+            new LogicalAndOperator()
         );
     }
 }

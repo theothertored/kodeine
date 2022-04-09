@@ -111,14 +111,182 @@ class OperatorToken extends BaseToken {
 //#region functions
 class IKodeFunction {
 }
+class LocationInfoFunction extends IKodeFunction {
+    getName() { return 'li'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class AirQualityFunction extends IKodeFunction {
+    getName() { return 'aq'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class NetworkConnectivityFunction extends IKodeFunction {
+    getName() { return 'nc'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class SystemNotificationsFunction extends IKodeFunction {
+    getName() { return 'ni'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class TextConverterFunction extends IKodeFunction {
+    getName() { return 'tc'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class WebGetFunction extends IKodeFunction {
+    getName() { return 'wg'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class ResourceMonitorFunction extends IKodeFunction {
+    getName() { return 'rm'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class ColorEditorFunction extends IKodeFunction {
+    getName() { return 'ce'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class GlobalVariableFunction extends IKodeFunction {
+    getName() { return 'gv'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class ShellCommandFunction extends IKodeFunction {
+    getName() { return 'sh'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class CurrentWeatherFunction extends IKodeFunction {
+    getName() { return 'wi'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class BatteryInfoFunction extends IKodeFunction {
+    getName() { return 'bi'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class SystemInfoFunction extends IKodeFunction {
+    getName() { return 'si'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class IfFunction extends IKodeFunction {
+    getName() { return 'if'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class MusicQueueFunction extends IKodeFunction {
+    getName() { return 'mq'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class TrafficStatsFunction extends IKodeFunction {
+    getName() { return 'ts'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class BitmapPaletteFunction extends IKodeFunction {
+    getName() { return 'bp'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class ColorMakerFunction extends IKodeFunction {
+    getName() { return 'cm'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class BroadcastReceiverFunction extends IKodeFunction {
+    getName() { return 'br'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class ForLoopFunction extends IKodeFunction {
+    getName() { return 'fl'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
 class DateFormatFunction extends IKodeFunction {
     getName() { return 'df'; }
     call(env, args) {
         throw new Error('Not implemented.');
     }
 }
+class MusicInfoFunction extends IKodeFunction {
+    getName() { return 'mi'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class WeatherForecastFunction extends IKodeFunction {
+    getName() { return 'wf'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class TimeSpanFunction extends IKodeFunction {
+    getName() { return 'tf'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class UnreadCounterFunction extends IKodeFunction {
+    getName() { return 'uc'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class CalendarEventFunction extends IKodeFunction {
+    getName() { return 'ci'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class AstronomicalInfoFunction extends IKodeFunction {
+    getName() { return 'ai'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class FitnessDataFunction extends IKodeFunction {
+    getName() { return 'fd'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
 class MathUtilsFunction extends IKodeFunction {
     getName() { return 'mu'; }
+    call(env, args) {
+        throw new Error('Not implemented.');
+    }
+}
+class DateParserFunction extends IKodeFunction {
+    getName() { return 'dp'; }
     call(env, args) {
         throw new Error('Not implemented.');
     }
@@ -143,15 +311,117 @@ class NegationOperator extends IUnaryOperator {
 //#region binary operators
 class IBinaryOperator {
 }
+// operator precedence values:
+// 5    ^
+// 4    * / %
+// 3    + -
+// 2    = != < > <= >= ~=
+// 1    | &
+// 5
+class ExponentiationOperator extends IBinaryOperator {
+    getSymbol() { return '^'; }
+    getPrecedence() { return 5; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+// 4
+class MultiplicationOperator extends IBinaryOperator {
+    getSymbol() { return '*'; }
+    getPrecedence() { return 4; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class DivisionOperator extends IBinaryOperator {
+    getSymbol() { return '/'; }
+    getPrecedence() { return 4; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class ModuloOperator extends IBinaryOperator {
+    getSymbol() { return '%'; }
+    getPrecedence() { return 4; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+// 3
 class AdditionOperator extends IBinaryOperator {
     getSymbol() { return '+'; }
-    getPrecedence() { return 1; }
+    getPrecedence() { return 3; }
     operation(a, b) {
         throw new Error("Method not implemented.");
     }
 }
 class SubtractionOperator extends IBinaryOperator {
     getSymbol() { return '-'; }
+    getPrecedence() { return 3; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+// 2
+class EqualityOperator extends IBinaryOperator {
+    getSymbol() { return '='; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class InequalityOperator extends IBinaryOperator {
+    getSymbol() { return '!='; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class LesserThanOperator extends IBinaryOperator {
+    getSymbol() { return '<'; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class GreaterThanOperator extends IBinaryOperator {
+    getSymbol() { return '>'; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class LesserThanOrEqualToOperator extends IBinaryOperator {
+    getSymbol() { return '<='; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class GreaterThanOrEqualToOperator extends IBinaryOperator {
+    getSymbol() { return '>='; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class RegexMatchOperator extends IBinaryOperator {
+    getSymbol() { return '~='; }
+    getPrecedence() { return 2; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+// 1
+class LogicalOrOperator extends IBinaryOperator {
+    getSymbol() { return '|'; }
+    getPrecedence() { return 1; }
+    operation(a, b) {
+        throw new Error("Method not implemented.");
+    }
+}
+class LogicalAndOperator extends IBinaryOperator {
+    getSymbol() { return '&'; }
     getPrecedence() { return 1; }
     operation(a, b) {
         throw new Error("Method not implemented.");
@@ -487,7 +757,13 @@ class ParsingEnvironment {
         return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
     }
     static createDefault() {
-        return new ParsingEnvironment(new MathUtilsFunction(), new TimerUtilsFunction(), new DateFormatFunction(), new NegationOperator(), new AdditionOperator(), new SubtractionOperator());
+        return new ParsingEnvironment(
+        // functions
+        new LocationInfoFunction(), new AirQualityFunction(), new NetworkConnectivityFunction(), new SystemNotificationsFunction(), new TextConverterFunction(), new WebGetFunction(), new ResourceMonitorFunction(), new ColorEditorFunction(), new GlobalVariableFunction(), new ShellCommandFunction(), new CurrentWeatherFunction(), new BatteryInfoFunction(), new SystemInfoFunction(), new IfFunction(), new MusicQueueFunction(), new TrafficStatsFunction(), new BitmapPaletteFunction(), new ColorMakerFunction(), new BroadcastReceiverFunction(), new ForLoopFunction(), new DateFormatFunction(), new MusicInfoFunction(), new WeatherForecastFunction(), new TimeSpanFunction(), new UnreadCounterFunction(), new CalendarEventFunction(), new AstronomicalInfoFunction(), new FitnessDataFunction(), new MathUtilsFunction(), new DateParserFunction(), new TimerUtilsFunction(), 
+        // unary operators
+        new NegationOperator(), 
+        // binary operators
+        new ExponentiationOperator(), new MultiplicationOperator(), new DivisionOperator(), new ModuloOperator(), new AdditionOperator(), new SubtractionOperator(), new EqualityOperator(), new InequalityOperator(), new LesserThanOperator(), new GreaterThanOperator(), new LesserThanOrEqualToOperator(), new GreaterThanOrEqualToOperator(), new RegexMatchOperator(), new LogicalOrOperator(), new LogicalAndOperator());
     }
 }
 class EvaluationEnvironment {
