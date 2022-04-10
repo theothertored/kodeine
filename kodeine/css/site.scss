@@ -53,12 +53,13 @@ main {
         }
     }
 
-    output:empty:before {
-        content: " ";
-    }
-
     output {
         white-space: pre;
+        font-family: monospace;
+
+        &:empty:before {
+        content: " ";
+        }
     }
 }
 

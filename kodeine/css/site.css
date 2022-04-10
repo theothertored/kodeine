@@ -36,10 +36,11 @@ main {
       outline: none;
       width: 100%;
       padding: 8px 8px; }
-  .field output:empty:before {
-    content: " "; }
   .field output {
-    white-space: pre; }
+    white-space: pre;
+    font-family: monospace; }
+    .field output:empty:before {
+      content: " "; }
 
 textarea {
   width: 100%;

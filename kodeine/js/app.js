@@ -2,6 +2,7 @@ const initialFormula = '$2 + 2$';
 var formulaInputEl;
 var formulaErrorEl;
 var evaluationOutputEl;
+var evaluationStepsEl;
 var btnDoIt;
 var tmplTokenRow;
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnDoIt.addEventListener('click', formulaInputEl_input);
     tmplTokenRow = document.getElementById('tmpl_token_row');
     evaluationOutputEl = document.getElementById('evaluation_output');
+    evaluationStepsEl = document.getElementById('evaluation_steps');
 });
 function formulaInputEl_input(ev) {
     let formulaText = formulaInputEl.value;
@@ -26,6 +28,36 @@ function formulaInputEl_input(ev) {
         console.log('parsed formula: ', formula);
         let evaluationEnv = new EvaluationEnvironment();
         evaluationOutputEl.value = formula.evaluateToString(evaluationEnv);
+        let log = '';
+        function logLine(line = '') {
+            log += line + '\n';
+            console.log(line);
+        }
+        console.groupCollapsed('EVALUATION STEPS:');
+        for (var formulaPart of formula.parts) {
+            if (formulaPart instanceof PlainTextPart) {
+                logLine(`Output text: "${formulaPart.evaluateToString(evaluationEnv)}"`);
+            }
+            else if (formulaPart instanceof EvaluatedPart) {
+                let evaluatedPartStartIndex = formulaPart.tokens[0].getStartIndex();
+                let evaluatedPartEndIndex = formulaPart.tokens[formulaPart.tokens.length - 1].getEndIndex();
+                let evaluatedPartText = formulaText.substring(evaluatedPartStartIndex, evaluatedPartEndIndex);
+                logLine();
+                logLine(`Evaluate kode:`);
+                logLine(`  Step ${0}/${formulaPart.lastEvaluationSteps.length - 1}: ${evaluatedPartText}`);
+                for (var i = 0; i < formulaPart.lastEvaluationSteps.length - 1; i++) {
+                    let step = formulaPart.lastEvaluationSteps[i];
+                    let beforeEvaluableFormulaText = evaluatedPartText.substr(0, step.evaluable.source.startIndex - evaluatedPartStartIndex);
+                    let afterEvaluableFormulaText = evaluatedPartText.substr(step.evaluable.source.endIndex - evaluatedPartStartIndex);
+                    logLine(`  Step ${i + 1}/${formulaPart.lastEvaluationSteps.length - 1}: ${beforeEvaluableFormulaText + step.value.text + afterEvaluableFormulaText}`);
+                }
+                let finalStep = formulaPart.lastEvaluationSteps[formulaPart.lastEvaluationSteps.length - 1];
+                logLine(`Output kode result: ${finalStep.value.text}`);
+                logLine();
+            }
+        }
+        console.groupEnd();
+        evaluationStepsEl.value = log;
     }
     catch (error) {
         if (error instanceof KodeParseError || error instanceof EvaluationError) {

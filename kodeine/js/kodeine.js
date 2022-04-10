@@ -488,10 +488,30 @@ class LogicalAndOperator extends TwoModeBinaryOperator {
 //#endregion
 //#region evaluables
 class IEvaluable {
+    constructor(source) {
+        this.source = source;
+    }
+    evaluate(env) {
+        let value = this._evaluate(env);
+        // log evaluations (but don't log evaluate calls on KodeValue)
+        if (!(this instanceof KodeValue))
+            env.logEvaluation(this, value);
+        return value;
+    }
+}
+class EvaluableSource {
+    constructor(startIndex, endIndex, ...tokens) {
+        this.startIndex = startIndex;
+        this.endIndex = endIndex;
+        this.tokens = tokens;
+    }
+    static fromToken(token) {
+        return new EvaluableSource(token.getStartIndex(), token.getEndIndex(), token);
+    }
 }
 class KodeValue extends IEvaluable {
     constructor(value, source) {
-        super();
+        super(source);
         if (typeof value === 'boolean') {
             this.numericValue = value ? 1 : 0;
             this.text = this.numericValue.toString();
@@ -507,50 +527,92 @@ class KodeValue extends IEvaluable {
             this.text = value.toString();
             this.isNumeric = true;
         }
-        this.source = source;
     }
-    evaluate(env) {
+    _evaluate(env) {
         return this;
     }
     static fromToken(token) {
-        return new KodeValue(token.getValue(), token);
+        return new KodeValue(token.getValue(), EvaluableSource.fromToken(token));
     }
 }
 class FunctionCall extends IEvaluable {
-    constructor(func, args) {
-        super();
+    constructor(func, args, source) {
+        super(source);
         this.func = func;
         this.args = args;
     }
-    evaluate(env) {
-        return this.func.call(env, this.args.map(a => a.evaluate(env)));
+    _evaluate(env) {
+        let kodeVal = this.func.call(env, this.args.map(a => a.evaluate(env)));
+        // the value resulting from this function call should have the same source as the operation
+        kodeVal.source = this.source;
+        return kodeVal;
     }
 }
 class BinaryOperation extends IEvaluable {
-    constructor(operator, argA, argB) {
-        super();
+    constructor(operator, argA, argB, source) {
+        super(source);
         this.operator = operator;
         this.argA = argA;
         this.argB = argB;
     }
-    evaluate(env) {
-        return this.operator.operation(this.argA.evaluate(env), this.argB.evaluate(env));
+    _evaluate(env) {
+        let kodeVal = this.operator.operation(this.argA.evaluate(env), this.argB.evaluate(env));
+        // the value resulting from this operation should have the same source as the operation 
+        kodeVal.source = this.source;
+        return kodeVal;
     }
 }
 class UnaryOperation extends IEvaluable {
-    constructor(operator, arg) {
-        super();
+    constructor(operator, arg, source) {
+        super(source);
         this.operator = operator;
         this.arg = arg;
     }
-    evaluate(env) {
+    _evaluate(env) {
         return this.operator.operation(this.arg.evaluate(env));
     }
 }
+class Expression extends IEvaluable {
+    constructor(evaluable, source) {
+        super(source);
+        this.evaluable = evaluable;
+    }
+    _evaluate(env) {
+        return this.evaluable.evaluate(env);
+    }
+}
+//#endregion
+//#region builders
+class OperatorOccurence {
+    constructor(token) {
+        this.token = token;
+    }
+}
+class UnaryOperatorOccurence extends OperatorOccurence {
+    constructor(operator, token) {
+        super(token);
+        this.operator = operator;
+    }
+}
+class BinaryOperatorOccurence extends OperatorOccurence {
+    constructor(operator, token) {
+        super(token);
+        this.operator = operator;
+    }
+}
+class FunctionOccurence {
+    constructor(func, funcNameToken, openingParenthesisToken) {
+        this.funcNameToken = funcNameToken;
+        this.openingParenthesisToken = openingParenthesisToken;
+        this.func = func;
+    }
+}
 class ExpressionBuilder {
-    constructor(env) {
+    constructor(env, includeSurroundingTokens, ...startingTokens) {
         this._elements = [];
         this._env = env;
+        this._includeSurroundingTokens = includeSurroundingTokens;
+        this._startingTokens = startingTokens;
     }
     _getLastElement() {
         return this._elements[this._elements.length - 1];
@@ -563,24 +625,24 @@ class ExpressionBuilder {
         }
         this._elements.push(KodeValue.fromToken(token));
     }
-    addEvaluable(evaluable, token) {
+    addEvaluable(evaluable) {
         let lastElement = this._getLastElement();
         if (lastElement instanceof IEvaluable) {
             // cannot have two values one after another
-            throw new KodeSyntaxError(token, 'A value cannot follow another value.');
+            throw new KodeSyntaxError(evaluable.source.tokens[0], 'A value cannot follow another value.');
         }
         this._elements.push(evaluable);
     }
     addOperator(token) {
         let lastElement = this._getLastElement();
         let tokenShouldBeUnaryOperator = !lastElement
-            || lastElement instanceof IBinaryOperator
-            || lastElement instanceof IUnaryOperator;
+            || lastElement instanceof BinaryOperatorOccurence
+            || lastElement instanceof UnaryOperatorOccurence;
         if (tokenShouldBeUnaryOperator) {
             let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
             if (unaryOperator) {
                 // found an unary operator
-                this._elements.push(unaryOperator);
+                this._elements.push(new UnaryOperatorOccurence(unaryOperator, token));
             }
             else {
                 // unary operator not found
@@ -599,7 +661,7 @@ class ExpressionBuilder {
             // token should be a binary operator
             let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
             if (binaryOperator) {
-                this._elements.push(binaryOperator);
+                this._elements.push(new BinaryOperatorOccurence(binaryOperator, token));
             }
             else {
                 // binary operator not found
@@ -623,125 +685,134 @@ class ExpressionBuilder {
             // empty parentheses - throw
             throw new KodeSyntaxError(closingToken, 'Empty expression.');
         }
-        else if (this._elements.length === 1) {
-            // only one element in the parentheses
-            let onlyElement = this._elements[0];
-            if (onlyElement instanceof IEvaluable) {
-                return onlyElement;
+        else {
+            let finalElement;
+            if (this._elements.length === 1) {
+                // only one element in the parentheses
+                finalElement = this._elements[0];
             }
             else {
-                throw new KodeSyntaxError(closingToken, `Expression cannot consist of only the "${onlyElement.getSymbol()}" operator.`);
-            }
-        }
-        else {
-            // multiple elements - construct operations
-            // first pass - collapse any unary operators to IEvaluables
-            for (var i = 0; i < this._elements.length; i++) {
-                let element = this._elements[i];
-                if (element instanceof IUnaryOperator) {
-                    // if we encountered an unary operator, take every unary operator immediately following it
-                    // and the value after all those unary operators and collapse them all into one evaluable
-                    let firstElI = i; // the index of the first unary operator in the chain
-                    let unaryOpStack = [element];
-                    // start a second loop using the same i variable
-                    for (i = i + 1; i < this._elements.length; i++) {
-                        element = this._elements[i];
-                        if (element instanceof IUnaryOperator) {
-                            // add all unary operators to the stack
-                            unaryOpStack.push(element);
-                        }
-                        else if (element instanceof IEvaluable) {
-                            // if we encountered a value, we need to collapse the entire stack + value into a tree
-                            // basically like this: UnaryOperation(UnaryOperation(IEvaluable))
-                            let unaryOpCount = unaryOpStack.length;
-                            let evaluable = element;
-                            while (unaryOpStack.length > 0) {
-                                // apply operations in a reverse order by popping the stack
-                                let unaryOp = unaryOpStack.pop();
-                                evaluable = new UnaryOperation(unaryOp, evaluable);
-                            }
-                            // replace array elements from first unary operator to last + 1, meaning replace the value too
-                            this._elements.splice(firstElI, unaryOpCount + 1, evaluable);
-                            // reset i to pretend this collapse didn't happen
-                            i = firstElI;
-                            // exit this loop
-                            break;
-                        }
-                        else {
-                            // this should never happen since we're checking for it when adding operators.
-                            throw new KodeSyntaxError(closingToken, `Binary operator cannot follow an unary operator.`);
-                        }
-                    }
-                }
-            }
-            // after the first pass we should only be left with binary operators and evaluables
-            // second pass - determine the order of operations for binary operators and collapse them in the proper order
-            while (this._elements.length > 1) {
-                // step 1: find binary operator with the highest precedence
-                let maxPrecedence = -1;
-                let maxPrecedenceI = -1;
+                // multiple elements - construct operations
+                // first pass - collapse any unary operators to IEvaluables
                 for (var i = 0; i < this._elements.length; i++) {
                     let element = this._elements[i];
-                    if (element instanceof IBinaryOperator) {
-                        if (element.getPrecedence() > maxPrecedence) {
-                            maxPrecedence = element.getPrecedence();
-                            maxPrecedenceI = i;
+                    if (element instanceof UnaryOperatorOccurence) {
+                        // if we encountered an unary operator, take every unary operator immediately following it
+                        // and the value after all those unary operators and collapse them all into one evaluable
+                        let firstElI = i; // the index of the first unary operator in the chain
+                        let unaryOpStack = [element];
+                        // start a second loop using the same i variable
+                        for (i = i + 1; i < this._elements.length; i++) {
+                            element = this._elements[i];
+                            if (element instanceof UnaryOperatorOccurence) {
+                                // add all unary operators to the stack
+                                unaryOpStack.push(element);
+                            }
+                            else if (element instanceof IEvaluable) {
+                                // if we encountered a value, we need to collapse the entire stack + value into a tree
+                                // basically like this: UnaryOperation(UnaryOperation(IEvaluable))
+                                let unaryOpCount = unaryOpStack.length;
+                                let evaluable = element;
+                                while (unaryOpStack.length > 0) {
+                                    // apply operations in a reverse order by popping the stack
+                                    let unaryOpOccurence = unaryOpStack.pop();
+                                    evaluable = new UnaryOperation(unaryOpOccurence.operator, evaluable, new EvaluableSource(unaryOpOccurence.token.getStartIndex(), evaluable.source.endIndex, unaryOpOccurence.token, ...evaluable.source.tokens));
+                                }
+                                // replace array elements from first unary operator to last + 1, meaning replace the value too
+                                this._elements.splice(firstElI, unaryOpCount + 1, evaluable);
+                                // reset i to pretend this collapse didn't happen
+                                i = firstElI;
+                                // exit this loop
+                                break;
+                            }
+                            else {
+                                // this should never happen since we're checking for it when adding operators.
+                                throw new KodeSyntaxError(closingToken, `Binary operator cannot follow an unary operator.`);
+                            }
                         }
                     }
                 }
-                if (maxPrecedenceI === -1) {
-                    // this should never happen
-                    throw new KodeSyntaxError(closingToken, 'No binary operators found in the expression.');
-                }
-                else {
-                    let operator = this._elements[maxPrecedenceI];
-                    if (maxPrecedenceI === 0 || !(this._elements[maxPrecedenceI - 1] instanceof IEvaluable)) {
-                        throw new KodeSyntaxError(closingToken, `Left hand side argument for binary operator "${operator.getSymbol()}" missing.`);
+                // after the first pass we should only be left with binary operators and evaluables
+                // second pass - determine the order of operations for binary operators and collapse them in the proper order
+                while (this._elements.length > 1) {
+                    // step 1: find binary operator with the highest precedence
+                    let maxPrecedence = -1;
+                    let maxPrecedenceI = -1;
+                    for (var i = 0; i < this._elements.length; i++) {
+                        let element = this._elements[i];
+                        if (element instanceof BinaryOperatorOccurence) {
+                            if (element.operator.getPrecedence() > maxPrecedence) {
+                                maxPrecedence = element.operator.getPrecedence();
+                                maxPrecedenceI = i;
+                            }
+                        }
                     }
-                    else if (maxPrecedenceI === this._elements.length - 1 || !(this._elements[maxPrecedenceI + 1] instanceof IEvaluable)) {
-                        throw new KodeSyntaxError(closingToken, `Right hand side argument for binary operator "${operator.getSymbol()}" missing.`);
+                    if (maxPrecedenceI === -1) {
+                        // this should never happen
+                        throw new KodeSyntaxError(closingToken, 'No binary operators found in the expression.');
                     }
                     else {
-                        // collapse the operator and its two arguments into a one evaluable binary operation
-                        let a = this._elements[maxPrecedenceI - 1];
-                        let b = this._elements[maxPrecedenceI + 1];
-                        let operation = new BinaryOperation(operator, a, b);
-                        this._elements.splice(maxPrecedenceI - 1, 3, operation);
-                        // reset i like this collapse never happened
-                        i = maxPrecedenceI - 1;
+                        let opOccurence = this._elements[maxPrecedenceI];
+                        if (maxPrecedenceI === 0 || !(this._elements[maxPrecedenceI - 1] instanceof IEvaluable)) {
+                            throw new KodeSyntaxError(closingToken, `Left hand side argument for binary operator "${opOccurence.operator.getSymbol()}" missing.`);
+                        }
+                        else if (maxPrecedenceI === this._elements.length - 1 || !(this._elements[maxPrecedenceI + 1] instanceof IEvaluable)) {
+                            throw new KodeSyntaxError(closingToken, `Right hand side argument for binary operator "${opOccurence.operator.getSymbol()}" missing.`);
+                        }
+                        else {
+                            // collapse the operator and its two arguments into a one evaluable binary operation
+                            let a = this._elements[maxPrecedenceI - 1];
+                            let b = this._elements[maxPrecedenceI + 1];
+                            let operation = new BinaryOperation(opOccurence.operator, a, b, new EvaluableSource(a.source.startIndex, b.source.endIndex, ...a.source.tokens, opOccurence.token, ...b.source.tokens));
+                            this._elements.splice(maxPrecedenceI - 1, 3, operation);
+                            // reset i like this collapse never happened
+                            i = maxPrecedenceI - 1;
+                        }
                     }
                 }
+                // after the second pass there should only be one element, being an instance of IEvaluable, so we succeeded
+                finalElement = this._elements[0];
             }
-            // after the second pass there should only be one element, being an instance of IEvaluable, so we succeeded
-            return this._elements[0];
+            if (finalElement instanceof IEvaluable) {
+                return new Expression(finalElement, this._includeSurroundingTokens
+                    ? new EvaluableSource(this._startingTokens[0].getStartIndex(), closingToken.getEndIndex(), ...this._startingTokens, ...finalElement.source.tokens)
+                    : new EvaluableSource(this._startingTokens[0].getStartIndex(), closingToken.getEndIndex(), ...finalElement.source.tokens));
+            }
+            else {
+                throw new KodeSyntaxError(closingToken, `Expression cannot consist of only the "${finalElement.operator.getSymbol()}" operator.`);
+            }
         }
     }
 }
 class FunctionCallBuilder extends ExpressionBuilder {
-    constructor(env, func) {
-        super(env);
+    constructor(env, funcOccurence) {
+        super(env, true, funcOccurence.funcNameToken, funcOccurence.openingParenthesisToken);
+        this._argTokens = [];
         this._args = [];
-        this._func = func;
-        this._currentArgumentBuilder = new ExpressionBuilder(env);
+        this._funcOccurence = funcOccurence;
+        this._currentArgumentBuilder = new ExpressionBuilder(env, false, funcOccurence.openingParenthesisToken);
     }
     addValue(token) {
+        this._argTokens.push(token);
         this._currentArgumentBuilder.addValue(token);
     }
     addOperator(token) {
+        this._argTokens.push(token);
         this._currentArgumentBuilder.addOperator(token);
     }
     nextArgument(comma) {
+        this._argTokens.push(comma);
         this._args.push(this._currentArgumentBuilder.build(comma));
-        this._currentArgumentBuilder = new ExpressionBuilder(this._env);
+        this._currentArgumentBuilder = new ExpressionBuilder(this._env, false, comma);
     }
-    build(closingParenthesis) {
+    build(closingToken) {
         if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
             // allow for a function call with no arguments
-            return new FunctionCall(this._func, this._args);
+            return new FunctionCall(this._funcOccurence.func, this._args);
         }
         else {
-            this._args.push(this._currentArgumentBuilder.build(closingParenthesis));
-            return new FunctionCall(this._func, this._args);
+            this._args.push(this._currentArgumentBuilder.build(closingToken));
+            return new FunctionCall(this._funcOccurence.func, this._args, new EvaluableSource(this._funcOccurence.funcNameToken.getStartIndex(), closingToken.getEndIndex(), this._funcOccurence.funcNameToken, this._funcOccurence.openingParenthesisToken, ...this._argTokens, closingToken));
         }
     }
 }
@@ -770,13 +841,18 @@ class PlainTextPart {
         return output;
     }
 }
-class EvaluablePart {
+class EvaluatedPart {
     constructor(tokens, evaluable) {
         this.tokens = tokens;
         this.evaluable = evaluable;
     }
     evaluateToString(env) {
-        return this.evaluable.evaluate(env).text;
+        // clear evaluation steps before evaluating
+        env.evaluationSteps = [];
+        let evalResult = this.evaluable.evaluate(env);
+        // store evaluation steps after evaluating
+        this.lastEvaluationSteps = env.evaluationSteps;
+        return evalResult.text;
     }
 }
 //#endregion
@@ -867,7 +943,16 @@ class ParsingEnvironment {
         new ExponentiationOperator(), new MultiplicationOperator(), new DivisionOperator(), new ModuloOperator(), new AdditionOperator(), new SubtractionOperator(), new EqualityOperator(), new InequalityOperator(), new LesserThanOperator(), new GreaterThanOperator(), new LesserThanOrEqualToOperator(), new GreaterThanOrEqualToOperator(), new RegexMatchOperator(), new LogicalOrOperator(), new LogicalAndOperator());
     }
 }
+class EvaluationStep {
+    constructor(evaluable, value) {
+        this.evaluable = evaluable;
+        this.value = value;
+    }
+}
 class EvaluationEnvironment {
+    logEvaluation(evaluable, evaluationResult) {
+        this.evaluationSteps.push(new EvaluationStep(evaluable, evaluationResult));
+    }
 }
 class StringCharReader {
     constructor(text) {
@@ -1134,13 +1219,13 @@ class KodeineParser {
                     // this is a dollar sign token, a formula is beginning
                     this._state = KodeineParserState.Kode;
                     // add a base expression builder to the stack
-                    exprBuilderStack = [new ExpressionBuilder(this._env)];
+                    exprBuilderStack = [new ExpressionBuilder(this._env, false, token)];
                     if (tokenBuffer.length > 0) {
                         // we read some plain text tokens before this point, add a plain text part
                         formula.parts.push(new PlainTextPart(tokenBuffer));
-                        // clear the buffer. no matter what, the dollar sign is not going into the output.
-                        tokenBuffer = [token];
                     }
+                    // reset the buffer
+                    tokenBuffer = [token];
                 }
                 else {
                     // add any other token to the buffer
@@ -1166,7 +1251,7 @@ class KodeineParser {
                         let func = this._env.findFunction(funcName);
                         if (func) {
                             // found a function call, start a function call builder
-                            exprBuilderStack.push(new FunctionCallBuilder(this._env, func));
+                            exprBuilderStack.push(new FunctionCallBuilder(this._env, new FunctionOccurence(func, token, nextToken)));
                         }
                         else {
                             // function not found, throw
@@ -1215,17 +1300,20 @@ class KodeineParser {
                     // 2(2+/2) -> 2 / 2 + 2 -> 3
                     // this is probably a bug, but because it doesn't crash or throw, we need to find a way to simulate it
                     let prevToken = getPrevNonWhitespaceToken();
-                    if (prevToken === null || prevToken instanceof OperatorToken || prevToken instanceof OpeningParenthesisToken) {
+                    if (prevToken === null
+                        || prevToken instanceof OperatorToken
+                        || prevToken instanceof OpeningParenthesisToken
+                        || prevToken instanceof DollarSignToken) {
                         // if there is no previous token or this parenthesis follows an operator,
                         // the parenthesis starts a subexpression
-                        exprBuilderStack.push(new ExpressionBuilder(this._env));
+                        exprBuilderStack.push(new ExpressionBuilder(this._env, true, token));
                     }
                     else if (prevToken instanceof UnquotedValueToken) {
                         // if the previous token is an unquoted value token, interpret this as a function call
                         throw new KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
                     }
                     else {
-                        throw new KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${token.getDescription()}.`);
+                        throw new KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${prevToken.getDescription()}.`);
                     }
                 }
                 else if (token instanceof CommaToken) {
@@ -1243,7 +1331,7 @@ class KodeineParser {
                     }
                     else {
                         let evaluable = exprBuilderStack.pop().build(token);
-                        getLastExprBuilder().addEvaluable(evaluable, token);
+                        getLastExprBuilder().addEvaluable(evaluable);
                     }
                 }
                 else if (token instanceof DollarSignToken) {
@@ -1253,7 +1341,7 @@ class KodeineParser {
                     if (exprBuilderStack.length > 1) {
                         throw new KodeSyntaxError(tokenBuffer[tokenBuffer.length], `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
                     }
-                    formula.parts.push(new EvaluablePart(tokenBuffer, exprBuilderStack.pop().build(token)));
+                    formula.parts.push(new EvaluatedPart(tokenBuffer, exprBuilderStack.pop().build(token)));
                     this._state = KodeineParserState.Default;
                     tokenBuffer = [];
                 }
