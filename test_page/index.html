@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>$kodeine$</title>
+
+    <link rel="stylesheet" href="css/site.css" type="text/css" />
+
+    <script type="module" src="js/test_page/src/app.js"></script>
+
+</head>
+
+<body>
+
+    <main>
+
+        <h1>welcome to kodeine</h1>
+        <p>type your formula into the box below and see what happens.</p>
+
+        <div class="formula-editor field">
+            <label>Formula:</label>
+            <textarea id="formula_input"
+                      placeholder="Type your formula here..."
+                      class="text-kode"></textarea>
+            <label id="formula_error" class="error"></label>
+        </div>
+
+        <p class="text-center">
+            <button id="btn_doit">Evaluate</button>
+        </p>
+
+        <table hidden>
+
+            <thead>
+                <tr>
+                    <th>type</th>
+                    <th class="full-width">text</th>
+                    <th>start</th>
+                    <th>end</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            </tbody>
+
+        </table>
+
+        <div class="result-field field">
+            <label>Evaluation result:</label>
+            <output id="evaluation_output" for="formula_input"></output>
+        </div>
+
+        <div class="steps-field field">
+            <label>Evaluation steps:</label>
+            <output id="evaluation_steps" for="formula_input"></output>
+        </div>
+
+    </main>
+   
+    <template id="tmpl_token_row">
+        <tr>
+            <td>[token_type]</td>
+            <td>[token_text]</td>
+            <td class="text-right">[start_index]</td>
+            <td class="text-right">[end_index]</td>
+        </tr>
+    </template>
+
+</body>
+
+</html>

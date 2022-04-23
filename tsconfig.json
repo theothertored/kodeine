@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ES2016",
+        "module": "ES2015",
+        "sourceMap": true,
+        "outDir": "test_page/js",
+        "lib": ["dom", "ES2015"]
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}
