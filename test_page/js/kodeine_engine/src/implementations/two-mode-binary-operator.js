@@ -27,6 +27,8 @@ export class TwoModeBinaryOperator extends IBinaryOperator {
      * @returns Text mode operation result.
      */
     textMode(a, b) {
+        // if either a or b is numeric, concat the numeric value instead of the text value.
+        // for example, 2.000 + "text" => 2text
         if (a.isNumeric)
             return a.numericValue + this.getSymbol() + b.text;
         else if (b.isNumeric)

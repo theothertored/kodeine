@@ -15,14 +15,15 @@ export class StringCharReader extends ICharReader {
         return this._position;
     }
 
-    peek(charCount: number): string {
-        return this._text.substr(this._position, charCount);
+    peek(charCount: number, offset?: number): string {
+        offset ??= 0;
+        return this._text.substring(this._position + offset, this._position + offset + charCount);
     }
 
     consume(charCount: number): string {
         let oldPos = this._position;
         this._position += charCount;
-        return this._text.substr(oldPos, charCount)
+        return this._text.substring(oldPos, oldPos + charCount)
     }
 
     EOF(): boolean {

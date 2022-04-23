@@ -171,15 +171,16 @@ export class EvaluationContext {
 }
 
 
-/** Represents a forward-only formula source text character reader. */
+/** Represents a forward-only character reader. */
 export abstract class ICharReader {
 
     /**
      * Returns the next {@link charCount} characters without consuming them.
      * @param charCount How many characters to peek.
+     * @param offset Optionally, how many characters to offset the peek by.
      * @returns Next {@link charCount} characters of the formula source text as a string. 
      */
-    abstract peek(charCount: number): string;
+    abstract peek(charCount: number, offset?: number): string;
 
     /**
      * Consumes the next {@link charCount} characters.

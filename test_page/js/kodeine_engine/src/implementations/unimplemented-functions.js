@@ -1,4 +1,6 @@
 import { IKodeFunction } from "../base.js";
+// this file contains classes for functions that have not been implemented yet.
+// they should be moved to separate files after they are implemented.
 export class LocationInfoFunction extends IKodeFunction {
     getName() { return 'li'; }
     call(env, args) {

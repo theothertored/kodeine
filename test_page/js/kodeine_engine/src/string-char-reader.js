@@ -8,13 +8,14 @@ export class StringCharReader extends ICharReader {
     getPosition() {
         return this._position;
     }
-    peek(charCount) {
-        return this._text.substr(this._position, charCount);
+    peek(charCount, offset) {
+        offset !== null && offset !== void 0 ? offset : (offset = 0);
+        return this._text.substring(this._position + offset, this._position + offset + charCount);
     }
     consume(charCount) {
         let oldPos = this._position;
         this._position += charCount;
-        return this._text.substr(oldPos, charCount);
+        return this._text.substring(oldPos, oldPos + charCount);
     }
     EOF() {
         return this._position >= this._text.length;

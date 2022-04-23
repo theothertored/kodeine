@@ -13,11 +13,15 @@ export abstract class TwoModeBinaryOperator extends IBinaryOperator {
     operation(a: KodeValue, b: KodeValue): KodeValue {
 
         if (a.isNumeric && b.isNumeric) {
+
             // both values are numeric, run numeric mode
             return new KodeValue(this.numericMode(a.numericValue, b.numericValue));
+
         } else {
+
             // at least one of the values is not numeric, run text mode
             return new KodeValue(this.textMode(a, b));
+
         }
     }
 
@@ -39,12 +43,15 @@ export abstract class TwoModeBinaryOperator extends IBinaryOperator {
      */
     textMode(a: KodeValue, b: KodeValue): string {
 
+        // if either a or b is numeric, concat the numeric value instead of the text value.
+        // for example, 2.000 + "text" => 2text
+
         if (a.isNumeric)
             return a.numericValue + this.getSymbol() + b.text;
-
+            
         else if (b.isNumeric)
             return a.text + this.getSymbol() + b.numericValue;
-
+            
         else
             return a.text + this.getSymbol() + b.text;
 

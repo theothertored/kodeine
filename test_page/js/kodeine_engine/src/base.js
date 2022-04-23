@@ -87,7 +87,7 @@ export class EvaluableSource {
 }
 export class EvaluationContext {
 }
-/** Represents a forward-only formula source text character reader. */
+/** Represents a forward-only character reader. */
 export class ICharReader {
 }
 /** Represents a forward-only formula token lexer. */
