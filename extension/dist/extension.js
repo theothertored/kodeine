@@ -17,9 +17,9 @@ function openFormulaResultWindow() {
     let parser = new kodeine_parser_js_1.KodeineParser(parseCtx);
     let evalCtx = new base_js_1.EvaluationContext();
     let evaluateToOutput = (document) => {
-        let formulaText = document.getText();
-        let formula = parser.parse(formulaText);
         try {
+            let formulaText = document.getText();
+            let formula = parser.parse(formulaText);
             let result = formula.evaluate(evalCtx);
             outChannel.replace(result.text);
         }

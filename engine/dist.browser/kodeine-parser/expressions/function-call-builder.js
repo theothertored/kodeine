@@ -56,7 +56,7 @@ export class FunctionCallBuilder extends IExpressionBuilder {
     build(closingToken) {
         if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
             // allow for a function call with no arguments
-            return new FunctionCall(this._functionOccurence.func, this._args);
+            return new FunctionCall(this._functionOccurence.func, this._args, new EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
         }
         else {
             // build the current argument

@@ -59,7 +59,7 @@ class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
     build(closingToken) {
         if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
             // allow for a function call with no arguments
-            return new function_call_js_1.FunctionCall(this._functionOccurence.func, this._args);
+            return new function_call_js_1.FunctionCall(this._functionOccurence.func, this._args, new base_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
         }
         else {
             // build the current argument

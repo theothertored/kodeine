@@ -24,12 +24,14 @@ function openFormulaResultWindow() {
     
     let evaluateToOutput = (document: vscode.TextDocument) => {
         
-        let formulaText = document.getText();
-        let formula = parser.parse(formulaText);
-
         try {
+            
+            let formulaText = document.getText();
+            let formula = parser.parse(formulaText);
             let result = formula.evaluate(evalCtx);
+            
             outChannel.replace(result.text);
+
         } catch (err: any) {
             
             if (err instanceof KodeParseError || err instanceof EvaluationError) {
