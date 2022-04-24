@@ -1,0 +1,59 @@
+{
+    "name": "kodeine",
+    "displayName": "kodeine",
+    "publisher": "tored",
+    "description": "write Kustom formulas in vscode!",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.66.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "activationEvents": [
+        "onCommand:kodeine.formulaResult"
+    ],
+    "main": "./extension/dist/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "kode",
+                "aliases": [
+                    "Kode (Kustom formula)",
+                    "kode"
+                ],
+                "extensions": [
+                    ".kode"
+                ],
+                "configuration": "./extension/language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "kode",
+                "scopeName": "source.kode",
+                "path": "./extension/syntaxes/kode.tmLanguage.json"
+            }
+        ],
+        "snippets": [
+            {
+                "language": "kode",
+                "path": "./extension/snippets.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "kodeine.formulaResult",
+                "title": "Open formula result window"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "kodeine.formulaResult",
+                    "when": "editorLangId == kode"
+                }
+            ]
+        }
+    }
+}

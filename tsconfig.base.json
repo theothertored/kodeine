@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "sourceMap": true,
+        "target": "ES6",
+        "baseUrl": ".",
+        "paths": {
+            "@kodeine/engine.browser/*": [ "./engine/dist.browser/*" ],
+            "@kodeine/engine.node/*": [ "./engine/dist.node/*" ]
+        }
+    }
+}

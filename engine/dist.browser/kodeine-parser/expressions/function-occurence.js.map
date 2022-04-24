@@ -1,0 +1,1 @@
+{"version":3,"file":"function-occurence.js","sourceRoot":"","sources":["../../../src/kodeine-parser/expressions/function-occurence.ts"],"names":[],"mappings":"AAGA;;;;GAIG;AACH,MAAM,OAAO,iBAAiB;IAQ1B;;;;OAIG;IACH,YAAY,IAAmB,EAAE,GAAG,aAA8B;QAC9D,IAAI,CAAC,aAAa,GAAG,aAAa,CAAC;QACnC,IAAI,CAAC,IAAI,GAAG,IAAI,CAAC;IACrB,CAAC;CAEJ"}

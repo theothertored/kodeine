@@ -1,0 +1,49 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Kode (Kustom formula)",
+	"patterns": [
+		{
+			"include": "#evaluated-parts"
+		},
+		{
+			"include": "#escaped-dollar"
+		}
+	],
+	"repository": {
+		"evaluated-parts": {
+			"name": "meta.evaluated",
+			"begin": "(?<!\\$)\\$(?!\\$)",
+			"beginCaptures": {
+				"0": {
+					"name": "keyword.control.kode"
+				}
+			},
+			"endCaptures": {
+				"0": {
+					"name": "keyword.control.kode"
+				}
+			},
+			"end": "\\$",
+			"patterns": [
+				{
+					"name": "entity.name.function",
+					"match": "[a-z]{2}\\s*(?=\\()"
+				},
+				{
+					"name": "keyword.operator.kode",
+					"match": "(\\+|\\*|%|-|/|\\^|[!~<>]?=|<|>)"
+				},
+				{
+					"name": "string.quoted.double",
+					"begin": "\"",
+					"end": "\""
+				}
+			]
+		},
+		"escaped-dollar": {
+			"name": "constant.character.escape",
+			"match": "\\$\\$"
+		}
+	},
+	"scopeName": "source.kode"
+}

@@ -1,12 +1,19 @@
 {
-    "compilerOptions": {
-        "target": "ES2016",
-        "module": "ES2015",
-        "sourceMap": true,
-        "outDir": "test_page/js",
-        "lib": ["dom", "ES2015"]
-    },
-    "exclude": [
-        "node_modules"
+    "extends": "./tsconfig.base.json",
+    "files": [],
+    "include": [],
+    "references": [
+        {
+            "path": "./engine/tsconfig.browser.json"
+        },
+        {
+            "path": "./engine/tsconfig.node.json"
+        },
+        {
+            "path": "./extension"
+        },
+        {
+            "path": "./test_page"
+        }
     ]
 }
