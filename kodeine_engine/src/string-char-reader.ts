@@ -1,10 +1,18 @@
 import { ICharReader } from "./base.js";
 
+/** A forward only character reader using a string variable as its source of characters. */
 export class StringCharReader extends ICharReader {
 
+    /** Source string. */
     private _text: string;
+
+    /** The current position of the reader. */
     private _position: number;
 
+    /** 
+     * Constructs a {@link StringCharReader} with a given string as a source of characters.
+     * @param text The source string.
+     */
     constructor(text: string) {
         super();
         this._text = text;

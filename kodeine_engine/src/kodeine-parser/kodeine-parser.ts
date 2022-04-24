@@ -1,35 +1,81 @@
-import { Evaluable, IFormulaToken, ILexer, IParser, KodeValue } from "../base.js";
+import { Evaluable, IFormulaToken, ILexer, IFormulaStringParser, KodeValue, ICharReader } from "../base.js";
 import { EvaluableSource } from "../base.js";
 import { KodeFunctionNotFoundError, KodeSyntaxError, UnrecognizedTokenError } from "../errors.js";
 import { Formula } from "../evaluables/formula.js";
 import { ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine-lexer/formula-tokens.js";
+import { KodeineLexer } from "../kodeine-lexer/kodeine-lexer.js";
+import { StringCharReader } from "../string-char-reader.js";
 import { ExpressionBuilder } from "./expressions/expression-builder.js";
 import { FunctionCallBuilder } from "./expressions/function-call-builder.js";
 import { FunctionOccurence } from "./expressions/function-occurence.js";
-import { ParsingEnvironment } from "./parsing-environment.js";
+import { IExpressionBuilder } from "./expressions/i-expression-builder.js";
+import { ParsingContext } from "./parsing-context.js";
 
+/** 
+ * Values representing the current state of the parser. 
+ * - {@link Default}: Not in an evaluable part of the formula
+ * - {@link Kode}: In an evaluable part of the formula
+*/
 export enum KodeineParserState {
     Default, Kode
 }
 
-export class KodeineParser implements IParser {
+/** 
+ * The default kodeine parser. Uses a {@link StringCharReader} and {@link KodeineLexer}
+ * to read a formula text and produce an evaluable {@link Formula} object.  
+ * The parser is also responsible for throwing {@link KodeSyntaxError}s when something is wrong with the formula.
+ * @example 
+ * //Basic usage:
+ * let parser = new KodeineParser(ParsingContextBuilder.buildDefault());
+ * let formula = parser.parse('$2 + 2$');
+ * let evalCtx = new EvaluationContext();
+ * let formulaResult = formula.evaluate(evalCtx); // evaluate to a KodeValue
+ * console.log(formulaResult.text);
+ */
+export class KodeineParser implements IFormulaStringParser {
 
-    private readonly _lexer: ILexer;
-    private readonly _env: ParsingEnvironment;
+    /** The parsing context. Contains function and operator implementations. */
+    private _env: ParsingContext;
 
-    private _state = KodeineParserState.Default;
-
-    constructor(lexer: ILexer, env: ParsingEnvironment) {
-        this._lexer = lexer;
+    /** Constructs a {@link KodeineParser} with a parsing context.*/
+    constructor(env: ParsingContext) {
         this._env = env;
     }
 
-    parse(): Formula {
+    parse(source: string | ICharReader | ILexer): Formula {
+
+        if (typeof source === 'string') {
+
+            let charReader = new StringCharReader(source);
+            let lexer = new KodeineLexer(charReader, this._env.getOperatorSymbolsLongestFirst());
+            return this._parseCore(lexer);
+
+        } else if (source instanceof ICharReader) {
+
+            let lexer = new KodeineLexer(source, this._env.getOperatorSymbolsLongestFirst());
+            return this._parseCore(lexer);
+
+        } else if (source instanceof ILexer) {
+
+            return this._parseCore(source);
+
+        } else {
+
+            throw new Error('Cannot parse the given source.');
+
+        }
+
+    }
+
+    /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
+    private _parseCore(lexer: ILexer): Formula {
+
+        let state = KodeineParserState.Default;
 
         let evaluables: Evaluable[] = [];
 
         let tokenBuffer: IFormulaToken[] = [];
-        let exprBuilderStack: ExpressionBuilder[] = [];
+        let exprBuilderStack: IExpressionBuilder[] = [];
 
         function getPrevNonWhitespaceToken(backIndex: number = 1) {
 
@@ -55,21 +101,21 @@ export class KodeineParser implements IParser {
             return exprBuilderStack[exprBuilderStack.length - 1];
         }
 
-        while (!this._lexer.EOF()) {
+        while (!lexer.EOF()) {
 
             // read token
-            let token = this._lexer.consume(1)[0];
+            let token = lexer.consume(1)[0];
 
             let skipPushingToBuffer = false;
 
-            if (this._state === KodeineParserState.Default) {
+            if (state === KodeineParserState.Default) {
 
                 // we are currently not in a formula
 
                 if (token instanceof DollarSignToken) {
 
                     // this is a dollar sign token, a formula is beginning
-                    this._state = KodeineParserState.Kode;
+                    state = KodeineParserState.Kode;
 
                     // add a base expression builder to the stack
                     exprBuilderStack = [new ExpressionBuilder(this._env, false, token)];
@@ -94,7 +140,7 @@ export class KodeineParser implements IParser {
 
                 }
 
-            } else if (this._state === KodeineParserState.Kode) {
+            } else if (state === KodeineParserState.Kode) {
 
                 // we are currently parsing a formula
                 // formula tokens:
@@ -103,12 +149,12 @@ export class KodeineParser implements IParser {
                 if (token instanceof UnquotedValueToken) {
 
                     // TODO: peek next non-whitespace
-                    let nextToken = this._lexer.peek(1)[0];
+                    let nextToken = lexer.peek(1)[0];
 
                     if (nextToken instanceof OpeningParenthesisToken) {
 
                         // consume the opening parenthesis immediately
-                        this._lexer.consume(1);
+                        lexer.consume(1);
 
                         // override the default buffer behaviour
                         skipPushingToBuffer = true;
@@ -250,7 +296,7 @@ export class KodeineParser implements IParser {
 
                     evaluables.push(exprBuilderStack.pop().build(token));
 
-                    this._state = KodeineParserState.Default;
+                    state = KodeineParserState.Default;
                     tokenBuffer = [];
 
 
@@ -258,7 +304,7 @@ export class KodeineParser implements IParser {
 
                     // an unclosed quoted value token causes the entire formula to be treated like plain text,
                     // except the leading $ gets removed from the output.
-                    this._state = KodeineParserState.Default;
+                    state = KodeineParserState.Default;
 
                     if (tokenBuffer.length > 0) {
 
@@ -302,7 +348,7 @@ export class KodeineParser implements IParser {
                 ));
 
             }
-            
+
             tokenBuffer = [];
 
         }

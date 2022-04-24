@@ -59,7 +59,7 @@ export class ExpressionBuilder {
         if (tokenShouldBeUnaryOperator) {
             let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
             if (unaryOperator) {
-                // found an unary operator
+                // found a unary operator
                 this._elements.push(new UnaryOperatorOccurence(unaryOperator, token));
             }
             else {
@@ -85,7 +85,7 @@ export class ExpressionBuilder {
                 // binary operator not found
                 let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
                 if (unaryOperator) {
-                    // cannot have an unary operator with a left hand side argument
+                    // cannot have a unary operator with a left hand side argument
                     throw new KodeSyntaxError(token, `Unary operator "${token.getSymbol()}" cannot have a left hand side argument.`);
                 }
                 else {
@@ -115,7 +115,7 @@ export class ExpressionBuilder {
                 for (var i = 0; i < this._elements.length; i++) {
                     let element = this._elements[i];
                     if (element instanceof UnaryOperatorOccurence) {
-                        // if we encountered an unary operator, take every unary operator immediately following it
+                        // if we encountered a unary operator, take every unary operator immediately following it
                         // and the value after all those unary operators and collapse them all into one evaluable
                         let firstElI = i; // the index of the first unary operator in the chain
                         let unaryOpStack = [element];
@@ -145,7 +145,7 @@ export class ExpressionBuilder {
                             }
                             else {
                                 // this should never happen since we're checking for it when adding operators.
-                                throw new KodeSyntaxError(closingToken, `Binary operator cannot follow an unary operator.`);
+                                throw new KodeSyntaxError(closingToken, `Binary operator cannot follow a unary operator.`);
                             }
                         }
                     }

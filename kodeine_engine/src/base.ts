@@ -166,7 +166,10 @@ export class EvaluableSource {
 
 }
 
+/** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export class EvaluationContext {
+
+    // empty for now
 
 }
 
@@ -178,21 +181,21 @@ export abstract class ICharReader {
      * Returns the next {@link charCount} characters without consuming them.
      * @param charCount How many characters to peek.
      * @param offset Optionally, how many characters to offset the peek by.
-     * @returns Next {@link charCount} characters of the formula source text as a string. 
+     * @returns Next {@link charCount} characters of the source as a string. 
      */
     abstract peek(charCount: number, offset?: number): string;
 
     /**
      * Consumes the next {@link charCount} characters.
      * @param charCount How many characters to consume.
-     * @returns Next {@link charCount} characters of the formula source text as a string. 
+     * @returns Next {@link charCount} characters of the source as a string. 
      */
     abstract consume(charCount: number): string;
 
-    /** Returns the current position of the reader in the formula source text. */
+    /** Returns the current position of the reader in the source. */
     abstract getPosition(): number;
 
-    /** Returns whether the reader has reached the end of the formula source text. */
+    /** Returns whether the reader has reached the end of the source. */
     abstract EOF(): boolean;
 
 }
@@ -219,6 +222,14 @@ export abstract class ILexer {
 
 }
 
-export abstract class IParser {
-    abstract parse(formulaText: string): Formula;
+/** Represents a parser that converts text into an evaluable {@link Formula}. */
+export abstract class IFormulaStringParser {
+    
+    /**
+     * Creates an evaluable {@link Formula} .
+     * @param source The source of the formula text.
+     * @returns An evaluable {@link Formula} object.
+     */
+    abstract parse(source: string | ICharReader | ILexer): Formula;
+
 }

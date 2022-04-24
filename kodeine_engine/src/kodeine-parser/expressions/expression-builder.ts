@@ -5,45 +5,62 @@ import { BinaryOperation } from "../../evaluables/binary-operation.js";
 import { Expression } from "../../evaluables/expression.js";
 import { UnaryOperation } from "../../evaluables/unary-operation.js";
 import { OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
-import { ParsingEnvironment } from "../parsing-environment.js";
+import { ParsingContext } from "../parsing-context.js";
 import { UnaryOperatorOccurence, BinaryOperatorOccurence } from "./operator-occurences.js";
 
+/** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
 export class ExpressionBuilder {
 
-    protected readonly _env: ParsingEnvironment;
+    /** The parsing context. Contains information on what functions and operators exist and ties their names/symbols to implementations. */
+    protected readonly _env: ParsingContext;
+
+    /** 
+     * Whether the built expression should include starting and ending tokens in its source.  
+     * Should be true for expressions in parentheses and root formula expressions (between dollar signs).
+     */
     protected readonly _includeSurroundingTokens: boolean;
+
+    /** The token or tokens that started this expression (opening parenthesis, dollar sign, function name + opening parenthesis etc.). */
     protected readonly _startingTokens: IFormulaToken[];
 
-    constructor(env: ParsingEnvironment, includeSurroundingTokens: boolean, ...startingTokens: IFormulaToken[]) {
+    /**
+     * Constructs an expression builder with a given parsing context.
+     * @param env The parsing context for this expression builder.
+     * @param includeSurroundingTokens Whether the built expression should include starting and ending tokens in its source.
+     * @param startingTokens The token or tokens that started the built expression.
+     */
+    constructor(env: ParsingContext, includeSurroundingTokens: boolean, ...startingTokens: IFormulaToken[]) {
         this._env = env;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
     }
 
+    /** Elements of the built expression. Expressions consist of evaluables and operators. */
     private _elements: (Evaluable | UnaryOperatorOccurence | BinaryOperatorOccurence)[] = [];
 
+    /** Returns the current last element of {@link _elements}. */
     private _getLastElement() {
         return this._elements[this._elements.length - 1];
     }
 
     addValue(token: (QuotedValueToken | UnquotedValueToken)) {
 
-        let lastElement = this._getLastElement();
-
-        if (lastElement instanceof Evaluable) {
-
+        // check the current last element
+        if (this._getLastElement() instanceof Evaluable) {
+            
             // cannot have two values one after another
             throw new KodeSyntaxError(token, 'A value cannot follow another value.');
-
+            
         }
-
+        
+        // create kode value and add as element
         this._elements.push(KodeValue.fromToken(token));
     }
 
     addEvaluable(evaluable: Evaluable) {
 
+        // check the current last element
         let lastElement = this._getLastElement();
-
         if (lastElement instanceof Evaluable) {
 
             // cannot have two values one after another
@@ -59,6 +76,8 @@ export class ExpressionBuilder {
 
         let lastElement = this._getLastElement();
 
+        // the token should be a unary operator if it is the first element of the expression
+        // or is preceded by another operator, be it unary or binary.
         let tokenShouldBeUnaryOperator = !lastElement
             || lastElement instanceof BinaryOperatorOccurence
             || lastElement instanceof UnaryOperatorOccurence;
@@ -70,7 +89,7 @@ export class ExpressionBuilder {
 
             if (unaryOperator) {
 
-                // found an unary operator
+                // found the unary operator
                 this._elements.push(new UnaryOperatorOccurence(unaryOperator, token));
 
             } else {
@@ -99,6 +118,7 @@ export class ExpressionBuilder {
 
             if (binaryOperator) {
 
+                // found the binary operator
                 this._elements.push(new BinaryOperatorOccurence(binaryOperator, token));
 
             } else {
@@ -108,7 +128,7 @@ export class ExpressionBuilder {
 
                 if (unaryOperator) {
 
-                    // cannot have an unary operator with a left hand side argument
+                    // cannot have a unary operator with a left hand side argument
                     throw new KodeSyntaxError(token, `Unary operator "${token.getSymbol()}" cannot have a left hand side argument.`);
 
                 } else {
@@ -123,10 +143,18 @@ export class ExpressionBuilder {
         }
     }
 
+    /** Returns whether this expression has any elements. */
     getIsEmpty(): boolean {
         return this._elements.length === 0;
     }
 
+    /**
+     * Builds an evaluable tree from added expression elements.
+     * @param closingToken The token that is closing this expression (closing parenthesis, dollar sign etc.).
+     * @returns An evaluable tree. If {@link includeSurroundingTokens} is `true`, returns an {@link Expression}
+     * wrapping an evaluable and containing the opening and closing tokens in its source.
+     * Otherwise, returns the root (last-in-order) evaluable of the expression.
+     */
     build(closingToken: IFormulaToken): Evaluable {
 
         if (this._elements.length === 0) {
@@ -136,11 +164,13 @@ export class ExpressionBuilder {
 
         } else {
 
+            // the root element of the expression
             let finalElement: (Evaluable | UnaryOperatorOccurence | BinaryOperatorOccurence);
 
             if (this._elements.length === 1) {
 
-                // only one element in the parentheses
+                // this expression only has one element, so it wil be the root element
+                // it needs to be an evaluable - this is checked below the current if.
                 finalElement = this._elements[0];
 
             } else {
@@ -154,7 +184,7 @@ export class ExpressionBuilder {
 
                     if (element instanceof UnaryOperatorOccurence) {
 
-                        // if we encountered an unary operator, take every unary operator immediately following it
+                        // if we encountered a unary operator, take every unary operator immediately following it
                         // and the value after all those unary operators and collapse them all into one evaluable
 
                         let firstElI = i; // the index of the first unary operator in the chain
@@ -202,7 +232,7 @@ export class ExpressionBuilder {
                             } else {
 
                                 // this should never happen since we're checking for it when adding operators.
-                                throw new KodeSyntaxError(closingToken, `Binary operator cannot follow an unary operator.`)
+                                throw new KodeSyntaxError(closingToken, `Binary operator cannot follow a unary operator.`)
 
                             }
 
@@ -284,17 +314,22 @@ export class ExpressionBuilder {
 
             }
 
+            // at this point we have the final element, make sure it is an evaluable
             if (finalElement instanceof Evaluable) {
 
                 if (this._includeSurroundingTokens) {
 
+                    // we are including surrounding tokens, and so the expression needs to exist
+                    // build it with surrounding tokens
                     return new Expression(
                         finalElement,
-                        new EvaluableSource(...finalElement.source.tokens)
+                        new EvaluableSource(...this._startingTokens, ...finalElement.source.tokens, closingToken)
                     );
 
                 } else {
 
+                    // we are not including surrounding tokens, which means we don't need an expression object
+                    // return the root element directly
                     return finalElement;
 
                 }
@@ -302,6 +337,7 @@ export class ExpressionBuilder {
 
             } else {
 
+                // this expression has a final element that isn't an evaluable, throw
                 throw new KodeSyntaxError(closingToken, `Expression cannot consist of only the "${finalElement.operator.getSymbol()}" operator.`)
 
             }

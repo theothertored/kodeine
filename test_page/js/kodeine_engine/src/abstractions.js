@@ -4,7 +4,7 @@ export class IFormulaToken {
 /** A base class for unary and binary operators. Requires operators to have a symbol. */
 export class IOperator {
 }
-/** Represents an unary operator. */
+/** Represents a unary operator. */
 export class IUnaryOperator extends IOperator {
 }
 /** Represents a binary operator. */

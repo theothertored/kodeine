@@ -1,10 +1,7 @@
 ﻿import { EvaluationContext } from "../../kodeine_engine/src/base.js";
 import { EvaluationError, KodeParseError } from "../../kodeine_engine/src/errors.js";
-import { KodeineLexer } from "../../kodeine_engine/src/kodeine-lexer/kodeine-lexer.js";
 import { KodeineParser } from "../../kodeine_engine/src/kodeine-parser/kodeine-parser.js";
-import { ParsingEnvironment, ParsingEnvironmentBuilder } from "../../kodeine_engine/src/kodeine-parser/parsing-environment.js";
-import { StringCharReader } from "../../kodeine_engine/src/string-char-reader.js";
-
+import { ParsingContextBuilder } from "../../kodeine_engine/src/kodeine-parser/parsing-context.js";
 
 const initialFormula = '$2 + 2$';
 
@@ -37,68 +34,17 @@ function formulaInputEl_input(ev: InputEvent) {
     let formulaText = formulaInputEl.value;
     localStorage.setItem('formula', formulaText);
 
-    let parsingEnv = new ParsingEnvironmentBuilder().addDefaults().build();
-    
-    let charReader = new StringCharReader(formulaText);
-    let lexer = new KodeineLexer(charReader, parsingEnv.getSortedOperatorSymbols());
-    let parser = new KodeineParser(lexer, parsingEnv);
+    let parsingEnv = ParsingContextBuilder.buildDefault();
+    let parser = new KodeineParser(parsingEnv);
 
     try {
 
-        let formula = parser.parse();
+        let formula = parser.parse(formulaText);
         console.log('input text: ', formulaText);
         console.log('parsed formula: ', formula);
 
         let evaluationEnv = new EvaluationContext();
         evaluationOutputEl.value = formula.evaluate(evaluationEnv).text;
-
-        let log = '';
-
-        let logLine = (line: string = '') => {
-            log += line + '\n';
-            console.log(line);
-        }
-        
-        // console.groupCollapsed('EVALUATION STEPS:')
-
-        // for (var formulaPart of formula.parts) {
-
-        //     if (formulaPart instanceof PlainTextPart) {
-
-        //         logLine(`Output text: "${formulaPart.evaluateToString(evaluationEnv)}"`)
-
-        //     } else if (formulaPart instanceof EvaluatedPart) {
-
-        //         let evaluatedPartStartIndex = formulaPart.tokens[0].getStartIndex();
-        //         let evaluatedPartEndIndex = formulaPart.tokens[formulaPart.tokens.length - 1].getEndIndex();
-        //         let evaluatedPartText = formulaText.substring(evaluatedPartStartIndex, evaluatedPartEndIndex);
-
-        //         logLine();
-        //         logLine(`Evaluate kode:`);
-        //         logLine(`  Step ${0}/${formulaPart.lastEvaluationSteps.length - 1}: ${evaluatedPartText}`);
-
-        //         for (var i = 0; i < formulaPart.lastEvaluationSteps.length - 1; i++) {
-
-        //             let step = formulaPart.lastEvaluationSteps[i];
-
-        //             let beforeEvaluableFormulaText = evaluatedPartText.substr(0, step.evaluable.source.startIndex - evaluatedPartStartIndex);
-        //             let afterEvaluableFormulaText = evaluatedPartText.substr(step.evaluable.source.endIndex - evaluatedPartStartIndex);
-
-        //             console.log(step.evaluable, step.value.text);
-        //             logLine(`  Step ${i + 1}/${formulaPart.lastEvaluationSteps.length - 1}: ${beforeEvaluableFormulaText + step.value.text + afterEvaluableFormulaText}`);
-
-        //         }
-
-        //         let finalStep = formulaPart.lastEvaluationSteps[formulaPart.lastEvaluationSteps.length - 1];
-        //         logLine(`Output kode result: ${finalStep.value.text}`);
-        //         logLine();
-
-        //     }
-
-        // }
-
-        // console.groupEnd();
-        evaluationStepsEl.value = log;
 
         formulaErrorEl.innerText = '';
 
@@ -107,7 +53,7 @@ function formulaInputEl_input(ev: InputEvent) {
         if (error instanceof KodeParseError || error instanceof EvaluationError) {
             formulaErrorEl.innerText = error.message;
         } else {
-            formulaErrorEl.innerText = 'crash: ' + error.message;
+            formulaErrorEl.innerText = 'kodeine crashed: ' + error.message;
         }
 
         console.error(error);
