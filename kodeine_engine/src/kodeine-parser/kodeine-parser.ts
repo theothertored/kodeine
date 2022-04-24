@@ -70,47 +70,70 @@ export class KodeineParser implements IFormulaStringParser {
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
     private _parseCore(lexer: ILexer): Formula {
 
+        /** The current state of the parser. */
         let state = KodeineParserState.Default;
 
-        let evaluables: Evaluable[] = [];
+        /** 
+         * A formula contains a list of evaluables that are concatenated together after evaluation. 
+         * This variable is used to constrcut that list as the formula is being parsed.
+         */
+        let formulaEvaluables: Evaluable[] = [];
 
+        /** Holds all tokens that were read since the start of the current plain text or evaluable part. */
         let tokenBuffer: IFormulaToken[] = [];
+
+        /**
+         * - An expression builder is created and pushed to the stack when an evaluable part begins.
+         * - Each subexpression or function call pushes a builder to this stack.  
+         * - New expression tokens are added to the last builder in the stack.  
+         * - A closing parenthesis causes the last builder to be popped of the stack, built and added to the new last builder as an evaluable.
+         */
         let exprBuilderStack: IExpressionBuilder[] = [];
 
-        function getPrevNonWhitespaceToken(backIndex: number = 1) {
+        /** Returns the first non-whitespace token from the end of the buffer. */
+        function getPrevNonWhitespaceToken() {
 
-            // start from this index
-            let index = tokenBuffer.length - backIndex;
+            if (tokenBuffer.length === 0) {
 
-            if (index < 0) {
-                // token buffer too small
+                // token buffer is empty
                 return null;
+
             } else {
+
+                // start from the last index of the buffer
+                let index = tokenBuffer.length - 1;
                 let token = tokenBuffer[index];
 
+                // go backwards until there are no more tokens or a non whitespace token is encountered
                 while (token && token instanceof WhitespaceToken) {
                     index--;
                     token = tokenBuffer[index];
                 }
 
-                return token;
+                // return the token that was found or null if every token in the buffer is a whitespace token
+                return token ?? null;
+
             }
+
         };
 
-        function getLastExprBuilder() {
+        /** Gets the last expression builder from the stack without popping it. */
+        function peekLastExprBuilder() {
             return exprBuilderStack[exprBuilderStack.length - 1];
         }
 
+        // read until there are no more tokens
         while (!lexer.EOF()) {
 
-            // read token
+            // consume one token
             let token = lexer.consume(1)[0];
 
+            /** If set to true, this iteration the default mechanism of pushing all tokens to buffer will be skipped. */
             let skipPushingToBuffer = false;
 
             if (state === KodeineParserState.Default) {
 
-                // we are currently not in a formula
+                // we are currently in a plain text part
 
                 if (token instanceof DollarSignToken) {
 
@@ -118,61 +141,91 @@ export class KodeineParser implements IFormulaStringParser {
                     state = KodeineParserState.Kode;
 
                     // add a base expression builder to the stack
-                    exprBuilderStack = [new ExpressionBuilder(this._env, false, token)];
+                    exprBuilderStack = [new ExpressionBuilder(this._env, true, token)];
 
+                    // check the token buffer
                     if (tokenBuffer.length > 0) {
 
-                        // we read some plain text tokens before this point, add a plain text part
-                        evaluables.push(new KodeValue(
+                        // we read some plain text tokens before this point, add them to formula evaluables
+                        formulaEvaluables.push(new KodeValue(
                             tokenBuffer.map(t => t.getSourceText()).join(''),
                             new EvaluableSource(...tokenBuffer)
                         ));
 
                     }
 
-                    // reset the buffer
+                    // start a new buffer with the dollar sign token already in
                     tokenBuffer = [token];
 
                 } else {
 
-                    // add any other token to the buffer
+                    // any other token goes straight into the buffer
                     tokenBuffer.push(token);
 
                 }
 
             } else if (state === KodeineParserState.Kode) {
 
-                // we are currently parsing a formula
-                // formula tokens:
-                // WhitespaceToken, OpeningParenthesisToken, ClosingParenthesisToken, CommaToken, UnclosedQuotedValueToken, QuotedValueToken, UnquotedValueToken, OperatorToken
+                // we are currently in an evaluable part
+
+                // expected tokens:
+                // WhitespaceToken, 
+                // QuotedValueToken, UnquotedValueToken, OperatorToken,
+                // OpeningParenthesisToken, ClosingParenthesisToken, CommaToken, 
+                // DollarSignToken, UnclosedQuotedValueToken
 
                 if (token instanceof UnquotedValueToken) {
 
-                    // TODO: peek next non-whitespace
-                    let nextToken = lexer.peek(1)[0];
+                    // an unquoted value token could be a normal unquoted value, or the start of a function call
+                    // we need to see the following tokens to know
+
+                    let offset = 0;
+                    let nextToken = lexer.peek(1, offset++)[0];
+
+                    if (nextToken instanceof WhitespaceToken) {
+
+                        // the next token being a whitespace token doesn't give us anything useful
+                        while (nextToken && nextToken instanceof WhitespaceToken) {
+
+                            nextToken = lexer.peek(1, offset++)[0];
+
+                        }
+
+                        // after the loop above there are no more tokens or we have a non-whitespace token in nextToken
+                    }
 
                     if (nextToken instanceof OpeningParenthesisToken) {
 
-                        // consume the opening parenthesis immediately
-                        lexer.consume(1);
+                        // the next non-whitespace token is an opening parenthesis token, this is the start of a function call
 
-                        // override the default buffer behaviour
+                        // override the default buffer pushing behaviour
                         skipPushingToBuffer = true;
+
+                        // the function name token has already been consumed, and push it to the buffer
                         tokenBuffer.push(token);
+
+                        let whitespaceTokens: IFormulaToken[];
+
+                        if (offset > 1) {
+                            // consume all following whitespace tokens and push them to the buffer
+                            whitespaceTokens = lexer.consume(offset - 1)
+                            tokenBuffer.push(...whitespaceTokens);
+                        }
+
+                        // consume the opening parenthesis token and push it to the buffer
+                        lexer.consume(1);
                         tokenBuffer.push(nextToken);
 
-                        // find a function by name
+                        // get function implementation from the parsing context
                         let funcName = token.getValue();
                         let func = this._env.findFunction(funcName);
 
                         if (func) {
 
-
-
-                            // found a function call, start a function call builder
+                            // implementation found, create a function call builder and push it to the stack
                             exprBuilderStack.push(new FunctionCallBuilder(
                                 this._env,
-                                new FunctionOccurence(func, token, nextToken)
+                                new FunctionOccurence(func, token, ...(whitespaceTokens ?? []), nextToken)
                             ));
 
                         } else {
@@ -184,7 +237,8 @@ export class KodeineParser implements IFormulaStringParser {
 
                     } else {
 
-                        getLastExprBuilder().addValue(token);
+                        // this is not a function call, let the current expression builder handle the token
+                        peekLastExprBuilder().addValue(token);
 
                     }
 
@@ -192,13 +246,13 @@ export class KodeineParser implements IFormulaStringParser {
                 } else if (token instanceof QuotedValueToken) {
 
                     // pass the token to the current expression builder and let it throw exceptions if necessary
-                    getLastExprBuilder().addValue(token);
+                    peekLastExprBuilder().addValue(token);
 
 
                 } else if (token instanceof OperatorToken) {
 
                     // pass the token to the current expression builder and let it throw exceptions if necessary
-                    getLastExprBuilder().addOperator(token);
+                    peekLastExprBuilder().addOperator(token);
 
 
                 } else if (token instanceof OpeningParenthesisToken) {
@@ -247,24 +301,31 @@ export class KodeineParser implements IFormulaStringParser {
                     } else if (prevToken instanceof UnquotedValueToken) {
 
                         // if the previous token is an unquoted value token, interpret this as a function call
+                        // this should never happen, but the error exists as a sanity check
                         throw new KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
 
                     } else {
 
+                        // the parenthesis cannot follow any other token
                         throw new KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${prevToken.getName()}.`);
 
                     }
 
                 } else if (token instanceof CommaToken) {
 
-                    let lastExprBuilder = getLastExprBuilder();
+                    // a comma means the end of the current function argument
+
+                    // check if we are currently building a function call
+                    let lastExprBuilder = peekLastExprBuilder();
 
                     if (lastExprBuilder instanceof FunctionCallBuilder) {
 
+                        // building a function call, let the builder handle the comma
                         lastExprBuilder.nextArgument(token);
 
                     } else {
 
+                        // not building a function call, the comma is invalid
                         throw new KodeSyntaxError(token, `A comma cannot appear outside of function calls.`);
 
                     }
@@ -272,14 +333,21 @@ export class KodeineParser implements IFormulaStringParser {
 
                 } else if (token instanceof ClosingParenthesisToken) {
 
+                    // a closing parenthesis means the end of the current subexpression
+
+                    // check if we have subexpressions
                     if (exprBuilderStack.length <= 1) {
 
+                        // no subexpressions - the closing parenthesis is invalid
                         throw new KodeSyntaxError(token, `Too many closing parentheses.`);
 
                     } else {
 
+                        // pop the last expression bulilder from the stack and build it
                         let evaluable = exprBuilderStack.pop().build(token);
-                        getLastExprBuilder().addEvaluable(evaluable);
+
+                        // add the built evaluable to the new last expression builder
+                        peekLastExprBuilder().addEvaluable(evaluable);
 
                     }
 
@@ -287,18 +355,28 @@ export class KodeineParser implements IFormulaStringParser {
 
                     // a dollar sign token ends the current evaluable part
 
+                    // override the default pushing to buffer behaviour - we are resetting the buffer after this token
                     skipPushingToBuffer = true;
-                    tokenBuffer.push(token);
 
+                    // check if there are unclosed subexpressions
                     if (exprBuilderStack.length > 1) {
-                        throw new KodeSyntaxError(tokenBuffer[tokenBuffer.length], `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
+
+                        // there are unclosed subexpressions, missing closing parentheses
+                        throw new KodeSyntaxError(token, `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
+
                     }
 
-                    evaluables.push(exprBuilderStack.pop().build(token));
+                    // pop the root expression builder from the stack, build it
+                    let evaluable = exprBuilderStack.pop().build(token);
 
+                    // add the built evaluable directly to formula evaluables
+                    formulaEvaluables.push(evaluable);
+
+                    // switch the state back to plain text
                     state = KodeineParserState.Default;
-                    tokenBuffer = [];
 
+                    // reset the buffer
+                    tokenBuffer = [];
 
                 } else if (token instanceof UnclosedQuotedValueToken) {
 
@@ -309,8 +387,8 @@ export class KodeineParser implements IFormulaStringParser {
                     if (tokenBuffer.length > 0) {
 
                         // we read some plain text tokens before this point, add a plain text part
-                        evaluables.push(new KodeValue(
-                            tokenBuffer.map(t => t.getSourceText()).join(''),
+                        formulaEvaluables.push(new KodeValue(
+                            tokenBuffer.slice(1).map(t => t.getSourceText()).join(''),
                             new EvaluableSource(...tokenBuffer)
                         ));
 
@@ -323,37 +401,57 @@ export class KodeineParser implements IFormulaStringParser {
                 } else if (token instanceof WhitespaceToken) {
 
                     // do nothing with whitespace, but don't throw UnrecognizedTokenError
+                    // TODO: put whitespace tokens in evaluable sources?
 
                 } else {
+
+                    // forgot to implement something, or the lexer produced an unexpected token
                     throw new UnrecognizedTokenError(token);
+
                 }
 
                 if (!skipPushingToBuffer) {
+
+                    // the default behaviour was not overriden, so push the current token to the buffer
                     tokenBuffer.push(token);
+
                 }
 
             } else {
+
+                // this should never happen
                 throw new Error('Invalid parser state.');
+
             }
         }
 
+        // we read all tokens the lexer had to offer
+
         if (tokenBuffer.length > 0) {
 
-            if (tokenBuffer.length > 0) {
+            if (state === KodeineParserState.Default) {
 
                 // we read some plain text tokens before this point, add a plain text part
-                evaluables.push(new KodeValue(
+                formulaEvaluables.push(new KodeValue(
+
                     tokenBuffer.map(t => t.getSourceText()).join(''),
+                    new EvaluableSource(...tokenBuffer)
+
+                ));
+
+            } else {
+                
+                // we read an opening dollar sign, but not a closing one
+                // in this case, kustom prints all tokens except the opening dollar sign as plain text
+                formulaEvaluables.push(new KodeValue(
+                    tokenBuffer.slice(1).map(t => t.getSourceText()).join(''),
                     new EvaluableSource(...tokenBuffer)
                 ));
 
             }
-
-            tokenBuffer = [];
-
         }
 
-        let formula = new Formula(evaluables);
+        let formula = new Formula(formulaEvaluables);
 
         return formula;
     }

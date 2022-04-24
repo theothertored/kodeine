@@ -208,7 +208,7 @@ export abstract class ILexer {
      * @param tokenCount How many tokens to peek.
      * @returns Next {@link tokenCount} tokens of the formula source text as an array. 
      */
-    abstract peek(tokenCount: number): IFormulaToken[];
+    abstract peek(tokenCount: number, offset?: number): IFormulaToken[];
 
     /**
      * Consumes the next {@link tokenCount} tokens.

@@ -85,6 +85,7 @@ export class EvaluableSource {
         return new EvaluableSource(...tokens);
     }
 }
+/** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export class EvaluationContext {
 }
 /** Represents a forward-only character reader. */
@@ -93,6 +94,7 @@ export class ICharReader {
 /** Represents a forward-only formula token lexer. */
 export class ILexer {
 }
-export class IParser {
+/** Represents a parser that converts text into an evaluable {@link Formula}. */
+export class IFormulaStringParser {
 }
 //# sourceMappingURL=base.js.map

@@ -9,23 +9,18 @@ import { OpeningParenthesisToken, UnquotedValueToken } from "../../kodeine-lexer
 export class FunctionOccurence {
 
     /** The token representing the name of this function. */
-    public readonly funcNameToken: UnquotedValueToken;
+    public readonly openingTokens: IFormulaToken[];
     
-    /** The token representing the opening parenthesis of this function. */
-    public readonly openingParenthesisToken: OpeningParenthesisToken;
-
     /** The {@link IKodeFunction} referred to by the {@link funcNameToken}. */
     public readonly func: IKodeFunction;
 
     /**
      * Constructs a function occurence from an {@link IKodeFunction}, a function name token and an opening parenthesis token.
      * @param func The {@link IKodeFunction} being referred to by the {@link funcNameToken}.
-     * @param funcNameToken The fucntion name token.
-     * @param openingParenthesisToken The opening parenthesis token.
+     * @param openingTokens The tokens opening this function call.
      */
-    constructor(func: IKodeFunction, funcNameToken: UnquotedValueToken, openingParenthesisToken: OpeningParenthesisToken) {
-        this.funcNameToken = funcNameToken;
-        this.openingParenthesisToken = openingParenthesisToken;
+    constructor(func: IKodeFunction, ...openingTokens: IFormulaToken[]) {
+        this.openingTokens = openingTokens;
         this.func = func;
     }
 

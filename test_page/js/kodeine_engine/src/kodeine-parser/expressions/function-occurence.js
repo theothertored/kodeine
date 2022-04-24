@@ -7,12 +7,10 @@ export class FunctionOccurence {
     /**
      * Constructs a function occurence from an {@link IKodeFunction}, a function name token and an opening parenthesis token.
      * @param func The {@link IKodeFunction} being referred to by the {@link funcNameToken}.
-     * @param funcNameToken The fucntion name token.
-     * @param openingParenthesisToken The opening parenthesis token.
+     * @param openingTokens The tokens opening this function call.
      */
-    constructor(func, funcNameToken, openingParenthesisToken) {
-        this.funcNameToken = funcNameToken;
-        this.openingParenthesisToken = openingParenthesisToken;
+    constructor(func, ...openingTokens) {
+        this.openingTokens = openingTokens;
         this.func = func;
     }
 }

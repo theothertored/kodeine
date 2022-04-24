@@ -37,7 +37,7 @@ export class FunctionCallBuilder extends IExpressionBuilder {
         super();
         this._env = env;
         this._functionOccurence = functionOccurence;
-        this._currentArgumentBuilder = new ExpressionBuilder(env, false, functionOccurence.openingParenthesisToken);
+        this._currentArgumentBuilder = new ExpressionBuilder(env, false, ...functionOccurence.openingTokens);
     }
 
 
@@ -101,8 +101,7 @@ export class FunctionCallBuilder extends IExpressionBuilder {
                 this._functionOccurence.func,
                 this._args,
                 new EvaluableSource(
-                    this._functionOccurence.funcNameToken,
-                    this._functionOccurence.openingParenthesisToken,
+                    ...this._functionOccurence.openingTokens,
                     ...this._innerTokens,
                     closingToken
                 )

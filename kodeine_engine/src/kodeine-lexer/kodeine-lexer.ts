@@ -31,7 +31,7 @@ export class KodeineLexer implements IFormulaTokenLexer {
         this._operatorSymbols = operatorSymbols;
     }
 
-    peek(tokenCount: number): IFormulaToken[] {
+    peek(tokenCount: number, offset: number = 0): IFormulaToken[] {
 
         // the array of tokens to be returned
         let outTokens: IFormulaToken[];
@@ -39,7 +39,7 @@ export class KodeineLexer implements IFormulaTokenLexer {
         if (this._tokenQueue.length > 0) {
 
             // there are tokens in the queue, start filling up the outTokens array from the queue
-            outTokens = this._tokenQueue.slice(0, tokenCount);
+            outTokens = this._tokenQueue.slice(offset, tokenCount);
 
         } else {
 
@@ -384,7 +384,7 @@ export class KodeineLexer implements IFormulaTokenLexer {
 
                     // after we exited the loop we only care about the buffer,
                     // if the whitespace buffer is not empty, it just contains trailing whitespace, which should be a separate token
-                    
+
                     // consume characters that we peeked and added to the buffer (-1 because we already consumed the first character)
                     this._charReader.consume(buffer.length - 1);
 
@@ -408,7 +408,7 @@ export class KodeineLexer implements IFormulaTokenLexer {
      * @returns Whether the character is a whitespace characters.
      */
     private _isWhitespace(char: string): boolean {
-        return char.trim().length === 0;
+        return char !== '' && char.trim().length === 0;
     }
 
     /**
@@ -417,7 +417,8 @@ export class KodeineLexer implements IFormulaTokenLexer {
      * @returns Whether the character can be a part of an unquoted string.
      */
     private _isUnquotedTextChar(char: string): boolean {
-        let isSpecialChar = char === '('
+        let isSpecialChar = char == ''
+            || char === '('
             || char === ')'
             || char === '"'
             || char === ','

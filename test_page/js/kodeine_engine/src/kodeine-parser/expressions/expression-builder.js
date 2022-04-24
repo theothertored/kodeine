@@ -5,25 +5,36 @@ import { BinaryOperation } from "../../evaluables/binary-operation.js";
 import { Expression } from "../../evaluables/expression.js";
 import { UnaryOperation } from "../../evaluables/unary-operation.js";
 import { UnaryOperatorOccurence, BinaryOperatorOccurence } from "./operator-occurences.js";
+/** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
 export class ExpressionBuilder {
+    /**
+     * Constructs an expression builder with a given parsing context.
+     * @param env The parsing context for this expression builder.
+     * @param includeSurroundingTokens Whether the built expression should include starting and ending tokens in its source.
+     * @param startingTokens The token or tokens that started the built expression.
+     */
     constructor(env, includeSurroundingTokens, ...startingTokens) {
+        /** Elements of the built expression. Expressions consist of evaluables and operators. */
         this._elements = [];
         this._env = env;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
     }
+    /** Returns the current last element of {@link _elements}. */
     _getLastElement() {
         return this._elements[this._elements.length - 1];
     }
     addValue(token) {
-        let lastElement = this._getLastElement();
-        if (lastElement instanceof Evaluable) {
+        // check the current last element
+        if (this._getLastElement() instanceof Evaluable) {
             // cannot have two values one after another
             throw new KodeSyntaxError(token, 'A value cannot follow another value.');
         }
+        // create kode value and add as element
         this._elements.push(KodeValue.fromToken(token));
     }
     addEvaluable(evaluable) {
+        // check the current last element
         let lastElement = this._getLastElement();
         if (lastElement instanceof Evaluable) {
             // cannot have two values one after another
@@ -33,13 +44,15 @@ export class ExpressionBuilder {
     }
     addOperator(token) {
         let lastElement = this._getLastElement();
+        // the token should be a unary operator if it is the first element of the expression
+        // or is preceded by another operator, be it unary or binary.
         let tokenShouldBeUnaryOperator = !lastElement
             || lastElement instanceof BinaryOperatorOccurence
             || lastElement instanceof UnaryOperatorOccurence;
         if (tokenShouldBeUnaryOperator) {
             let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
             if (unaryOperator) {
-                // found a unary operator
+                // found the unary operator
                 this._elements.push(new UnaryOperatorOccurence(unaryOperator, token));
             }
             else {
@@ -59,6 +72,7 @@ export class ExpressionBuilder {
             // token should be a binary operator
             let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
             if (binaryOperator) {
+                // found the binary operator
                 this._elements.push(new BinaryOperatorOccurence(binaryOperator, token));
             }
             else {
@@ -75,18 +89,28 @@ export class ExpressionBuilder {
             }
         }
     }
+    /** Returns whether this expression has any elements. */
     getIsEmpty() {
         return this._elements.length === 0;
     }
+    /**
+     * Builds an evaluable tree from added expression elements.
+     * @param closingToken The token that is closing this expression (closing parenthesis, dollar sign etc.).
+     * @returns An evaluable tree. If {@link includeSurroundingTokens} is `true`, returns an {@link Expression}
+     * wrapping an evaluable and containing the opening and closing tokens in its source.
+     * Otherwise, returns the root (last-in-order) evaluable of the expression.
+     */
     build(closingToken) {
         if (this._elements.length === 0) {
             // empty parentheses - throw
             throw new KodeSyntaxError(closingToken, 'Empty expression.');
         }
         else {
+            // the root element of the expression
             let finalElement;
             if (this._elements.length === 1) {
-                // only one element in the parentheses
+                // this expression only has one element, so it wil be the root element
+                // it needs to be an evaluable - this is checked below the current if.
                 finalElement = this._elements[0];
             }
             else {
@@ -171,15 +195,21 @@ export class ExpressionBuilder {
                 // after the second pass there should only be one element, being an instance of IEvaluable, so we succeeded
                 finalElement = this._elements[0];
             }
+            // at this point we have the final element, make sure it is an evaluable
             if (finalElement instanceof Evaluable) {
                 if (this._includeSurroundingTokens) {
-                    return new Expression(finalElement, new EvaluableSource(...finalElement.source.tokens));
+                    // we are including surrounding tokens, and so the expression needs to exist
+                    // build it with surrounding tokens
+                    return new Expression(finalElement, new EvaluableSource(...this._startingTokens, ...finalElement.source.tokens, closingToken));
                 }
                 else {
+                    // we are not including surrounding tokens, which means we don't need an expression object
+                    // return the root element directly
                     return finalElement;
                 }
             }
             else {
+                // this expression has a final element that isn't an evaluable, throw
                 throw new KodeSyntaxError(closingToken, `Expression cannot consist of only the "${finalElement.operator.getSymbol()}" operator.`);
             }
         }

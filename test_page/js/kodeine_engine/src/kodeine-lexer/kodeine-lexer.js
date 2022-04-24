@@ -20,12 +20,12 @@ export class KodeineLexer {
         this._charReader = charReader;
         this._operatorSymbols = operatorSymbols;
     }
-    peek(tokenCount) {
+    peek(tokenCount, offset = 0) {
         // the array of tokens to be returned
         let outTokens;
         if (this._tokenQueue.length > 0) {
             // there are tokens in the queue, start filling up the outTokens array from the queue
-            outTokens = this._tokenQueue.slice(0, tokenCount);
+            outTokens = this._tokenQueue.slice(offset, tokenCount);
         }
         else {
             // no tokens in the queue, start with an empty array
@@ -285,7 +285,7 @@ export class KodeineLexer {
      * @returns Whether the character is a whitespace characters.
      */
     _isWhitespace(char) {
-        return char.trim().length === 0;
+        return char !== '' && char.trim().length === 0;
     }
     /**
      * Checks whether a character can be a part of an unquoted string.
@@ -293,7 +293,8 @@ export class KodeineLexer {
      * @returns Whether the character can be a part of an unquoted string.
      */
     _isUnquotedTextChar(char) {
-        let isSpecialChar = char === '('
+        let isSpecialChar = char == ''
+            || char === '('
             || char === ')'
             || char === '"'
             || char === ','
