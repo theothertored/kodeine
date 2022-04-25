@@ -4,6 +4,7 @@ import { KodeSyntaxError } from "../../errors.js";
 import { BinaryOperation } from "../../evaluables/binary-operation.js";
 import { Expression } from "../../evaluables/expression.js";
 import { UnaryOperation } from "../../evaluables/unary-operation.js";
+import { UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
 import { UnaryOperatorOccurence, BinaryOperatorOccurence } from "./operator-occurences.js";
 /** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
 export class ExpressionBuilder {
@@ -26,9 +27,25 @@ export class ExpressionBuilder {
     }
     addValue(token) {
         // check the current last element
-        if (this._getLastElement() instanceof Evaluable) {
-            // cannot have two values one after another
-            throw new KodeSyntaxError(token, 'A value cannot follow another value.');
+        var _a;
+        let lastElement = this._getLastElement();
+        if (lastElement instanceof Evaluable) {
+            // ugly if to print a more accurate error message for problematic characters
+            if ((token instanceof UnquotedValueToken
+                && (token.getSourceText() == '~' || token.getSourceText() == '!')) || (lastElement instanceof KodeValue
+                && ((_a = lastElement.source) === null || _a === void 0 ? void 0 : _a.tokens.length) === 1
+                && lastElement.source.tokens[0] instanceof UnquotedValueToken
+                && (lastElement.text == "~" || lastElement.text == "!"))) {
+                // detected an unquoted value problematic token
+                throw new KodeSyntaxError(token, 'A value cannot follow another value. '
+                    + 'Kustom treats first characters of binary operators as standalone unquoted values '
+                    + 'when they are not a part of a full operator symbols. ! and ~ both behave this way '
+                    + '(first characters of != and ~= respectively).');
+            }
+            else {
+                // cannot have two values one after another
+                throw new KodeSyntaxError(token, 'A value cannot follow another value.');
+            }
         }
         // create kode value and add as element
         this._elements.push(KodeValue.fromToken(token));

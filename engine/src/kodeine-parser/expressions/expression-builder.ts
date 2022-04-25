@@ -46,13 +46,43 @@ export class ExpressionBuilder {
     addValue(token: (QuotedValueToken | UnquotedValueToken)) {
 
         // check the current last element
-        if (this._getLastElement() instanceof Evaluable) {
-            
-            // cannot have two values one after another
-            throw new KodeSyntaxError(token, 'A value cannot follow another value.');
-            
+
+        let lastElement = this._getLastElement();
+
+        if (lastElement instanceof Evaluable) {
+
+            // ugly if to print a more accurate error message for problematic characters
+            if (
+                (
+                    token instanceof UnquotedValueToken 
+                    && (token.getSourceText() == '~' || token.getSourceText() == '!')
+
+                ) || (
+                    lastElement instanceof KodeValue
+                    && lastElement.source?.tokens.length === 1
+                    && lastElement.source.tokens[0] instanceof UnquotedValueToken
+                    && (lastElement.text == "~" || lastElement.text == "!")
+                )
+            ) {
+
+                // detected an unquoted value problematic token
+                throw new KodeSyntaxError(
+                    token, 
+                    'A value cannot follow another value. '
+                    + 'Kustom treats first characters of binary operators as standalone unquoted values '
+                    + 'when they are not a part of a full operator symbols. ! and ~ both behave this way '
+                    + '(first characters of != and ~= respectively).'
+                );
+
+            } else {
+
+                // cannot have two values one after another
+                throw new KodeSyntaxError(token, 'A value cannot follow another value.');
+
+            }
+
         }
-        
+
         // create kode value and add as element
         this._elements.push(KodeValue.fromToken(token));
     }
