@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ParsingContextBuilder } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
 import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
 import { EvaluationContext } from '../../engine/dist.node/base.js';
-import { KodeParseError, EvaluationError } from '../../engine/dist.node/errors.js';
+import { KodeParseError, EvaluationError, KodeError } from '../../engine/dist.node/errors.js';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -17,9 +17,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     let evaluateToOutput = (document: vscode.TextDocument) => {
 
-        // clear diagnostics
-        diagColl.delete(vscode.window.activeTextEditor!.document.uri);
-
         try {
 
             let formulaText = document.getText();
@@ -28,9 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
 
             outChannel.replace(result.text);
 
+            // clear diagnostics
+            diagColl.delete(vscode.window.activeTextEditor!.document.uri);
+
         } catch (err: any) {
 
-            if (err instanceof KodeParseError || err instanceof EvaluationError) {
+            if (err instanceof KodeError) {
 
                 outChannel.replace(err.message);
 
@@ -45,27 +45,47 @@ export function activate(context: vscode.ExtensionContext) {
                             document.positionAt(err.token.getEndIndex())
                         ),
                         message: err.message,
-                        source: 'err'
-                    })
+                        code: '',
+                        source: ''
+                    });
+
+                } else if (err instanceof EvaluationError) {
+
+                    diags.push({
+                        severity: vscode.DiagnosticSeverity.Error,
+                        range: new vscode.Range(
+                            document.positionAt(err.evaluable.source!.getStartIndex()),
+                            document.positionAt(err.evaluable.source!.getEndIndex())
+                        ),
+                        message: err.message,
+                        code: '',
+                        source: ''
+                    });
 
                 } else {
 
                     diags.push({
                         severity: vscode.DiagnosticSeverity.Error,
                         range: new vscode.Range(
-                            document.positionAt(0), 
+                            document.positionAt(0),
                             document.positionAt(Number.MAX_VALUE)
                         ),
                         message: err.message,
-                        source: 'err'
-                    })
+                        code: '',
+                        source: ''
+                    });
 
                 }
 
                 diagColl.set(vscode.window.activeTextEditor!.document.uri, diags)
 
             } else {
+
                 outChannel.replace('kodeine crashed: ' + err?.toString());
+
+                // clear diagnostics
+                diagColl.delete(vscode.window.activeTextEditor!.document.uri);
+                
             }
         }
 

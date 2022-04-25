@@ -73,7 +73,7 @@ export class EvaluableSource {
     /** Gets the end index of the last source token. */
     getEndIndex() {
         if (this.tokens.length > 0)
-            return this.tokens[this.tokens.length].getEndIndex();
+            return this.tokens[this.tokens.length - 1].getEndIndex();
         else
             throw new Error('Evaluable source contains no tokens.');
     }

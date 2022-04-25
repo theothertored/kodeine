@@ -14,16 +14,16 @@ function activate(context) {
     let evalCtx = new base_js_1.EvaluationContext();
     let diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     let evaluateToOutput = (document) => {
-        // clear diagnostics
-        diagColl.delete(vscode.window.activeTextEditor.document.uri);
         try {
             let formulaText = document.getText();
             let formula = parser.parse(formulaText);
             let result = formula.evaluate(evalCtx);
             outChannel.replace(result.text);
+            // clear diagnostics
+            diagColl.delete(vscode.window.activeTextEditor.document.uri);
         }
         catch (err) {
-            if (err instanceof errors_js_1.KodeParseError || err instanceof errors_js_1.EvaluationError) {
+            if (err instanceof errors_js_1.KodeError) {
                 outChannel.replace(err.message);
                 let diags = [];
                 if (err instanceof errors_js_1.KodeParseError) {
@@ -31,7 +31,17 @@ function activate(context) {
                         severity: vscode.DiagnosticSeverity.Error,
                         range: new vscode.Range(document.positionAt(err.token.getStartIndex()), document.positionAt(err.token.getEndIndex())),
                         message: err.message,
-                        source: 'err'
+                        code: '',
+                        source: ''
+                    });
+                }
+                else if (err instanceof errors_js_1.EvaluationError) {
+                    diags.push({
+                        severity: vscode.DiagnosticSeverity.Error,
+                        range: new vscode.Range(document.positionAt(err.evaluable.source.getStartIndex()), document.positionAt(err.evaluable.source.getEndIndex())),
+                        message: err.message,
+                        code: '',
+                        source: ''
                     });
                 }
                 else {
@@ -39,13 +49,16 @@ function activate(context) {
                         severity: vscode.DiagnosticSeverity.Error,
                         range: new vscode.Range(document.positionAt(0), document.positionAt(Number.MAX_VALUE)),
                         message: err.message,
-                        source: 'err'
+                        code: '',
+                        source: ''
                     });
                 }
                 diagColl.set(vscode.window.activeTextEditor.document.uri, diags);
             }
             else {
                 outChannel.replace('kodeine crashed: ' + err?.toString());
+                // clear diagnostics
+                diagColl.delete(vscode.window.activeTextEditor.document.uri);
             }
         }
     };

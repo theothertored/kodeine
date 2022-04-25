@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FunctionCall = void 0;
 const base_js_1 = require("../base.js");
+const errors_js_1 = require("../errors.js");
 /** A function call, consisting of a kode function being called and arguments for the call. */
 class FunctionCall extends base_js_1.Evaluable {
     /**
@@ -16,11 +17,23 @@ class FunctionCall extends base_js_1.Evaluable {
         this.args = args;
     }
     evaluate(env) {
-        // call the function with an array of values acquired by evaluating all arguments
-        let kodeVal = this.func.call(env, this.args.map(a => a.evaluate(env)));
-        // the value resulting from this function call should have the same source as the operation
-        kodeVal.source = this.source;
-        return kodeVal;
+        try {
+            // call the function with an array of values acquired by evaluating all arguments
+            let kodeVal = this.func.call(env, this.args.map(a => a.evaluate(env)));
+            // the value resulting from this function call should have the same source as the operation
+            kodeVal.source = this.source;
+            return kodeVal;
+        }
+        catch (err) {
+            if (err instanceof errors_js_1.InternalEvaluationError) {
+                // if an internal evaluation was thrown, we need to convert it
+                // to an external one with this operation as the evaluable
+                throw err.toExternalError(this);
+            }
+            else {
+                throw err;
+            }
+        }
     }
 }
 exports.FunctionCall = FunctionCall;

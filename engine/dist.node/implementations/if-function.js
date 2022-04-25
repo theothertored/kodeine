@@ -9,7 +9,7 @@ class IfFunction extends base_js_1.IKodeFunction {
     call(env, args) {
         // require at least two arguments (one condition and one value)
         if (args.length <= 1) {
-            throw new errors_js_1.InvalidArgumentCountError(this, 'At least two arguments required.');
+            throw new errors_js_1.InternalInvalidArgumentCountError('At least two arguments required.');
         }
         // calculate the index of the last condition argument
         let lastCondArgI = Math.floor((args.length - 2) / 2) * 2;

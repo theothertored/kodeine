@@ -1,10 +1,11 @@
-export class CustomError {
+/** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
+export class KodeError {
     constructor(message) {
         this.message = message;
     }
 }
 /** An error thrown by the parser. */
-export class KodeParseError extends CustomError {
+export class KodeParseError extends KodeError {
     /** Constructs a {@link KodeParseError} with a source token and a prefixed message. */
     constructor(prefix, token, message) {
         super(`${prefix} around index ${token.getStartIndex()}: ${message}`);
@@ -43,25 +44,47 @@ export class UnrecognizedTokenError extends KodeParseError {
     }
 }
 /** A generic error thrown during formula evaluation. */
-export class EvaluationError extends CustomError {
+export class EvaluationError extends KodeError {
     /**
-     * Constructs an {@link EvaluationError} with a message.
+     * Constructs an {@link EvaluationError} with an evaluable and a message.
+     * @param evaluable The evaluable that threw the error.
      * @param message A message explaining the error.
      */
-    constructor(message) {
+    constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
+        this.evaluable = evaluable;
     }
 }
 /** An error thrown when a function was called with an invalid number of arguments. */
 export class InvalidArgumentCountError extends EvaluationError {
     /**
      * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.
-     * @param func The function that was called with an invalid number of arguments.
+     * @param funcCall The function call with an invalid number of arguments.
      * @param message A message explaining the error.
      */
-    constructor(func, message) {
-        super(`Not enough arguments given for ${func.getName()}(): ${message}`);
-        this.func = func;
+    constructor(funcCall, message) {
+        super(funcCall, `Not enough arguments given for ${funcCall.func.getName()}(): ${message}`);
+    }
+}
+/**
+ * An error thrown internally by an implementation of a function or operator.
+ * Should be caught by the parent evaluble and rethrown as an EvaluationError.
+ *
+ * **This is an internal error class that, ideally, should never make it outside the formula.**
+ */
+export class InternalEvaluationError {
+    /**
+     * Constructs an {@link InternalEvaluationError} with a given message.
+     * @param message The message to construct the error with.
+     */
+    constructor(message) {
+        this.message = message;
+    }
+}
+/** An internal invalid argument count error to be thrown by function implementations. */
+export class InternalInvalidArgumentCountError extends InternalEvaluationError {
+    toExternalError(evaluable) {
+        return new InvalidArgumentCountError(evaluable, this.message);
     }
 }
 //# sourceMappingURL=errors.js.map

@@ -1,5 +1,6 @@
 import { IBinaryOperator, Evaluable, KodeValue } from "../base.js";
 import { EvaluableSource, EvaluationContext } from "../base.js";
+import { InternalEvaluationError } from "../errors.js";
 
 /** An operation consisting of an binary operator and two evaluable arguments. */
 export class BinaryOperation extends Evaluable {
@@ -30,14 +31,30 @@ export class BinaryOperation extends Evaluable {
     /** Evaluates both arguments and runs the operation using the resulting values. */
     evaluate(env: EvaluationContext): KodeValue {
 
-        // run the operation to obtain a kode value
-        let kodeVal = this.operator.operation(this.argA.evaluate(env), this.argB.evaluate(env));
+        try {
+            
+            // run the operation to obtain a kode value
+            let kodeVal = this.operator.operation(this.argA.evaluate(env), this.argB.evaluate(env));
+            
+            // the value resulting from this operation should have the same source as the operation 
+            kodeVal.source = this.source;
+            
+            return kodeVal;
 
-        // the value resulting from this operation should have the same source as the operation 
-        kodeVal.source = this.source;
+        } catch (err) {
 
-        return kodeVal;
+            if (err instanceof InternalEvaluationError) {
 
+                // if an internal evaluation was thrown, we need to convert it
+                // to an external one with this operation as the evaluable
+                throw err.toExternalError(this);
+
+            } else {
+                throw err;
+            }
+
+        }
+            
     }
 
 }

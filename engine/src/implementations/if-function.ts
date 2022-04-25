@@ -1,6 +1,6 @@
 import { IKodeFunction, KodeValue } from "../base.js";
 import { EvaluationContext } from "../base.js";
-import { InvalidArgumentCountError } from "../errors.js";
+import { InternalInvalidArgumentCountError } from "../errors.js";
 
 /** Implementation of kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
@@ -9,7 +9,7 @@ export class IfFunction extends IKodeFunction {
 
         // require at least two arguments (one condition and one value)
         if (args.length <= 1) {
-            throw new InvalidArgumentCountError(this, 'At least two arguments required.');
+            throw new InternalInvalidArgumentCountError('At least two arguments required.');
         }
 
         // calculate the index of the last condition argument

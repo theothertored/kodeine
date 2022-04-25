@@ -1,14 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParseError = exports.CustomError = void 0;
-class CustomError {
+exports.InternalInvalidArgumentCountError = exports.InternalEvaluationError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParseError = exports.KodeError = void 0;
+/** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
+class KodeError {
     constructor(message) {
         this.message = message;
     }
 }
-exports.CustomError = CustomError;
+exports.KodeError = KodeError;
 /** An error thrown by the parser. */
-class KodeParseError extends CustomError {
+class KodeParseError extends KodeError {
     /** Constructs a {@link KodeParseError} with a source token and a prefixed message. */
     constructor(prefix, token, message) {
         super(`${prefix} around index ${token.getStartIndex()}: ${message}`);
@@ -51,13 +52,15 @@ class UnrecognizedTokenError extends KodeParseError {
 }
 exports.UnrecognizedTokenError = UnrecognizedTokenError;
 /** A generic error thrown during formula evaluation. */
-class EvaluationError extends CustomError {
+class EvaluationError extends KodeError {
     /**
-     * Constructs an {@link EvaluationError} with a message.
+     * Constructs an {@link EvaluationError} with an evaluable and a message.
+     * @param evaluable The evaluable that threw the error.
      * @param message A message explaining the error.
      */
-    constructor(message) {
+    constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
+        this.evaluable = evaluable;
     }
 }
 exports.EvaluationError = EvaluationError;
@@ -65,13 +68,35 @@ exports.EvaluationError = EvaluationError;
 class InvalidArgumentCountError extends EvaluationError {
     /**
      * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.
-     * @param func The function that was called with an invalid number of arguments.
+     * @param funcCall The function call with an invalid number of arguments.
      * @param message A message explaining the error.
      */
-    constructor(func, message) {
-        super(`Not enough arguments given for ${func.getName()}(): ${message}`);
-        this.func = func;
+    constructor(funcCall, message) {
+        super(funcCall, `Not enough arguments given for ${funcCall.func.getName()}(): ${message}`);
     }
 }
 exports.InvalidArgumentCountError = InvalidArgumentCountError;
+/**
+ * An error thrown internally by an implementation of a function or operator.
+ * Should be caught by the parent evaluble and rethrown as an EvaluationError.
+ *
+ * **This is an internal error class that, ideally, should never make it outside the formula.**
+ */
+class InternalEvaluationError {
+    /**
+     * Constructs an {@link InternalEvaluationError} with a given message.
+     * @param message The message to construct the error with.
+     */
+    constructor(message) {
+        this.message = message;
+    }
+}
+exports.InternalEvaluationError = InternalEvaluationError;
+/** An internal invalid argument count error to be thrown by function implementations. */
+class InternalInvalidArgumentCountError extends InternalEvaluationError {
+    toExternalError(evaluable) {
+        return new InvalidArgumentCountError(evaluable, this.message);
+    }
+}
+exports.InternalInvalidArgumentCountError = InternalInvalidArgumentCountError;
 //# sourceMappingURL=errors.js.map
