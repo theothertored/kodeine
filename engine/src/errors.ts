@@ -1,4 +1,4 @@
-import { Evaluable, IFormulaToken, IKodeFunction } from "./base.js";
+import { Evaluable, FormulaToken, IKodeFunction } from "./base.js";
 import { BinaryOperation } from "./evaluables/binary-operation.js";
 import { FunctionCall } from "./evaluables/function-call.js";
 import { UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
@@ -18,10 +18,10 @@ export class KodeError {
 export class KodeParseError extends KodeError {
 
     /** The token this error is related to. */
-    public token: IFormulaToken;
+    public token: FormulaToken;
 
     /** Constructs a {@link KodeParseError} with a source token and a prefixed message. */
-    constructor(prefix: string, token: IFormulaToken, message: string) {
+    constructor(prefix: string, token: FormulaToken, message: string) {
         super(`${prefix} around index ${token.getStartIndex()}: ${message}`);
         this.token = token;
     }
@@ -35,7 +35,7 @@ export class KodeSyntaxError extends KodeParseError {
      * @param token The token the error is related to.
      * @param message A message explaning the error.
      */
-    constructor(token: IFormulaToken, message: string) {
+    constructor(token: FormulaToken, message: string) {
         super('Syntax error', token, message);
     }
 
@@ -61,7 +61,7 @@ export class UnrecognizedTokenError extends KodeParseError {
      * Constructs a {@link UnrecognizedTokenError} with the token that was not recognized. 
      * @param token The token that was not recognized.
      */
-    constructor(token: IFormulaToken) {
+    constructor(token: FormulaToken) {
         super('Unrecognized token', token, `Token "${token.getName()}" was not recognized by the parser.`);
     }
 

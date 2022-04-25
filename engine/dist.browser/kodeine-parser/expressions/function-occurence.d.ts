@@ -1,4 +1,4 @@
-import { IFormulaToken, IKodeFunction } from "../../base.js";
+import { FormulaToken, IKodeFunction } from "../../base.js";
 /**
  * An occurence of a function call in an evaluable part of a formula.
  * Consists of the function name token ({@link funcNameToken}), opening parenthesis token ({@link openingParenthesisToken})
@@ -6,7 +6,7 @@ import { IFormulaToken, IKodeFunction } from "../../base.js";
  */
 export declare class FunctionOccurence {
     /** The token representing the name of this function. */
-    readonly openingTokens: IFormulaToken[];
+    readonly openingTokens: FormulaToken[];
     /** The {@link IKodeFunction} referred to by the {@link funcNameToken}. */
     readonly func: IKodeFunction;
     /**
@@ -14,5 +14,5 @@ export declare class FunctionOccurence {
      * @param func The {@link IKodeFunction} being referred to by the {@link funcNameToken}.
      * @param openingTokens The tokens opening this function call.
      */
-    constructor(func: IKodeFunction, ...openingTokens: IFormulaToken[]);
+    constructor(func: IKodeFunction, ...openingTokens: FormulaToken[]);
 }

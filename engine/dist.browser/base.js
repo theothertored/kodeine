@@ -1,5 +1,9 @@
 /** Represents a token emited by the lexer. */
-export class IFormulaToken {
+export class FormulaToken {
+    /** Get what this token should output in a plain text part. By default this returns the source text. */
+    getPlainTextOutput() {
+        return this.getSourceText();
+    }
 }
 /** A base class for unary and binary kode operators. Requires operators to have a symbol. */
 export class IOperator {

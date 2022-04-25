@@ -1,8 +1,8 @@
-import { Evaluable, IFormulaToken, ILexer, IFormulaStringParser, KodeValue, ICharReader } from "../base.js";
+import { Evaluable, FormulaToken, ILexer, IFormulaStringParser, KodeValue, ICharReader } from "../base.js";
 import { EvaluableSource } from "../base.js";
 import { KodeFunctionNotFoundError, KodeSyntaxError, UnrecognizedTokenError } from "../errors.js";
 import { Formula } from "../evaluables/formula.js";
-import { ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine-lexer/formula-tokens.js";
+import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine-lexer/formula-tokens.js";
 import { KodeineLexer } from "../kodeine-lexer/kodeine-lexer.js";
 import { StringCharReader } from "../string-char-reader.js";
 import { ExpressionBuilder } from "./expressions/expression-builder.js";
@@ -82,7 +82,7 @@ export class KodeineParser implements IFormulaStringParser {
         let formulaEvaluables: Evaluable[] = [];
 
         /** Holds all tokens that were read since the start of the current plain text or evaluable part. */
-        let tokenBuffer: IFormulaToken[] = [];
+        let tokenBuffer: FormulaToken[] = [];
 
         /**
          * - An expression builder is created and pushed to the stack when an evaluable part begins.
@@ -150,7 +150,7 @@ export class KodeineParser implements IFormulaStringParser {
 
                         // we read some plain text tokens before this point, add them to formula evaluables
                         formulaEvaluables.push(new KodeValue(
-                            tokenBuffer.map(t => t.getSourceText()).join(''),
+                            tokenBuffer.map(t => t.getPlainTextOutput()).join(''),
                             new EvaluableSource(...tokenBuffer)
                         ));
 
@@ -206,7 +206,7 @@ export class KodeineParser implements IFormulaStringParser {
                         // the function name token has already been consumed, and push it to the buffer
                         tokenBuffer.push(token);
 
-                        let whitespaceTokens: IFormulaToken[] = [];
+                        let whitespaceTokens: FormulaToken[] = [];
 
                         if (offset > 1) {
                             // consume all following whitespace tokens and push them to the buffer
@@ -448,7 +448,7 @@ export class KodeineParser implements IFormulaStringParser {
                 // we read some plain text tokens before this point, add a plain text part
                 formulaEvaluables.push(new KodeValue(
 
-                    tokenBuffer.map(t => t.getSourceText()).join(''),
+                    tokenBuffer.map(t => t.getPlainTextOutput()).join(''),
                     new EvaluableSource(...tokenBuffer)
 
                 ));

@@ -1,4 +1,4 @@
-import { ICharReader, IFormulaToken, ILexer as IFormulaTokenLexer } from "../base.js";
+import { ICharReader, FormulaToken, ILexer as FormulaTokenLexer } from "../base.js";
 import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, PlainTextToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "./formula-tokens.js";
 
 /** 
@@ -10,8 +10,8 @@ export enum KodeineLexerState {
     Default, Kode
 }
 
-/** The default Kodeine lexer. Reads characters from an {@link ICharReader} and combines them into {@link IFormulaToken}s. */
-export class KodeineLexer implements IFormulaTokenLexer {
+/** The default Kodeine lexer. Reads characters from an {@link ICharReader} and combines them into {@link FormulaToken}s. */
+export class KodeineLexer implements FormulaTokenLexer {
 
     /** The source of characters for the lexer. */
     private readonly _charReader: ICharReader;
@@ -23,7 +23,7 @@ export class KodeineLexer implements IFormulaTokenLexer {
     private _state = KodeineLexerState.Default;
 
     /** A queue holding tokens that were already peeked, but not consumed. */
-    private _tokenQueue: IFormulaToken[] = [];
+    private _tokenQueue: FormulaToken[] = [];
 
     /** Constructs a {@link KodeineLexer} with an {@link ICharReader} as a source of characters and an array of operator symbols. */
     constructor(charReader: ICharReader, operatorSymbols: string[]) {
@@ -31,10 +31,10 @@ export class KodeineLexer implements IFormulaTokenLexer {
         this._operatorSymbols = operatorSymbols;
     }
 
-    peek(tokenCount: number, offset: number = 0): IFormulaToken[] {
+    peek(tokenCount: number, offset: number = 0): FormulaToken[] {
 
         // the array of tokens to be returned
-        let outTokens: IFormulaToken[];
+        let outTokens: FormulaToken[];
 
         if (this._tokenQueue.length > 0) {
 
@@ -62,10 +62,10 @@ export class KodeineLexer implements IFormulaTokenLexer {
         return outTokens;
     }
 
-    consume(tokenCount: number): IFormulaToken[] {
+    consume(tokenCount: number): FormulaToken[] {
 
         // the array of tokens to be returned
-        let outTokens: IFormulaToken[];
+        let outTokens: FormulaToken[];
 
         if (this._tokenQueue.length > 0) {
 
@@ -106,7 +106,7 @@ export class KodeineLexer implements IFormulaTokenLexer {
      * 
      * @returns The next token read from the source.
      */
-    private _readNextToken(): IFormulaToken {
+    private _readNextToken(): FormulaToken {
 
         // save the current position in the source formula text
         // to use as the start index of the token we will be reading

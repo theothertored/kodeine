@@ -60,7 +60,7 @@ function formulaInputEl_input(ev: InputEvent) {
 
     }
 
-    //let tokens: IFormulaToken[] = [];
+    //let tokens: FormulaToken[] = [];
 
     //while (!lexer.EOF()) {
     //    tokens.push(lexer.consume(1)[0]);

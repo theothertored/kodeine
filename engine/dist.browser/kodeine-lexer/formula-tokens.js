@@ -1,12 +1,13 @@
-import { IFormulaToken } from "../base.js";
+import { FormulaToken } from "../base.js";
 /** A base class for simple tokens extracted from a formula source text. */
-export class SimpleToken {
+export class SimpleToken extends FormulaToken {
     /**
      * Constructs a base token using a piece of the formula source text and its start index.
      * @param text The piece of the formula source text this token represents.
      * @param startIndex The start index of the piece in the formula source text.
      */
     constructor(text, startIndex) {
+        super();
         this._text = text;
         this._startIndex = startIndex;
     }
@@ -48,6 +49,9 @@ export class EscapedDollarSignToken extends SimpleToken {
         super('$$', startIndex);
     }
     getName() { return 'escaped dollar sign'; }
+    getPlainTextOutput() {
+        return '$';
+    }
 }
 /**
  * A token representing a dollar sign ($) that is not followed by another dollar sign.
@@ -121,7 +125,7 @@ export class CommaToken extends SimpleToken {
  * A token representing a quotation mark within an evaluated part of a formula that was not closed.
  * Encountering this token causes the tokens read since the start of the evaluated part of the formula to be printed as plain text.
  */
-export class UnclosedQuotedValueToken extends IFormulaToken {
+export class UnclosedQuotedValueToken extends FormulaToken {
     /**
      * Constructs an unclosed quoted value token using a piece of the formula source text following an opening quotation mark
      * and the index of the quotation mark in the formula source text.
@@ -143,7 +147,7 @@ export class UnclosedQuotedValueToken extends IFormulaToken {
     getName() { return 'unclosed quoted value'; }
 }
 /** A token representing a quoted value within an evaluated part of a formula. */
-export class QuotedValueToken extends IFormulaToken {
+export class QuotedValueToken extends FormulaToken {
     /**
      * Constructs a quoted value token using its inner text and the index of the opening quotation mark.
      * @param valueText The text between the quotation marks.

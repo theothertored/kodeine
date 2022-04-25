@@ -1,4 +1,4 @@
-import { IFormulaToken, IKodeFunction } from "../../base.js";
+import { FormulaToken, IKodeFunction } from "../../base.js";
 import { OpeningParenthesisToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
 
 /** 
@@ -9,7 +9,7 @@ import { OpeningParenthesisToken, UnquotedValueToken } from "../../kodeine-lexer
 export class FunctionOccurence {
 
     /** The token representing the name of this function. */
-    public readonly openingTokens: IFormulaToken[];
+    public readonly openingTokens: FormulaToken[];
     
     /** The {@link IKodeFunction} referred to by the {@link funcNameToken}. */
     public readonly func: IKodeFunction;
@@ -19,7 +19,7 @@ export class FunctionOccurence {
      * @param func The {@link IKodeFunction} being referred to by the {@link funcNameToken}.
      * @param openingTokens The tokens opening this function call.
      */
-    constructor(func: IKodeFunction, ...openingTokens: IFormulaToken[]) {
+    constructor(func: IKodeFunction, ...openingTokens: FormulaToken[]) {
         this.openingTokens = openingTokens;
         this.func = func;
     }

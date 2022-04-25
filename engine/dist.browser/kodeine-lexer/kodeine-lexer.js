@@ -9,7 +9,7 @@ export var KodeineLexerState;
     KodeineLexerState[KodeineLexerState["Default"] = 0] = "Default";
     KodeineLexerState[KodeineLexerState["Kode"] = 1] = "Kode";
 })(KodeineLexerState || (KodeineLexerState = {}));
-/** The default Kodeine lexer. Reads characters from an {@link ICharReader} and combines them into {@link IFormulaToken}s. */
+/** The default Kodeine lexer. Reads characters from an {@link ICharReader} and combines them into {@link FormulaToken}s. */
 export class KodeineLexer {
     /** Constructs a {@link KodeineLexer} with an {@link ICharReader} as a source of characters and an array of operator symbols. */
     constructor(charReader, operatorSymbols) {

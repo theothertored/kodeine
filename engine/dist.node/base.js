@@ -1,10 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluableSource = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.IFormulaToken = void 0;
+exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluableSource = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.FormulaToken = void 0;
 /** Represents a token emited by the lexer. */
-class IFormulaToken {
+class FormulaToken {
+    /** Get what this token should output in a plain text part. By default this returns the source text. */
+    getPlainTextOutput() {
+        return this.getSourceText();
+    }
 }
-exports.IFormulaToken = IFormulaToken;
+exports.FormulaToken = FormulaToken;
 /** A base class for unary and binary kode operators. Requires operators to have a symbol. */
 class IOperator {
 }

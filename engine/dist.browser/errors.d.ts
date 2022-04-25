@@ -1,4 +1,4 @@
-import { Evaluable, IFormulaToken } from "./base.js";
+import { Evaluable, FormulaToken } from "./base.js";
 import { FunctionCall } from "./evaluables/function-call.js";
 import { UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
@@ -9,9 +9,9 @@ export declare class KodeError {
 /** An error thrown by the parser. */
 export declare class KodeParseError extends KodeError {
     /** The token this error is related to. */
-    token: IFormulaToken;
+    token: FormulaToken;
     /** Constructs a {@link KodeParseError} with a source token and a prefixed message. */
-    constructor(prefix: string, token: IFormulaToken, message: string);
+    constructor(prefix: string, token: FormulaToken, message: string);
 }
 /** A generic syntax error. */
 export declare class KodeSyntaxError extends KodeParseError {
@@ -20,7 +20,7 @@ export declare class KodeSyntaxError extends KodeParseError {
      * @param token The token the error is related to.
      * @param message A message explaning the error.
      */
-    constructor(token: IFormulaToken, message: string);
+    constructor(token: FormulaToken, message: string);
 }
 /** Thrown when a function call was parsed, but the function implementation was not found in the parsing environment. */
 export declare class KodeFunctionNotFoundError extends KodeParseError {
@@ -36,7 +36,7 @@ export declare class UnrecognizedTokenError extends KodeParseError {
      * Constructs a {@link UnrecognizedTokenError} with the token that was not recognized.
      * @param token The token that was not recognized.
      */
-    constructor(token: IFormulaToken);
+    constructor(token: FormulaToken);
 }
 /** A generic error thrown during formula evaluation. */
 export declare class EvaluationError extends KodeError {

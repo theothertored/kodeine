@@ -1,6 +1,6 @@
-import { IFormulaToken } from "../base.js";
+import { FormulaToken } from "../base.js";
 /** A base class for simple tokens extracted from a formula source text. */
-export declare abstract class SimpleToken implements IFormulaToken {
+export declare abstract class SimpleToken extends FormulaToken {
     /** The source text of this token. */
     protected readonly _text: string;
     /** The index of the first character of this token in the formula source text. */
@@ -41,6 +41,7 @@ export declare class EscapedDollarSignToken extends SimpleToken {
      */
     constructor(startIndex: number);
     getName(): string;
+    getPlainTextOutput(): string;
 }
 /**
  * A token representing a dollar sign ($) that is not followed by another dollar sign.
@@ -104,7 +105,7 @@ export declare class CommaToken extends SimpleToken {
  * A token representing a quotation mark within an evaluated part of a formula that was not closed.
  * Encountering this token causes the tokens read since the start of the evaluated part of the formula to be printed as plain text.
  */
-export declare class UnclosedQuotedValueToken extends IFormulaToken {
+export declare class UnclosedQuotedValueToken extends FormulaToken {
     /** The text following the opening quotation mark that was not closed. */
     private readonly _textFollowingQuotationMark;
     /** The index of the opening quotation mark in the formula source text. */
@@ -122,7 +123,7 @@ export declare class UnclosedQuotedValueToken extends IFormulaToken {
     getName(): string;
 }
 /** A token representing a quoted value within an evaluated part of a formula. */
-export declare class QuotedValueToken extends IFormulaToken {
+export declare class QuotedValueToken extends FormulaToken {
     /** The text between the quotation marks. */
     private readonly _innerText;
     private readonly _openingQuotationMarkIndex;

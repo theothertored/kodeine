@@ -41,7 +41,7 @@ function formulaInputEl_input(ev) {
         }
         console.error(error);
     }
-    //let tokens: IFormulaToken[] = [];
+    //let tokens: FormulaToken[] = [];
     //while (!lexer.EOF()) {
     //    tokens.push(lexer.consume(1)[0]);
     //}

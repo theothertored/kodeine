@@ -1,4 +1,4 @@
-import { Evaluable, IFormulaToken } from "../../base.js";
+import { Evaluable, FormulaToken } from "../../base.js";
 import { OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
 /** Represents an expression builder that can be fed tokens and builds an evaluable. */
 export declare abstract class IExpressionBuilder {
@@ -25,5 +25,5 @@ export declare abstract class IExpressionBuilder {
     /**
      * Builds the expression.
      */
-    abstract build(closingToken: IFormulaToken): Evaluable;
+    abstract build(closingToken: FormulaToken): Evaluable;
 }

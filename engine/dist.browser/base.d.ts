@@ -5,7 +5,7 @@ import { BinaryOperation } from "./evaluables/binary-operation.js";
 import { UnaryOperation } from "./evaluables/unary-operation.js";
 import { FunctionCall } from "./evaluables/function-call.js";
 /** Represents a token emited by the lexer. */
-export declare abstract class IFormulaToken {
+export declare abstract class FormulaToken {
     /** Returns the index of the first character of this token in the formula source text. */
     abstract getStartIndex(): number;
     /** Returns the index of the first character after this token in the formula source text. */
@@ -14,6 +14,8 @@ export declare abstract class IFormulaToken {
     abstract getSourceText(): string;
     /** Returns a human-readable name of this token. */
     abstract getName(): string;
+    /** Get what this token should output in a plain text part. By default this returns the source text. */
+    getPlainTextOutput(): string;
 }
 /** A base class for unary and binary kode operators. Requires operators to have a symbol. */
 export declare abstract class IOperator {
@@ -88,8 +90,8 @@ export declare class KodeValue extends Evaluable {
 }
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 export declare class EvaluableSource {
-    readonly tokens: IFormulaToken[];
-    constructor(...tokens: IFormulaToken[]);
+    readonly tokens: FormulaToken[];
+    constructor(...tokens: FormulaToken[]);
     /** Gets the start index of the first source token. */
     getStartIndex(): number;
     /** Gets the end index of the last source token. */
@@ -123,13 +125,13 @@ export declare abstract class ILexer {
      * @param tokenCount How many tokens to peek.
      * @returns Next {@link tokenCount} tokens of the formula source text as an array.
      */
-    abstract peek(tokenCount: number, offset?: number): IFormulaToken[];
+    abstract peek(tokenCount: number, offset?: number): FormulaToken[];
     /**
      * Consumes the next {@link tokenCount} tokens.
      * @param tokenCount How many tokens to consume.
      * @returns Next {@link tokenCount} tokens of the formula source text as an array.
      */
-    abstract consume(tokenCount: number): IFormulaToken[];
+    abstract consume(tokenCount: number): FormulaToken[];
     /** Returns whether the reader has reached the end of the formula source text. */
     abstract EOF(): boolean;
 }

@@ -1,4 +1,4 @@
-import { Evaluable, IFormulaToken, KodeValue } from "../../base.js";
+import { Evaluable, FormulaToken, KodeValue } from "../../base.js";
 import { EvaluableSource } from "../../base.js";
 import { KodeSyntaxError } from "../../errors.js";
 import { BinaryOperation } from "../../evaluables/binary-operation.js";
@@ -21,7 +21,7 @@ export class ExpressionBuilder {
     protected readonly _includeSurroundingTokens: boolean;
 
     /** The token or tokens that started this expression (opening parenthesis, dollar sign, function name + opening parenthesis etc.). */
-    protected readonly _startingTokens: IFormulaToken[];
+    protected readonly _startingTokens: FormulaToken[];
 
     /**
      * Constructs an expression builder with a given parsing context.
@@ -29,7 +29,7 @@ export class ExpressionBuilder {
      * @param includeSurroundingTokens Whether the built expression should include starting and ending tokens in its source.
      * @param startingTokens The token or tokens that started the built expression.
      */
-    constructor(parseCtx: ParsingContext, includeSurroundingTokens: boolean, ...startingTokens: IFormulaToken[]) {
+    constructor(parseCtx: ParsingContext, includeSurroundingTokens: boolean, ...startingTokens: FormulaToken[]) {
         this._parseCtx = parseCtx;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
@@ -186,7 +186,7 @@ export class ExpressionBuilder {
      * wrapping an evaluable and containing the opening and closing tokens in its source.
      * Otherwise, returns the root (last-in-order) evaluable of the expression.
      */
-    build(closingToken: IFormulaToken): Evaluable {
+    build(closingToken: FormulaToken): Evaluable {
 
         if (this._elements.length === 0) {
 

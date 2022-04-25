@@ -1,4 +1,4 @@
-import { IBinaryOperator, IFormulaToken, IKodeFunction, IOperator, IUnaryOperator } from "../base.js";
+import { IBinaryOperator, FormulaToken, IKodeFunction, IOperator, IUnaryOperator } from "../base.js";
 import { IfFunction } from "../implementations/if-function.js";
 import * as UnimplementedFunctions from "../implementations/unimplemented-functions.js";
 import * as UnaryOperators from "../implementations/unary-operators.js";
@@ -219,7 +219,7 @@ export class ParsingSideEffects {
 export class ParsingWarning {
 
     /** The token this warning is related to. */
-    public tokens: IFormulaToken[];
+    public tokens: FormulaToken[];
 
     /** A message explaining the warning. */
     public message: string;
@@ -229,7 +229,7 @@ export class ParsingWarning {
      * @param tokens The tokens this warning is related to.
      * @param message A message explaining the warning.
      */
-    constructor(message: string, ...tokens: IFormulaToken[]) {
+    constructor(message: string, ...tokens: FormulaToken[]) {
         this.tokens = tokens;
         this.message = message;
     }
@@ -238,14 +238,14 @@ export class ParsingWarning {
 
 /** Warns about an unclosed dollar sign. */
 export class UnclosedDollarSignWarning extends ParsingWarning {
-    constructor(...tokens: IFormulaToken[]) {
+    constructor(...tokens: FormulaToken[]) {
         super('Unclosed dollar sign. The $ will be ignored and everything after it will be printed as plain text.', ...tokens);
     }
 }
 
 
 export class UnclosedQuotedValueWarning extends ParsingWarning {
-    constructor(...tokens: IFormulaToken[]) {
+    constructor(...tokens: FormulaToken[]) {
         super('Unclosed quotation mark. The $ that started this evaluable part will be ignored, and everything after it will be printed as plain text.', ...tokens);
     }
 }

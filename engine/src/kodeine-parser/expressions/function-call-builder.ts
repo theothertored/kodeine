@@ -1,4 +1,4 @@
-import { Evaluable, IFormulaToken } from "../../base.js";
+import { Evaluable, FormulaToken } from "../../base.js";
 import { EvaluableSource } from "../../base.js";
 import { KodeSyntaxError } from "../../errors.js";
 import { FunctionCall } from "../../evaluables/function-call.js";
@@ -19,7 +19,7 @@ export class FunctionCallBuilder extends IExpressionBuilder {
 
 
     /** Tokens between the opening and closing parenthesis of this function call. */
-    private _innerTokens: IFormulaToken[] = [];
+    private _innerTokens: FormulaToken[] = [];
 
     /** An expression builder for building arguments. */
     private _currentArgumentBuilder: ExpressionBuilder;
@@ -85,7 +85,7 @@ export class FunctionCallBuilder extends IExpressionBuilder {
      * @param closingToken The token that closes this function call (most likely a closing parenthesis token).
      * @returns A {@link FunctionCall} evaluable.
      */
-    build(closingToken: IFormulaToken): Evaluable {
+    build(closingToken: FormulaToken): Evaluable {
 
         if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
 

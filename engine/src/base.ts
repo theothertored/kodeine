@@ -7,7 +7,7 @@ import { FunctionCall } from "./evaluables/function-call.js";
 
 
 /** Represents a token emited by the lexer. */
-export abstract class IFormulaToken {
+export abstract class FormulaToken {
 
     /** Returns the index of the first character of this token in the formula source text. */
     abstract getStartIndex(): number;
@@ -20,6 +20,11 @@ export abstract class IFormulaToken {
 
     /** Returns a human-readable name of this token. */
     abstract getName(): string;
+
+    /** Get what this token should output in a plain text part. By default this returns the source text. */
+    getPlainTextOutput(): string {
+        return this.getSourceText();
+    }
 }
 
 
@@ -163,9 +168,9 @@ export class KodeValue extends Evaluable {
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 export class EvaluableSource {
 
-    public readonly tokens: IFormulaToken[];
+    public readonly tokens: FormulaToken[];
 
-    constructor(...tokens: IFormulaToken[]) {
+    constructor(...tokens: FormulaToken[]) {
         this.tokens = tokens;
     }
 
@@ -187,7 +192,7 @@ export class EvaluableSource {
 
     static createByConcatenatingSources(evaluables: Evaluable[]): EvaluableSource {
 
-        let tokens: IFormulaToken[] = [];
+        let tokens: FormulaToken[] = [];
 
         evaluables.forEach(ev => {
             if (Array.isArray(ev.source?.tokens)) {
@@ -235,14 +240,14 @@ export abstract class ILexer {
      * @param tokenCount How many tokens to peek.
      * @returns Next {@link tokenCount} tokens of the formula source text as an array. 
      */
-    abstract peek(tokenCount: number, offset?: number): IFormulaToken[];
+    abstract peek(tokenCount: number, offset?: number): FormulaToken[];
 
     /**
      * Consumes the next {@link tokenCount} tokens.
      * @param tokenCount How many tokens to consume.
      * @returns Next {@link tokenCount} tokens of the formula source text as an array.
      */
-    abstract consume(tokenCount: number): IFormulaToken[];
+    abstract consume(tokenCount: number): FormulaToken[];
 
     /** Returns whether the reader has reached the end of the formula source text. */
     abstract EOF(): boolean;

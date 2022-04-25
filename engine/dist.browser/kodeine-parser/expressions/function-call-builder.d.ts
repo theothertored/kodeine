@@ -1,4 +1,4 @@
-import { Evaluable, IFormulaToken } from "../../base.js";
+import { Evaluable, FormulaToken } from "../../base.js";
 import { CommaToken, OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
 import { ParsingContext } from "../parsing-context.js";
 import { FunctionOccurence } from "./function-occurence.js";
@@ -35,5 +35,5 @@ export declare class FunctionCallBuilder extends IExpressionBuilder {
      * @param closingToken The token that closes this function call (most likely a closing parenthesis token).
      * @returns A {@link FunctionCall} evaluable.
      */
-    build(closingToken: IFormulaToken): Evaluable;
+    build(closingToken: FormulaToken): Evaluable;
 }

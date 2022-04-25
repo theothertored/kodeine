@@ -1,4 +1,4 @@
-import { IBinaryOperator, IFormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
+import { IBinaryOperator, FormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -104,7 +104,7 @@ export declare class ParsingSideEffects {
 /** A warning produced during parsing. */
 export declare class ParsingWarning {
     /** The token this warning is related to. */
-    tokens: IFormulaToken[];
+    tokens: FormulaToken[];
     /** A message explaining the warning. */
     message: string;
     /**
@@ -112,13 +112,13 @@ export declare class ParsingWarning {
      * @param tokens The tokens this warning is related to.
      * @param message A message explaining the warning.
      */
-    constructor(message: string, ...tokens: IFormulaToken[]);
+    constructor(message: string, ...tokens: FormulaToken[]);
 }
 /** Warns about an unclosed dollar sign. */
 export declare class UnclosedDollarSignWarning extends ParsingWarning {
-    constructor(...tokens: IFormulaToken[]);
+    constructor(...tokens: FormulaToken[]);
 }
 export declare class UnclosedQuotedValueWarning extends ParsingWarning {
-    constructor(...tokens: IFormulaToken[]);
+    constructor(...tokens: FormulaToken[]);
 }
 export {};

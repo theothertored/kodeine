@@ -112,7 +112,7 @@ export class KodeineParser {
                     // check the token buffer
                     if (tokenBuffer.length > 0) {
                         // we read some plain text tokens before this point, add them to formula evaluables
-                        formulaEvaluables.push(new KodeValue(tokenBuffer.map(t => t.getSourceText()).join(''), new EvaluableSource(...tokenBuffer)));
+                        formulaEvaluables.push(new KodeValue(tokenBuffer.map(t => t.getPlainTextOutput()).join(''), new EvaluableSource(...tokenBuffer)));
                     }
                     // start a new buffer with the dollar sign token already in
                     tokenBuffer = [token];
@@ -314,7 +314,7 @@ export class KodeineParser {
         if (tokenBuffer.length > 0) {
             if (state === KodeineParserState.Default) {
                 // we read some plain text tokens before this point, add a plain text part
-                formulaEvaluables.push(new KodeValue(tokenBuffer.map(t => t.getSourceText()).join(''), new EvaluableSource(...tokenBuffer)));
+                formulaEvaluables.push(new KodeValue(tokenBuffer.map(t => t.getPlainTextOutput()).join(''), new EvaluableSource(...tokenBuffer)));
             }
             else {
                 // we read an opening dollar sign, but not a closing one
