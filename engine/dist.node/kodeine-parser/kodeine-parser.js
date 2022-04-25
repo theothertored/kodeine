@@ -11,6 +11,7 @@ const string_char_reader_js_1 = require("../string-char-reader.js");
 const expression_builder_js_1 = require("./expressions/expression-builder.js");
 const function_call_builder_js_1 = require("./expressions/function-call-builder.js");
 const function_occurence_js_1 = require("./expressions/function-occurence.js");
+const parsing_context_js_1 = require("./parsing-context.js");
 /**
  * Values representing the current state of the parser.
  * - {@link Default}: Not in an evaluable part of the formula
@@ -35,17 +36,17 @@ var KodeineParserState;
  */
 class KodeineParser {
     /** Constructs a {@link KodeineParser} with a parsing context.*/
-    constructor(env) {
-        this._env = env;
+    constructor(parseCtx) {
+        this._parseCtx = parseCtx;
     }
     parse(source) {
         if (typeof source === 'string') {
             let charReader = new string_char_reader_js_1.StringCharReader(source);
-            let lexer = new kodeine_lexer_js_1.KodeineLexer(charReader, this._env.getOperatorSymbolsLongestFirst());
+            let lexer = new kodeine_lexer_js_1.KodeineLexer(charReader, this._parseCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
         }
         else if (source instanceof base_js_1.ICharReader) {
-            let lexer = new kodeine_lexer_js_1.KodeineLexer(source, this._env.getOperatorSymbolsLongestFirst());
+            let lexer = new kodeine_lexer_js_1.KodeineLexer(source, this._parseCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
         }
         else if (source instanceof base_js_1.ILexer) {
@@ -57,6 +58,7 @@ class KodeineParser {
     }
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
     _parseCore(lexer) {
+        this._parseCtx.clearSideEffects();
         /** The current state of the parser. */
         let state = KodeineParserState.Default;
         /**
@@ -109,7 +111,7 @@ class KodeineParser {
                     // this is a dollar sign token, a formula is beginning
                     state = KodeineParserState.Kode;
                     // add a base expression builder to the stack
-                    exprBuilderStack = [new expression_builder_js_1.ExpressionBuilder(this._env, true, token)];
+                    exprBuilderStack = [new expression_builder_js_1.ExpressionBuilder(this._parseCtx, true, token)];
                     // check the token buffer
                     if (tokenBuffer.length > 0) {
                         // we read some plain text tokens before this point, add them to formula evaluables
@@ -159,10 +161,10 @@ class KodeineParser {
                         tokenBuffer.push(nextToken);
                         // get function implementation from the parsing context
                         let funcName = token.getValue();
-                        let func = this._env.findFunction(funcName);
+                        let func = this._parseCtx.findFunction(funcName);
                         if (func) {
                             // implementation found, create a function call builder and push it to the stack
-                            exprBuilderStack.push(new function_call_builder_js_1.FunctionCallBuilder(this._env, new function_occurence_js_1.FunctionOccurence(func, token, ...whitespaceTokens, nextToken)));
+                            exprBuilderStack.push(new function_call_builder_js_1.FunctionCallBuilder(this._parseCtx, new function_occurence_js_1.FunctionOccurence(func, token, ...whitespaceTokens, nextToken)));
                         }
                         else {
                             // function not found, throw
@@ -219,7 +221,7 @@ class KodeineParser {
                         || prevToken instanceof formula_tokens_js_1.CommaToken) {
                         // if there is no previous token or this parenthesis follows an operator,
                         // the parenthesis starts a subexpression
-                        exprBuilderStack.push(new expression_builder_js_1.ExpressionBuilder(this._env, true, token));
+                        exprBuilderStack.push(new expression_builder_js_1.ExpressionBuilder(this._parseCtx, true, token));
                     }
                     else if (prevToken instanceof formula_tokens_js_1.UnquotedValueToken) {
                         // if the previous token is an unquoted value token, interpret this as a function call
@@ -280,7 +282,13 @@ class KodeineParser {
                     // an unclosed quoted value token causes the entire formula to be treated like plain text,
                     // except the leading $ gets removed from the output.
                     state = KodeineParserState.Default;
+                    // override the default behaviour - we'll reset the buffer
+                    // this does not really matter since an unclosed quoted value token should be the last token of any formula
+                    skipPushingToBuffer = true;
                     if (tokenBuffer.length > 0) {
+                        // add the unclosed quoted value token to the output
+                        tokenBuffer.push(token);
+                        this._parseCtx.sideEffects.warnings.push(new parsing_context_js_1.UnclosedQuotedValueWarning(...tokenBuffer));
                         // we read some plain text tokens before this point, add a plain text part
                         formulaEvaluables.push(new base_js_1.KodeValue(tokenBuffer.slice(1).map(t => t.getSourceText()).join(''), new base_js_2.EvaluableSource(...tokenBuffer)));
                     }
@@ -314,6 +322,7 @@ class KodeineParser {
             else {
                 // we read an opening dollar sign, but not a closing one
                 // in this case, kustom prints all tokens except the opening dollar sign as plain text
+                this._parseCtx.sideEffects.warnings.push(new parsing_context_js_1.UnclosedDollarSignWarning(...tokenBuffer));
                 formulaEvaluables.push(new base_js_1.KodeValue(tokenBuffer.slice(1).map(t => t.getSourceText()).join(''), new base_js_2.EvaluableSource(...tokenBuffer)));
             }
         }

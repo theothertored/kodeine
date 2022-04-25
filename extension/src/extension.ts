@@ -6,7 +6,7 @@ import { KodeParseError, EvaluationError, KodeError } from '../../engine/dist.no
 
 export function activate(context: vscode.ExtensionContext) {
 
-    let outChannel = vscode.window.createOutputChannel('Formula Result', 'kode');
+    let outChannel = vscode.window.createOutputChannel('Formula Result');
     outChannel.show(true);
 
     let parseCtx = ParsingContextBuilder.buildDefault();
@@ -21,8 +21,6 @@ export function activate(context: vscode.ExtensionContext) {
         let diags: vscode.Diagnostic[] = [];
 
         try {
-
-            evalCtx.clearSideEffects();
 
             let formulaText = document.getText();
             let formula = parser.parse(formulaText);
@@ -86,11 +84,31 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
 
-        if (evalCtx.sideEffects.warnings.length > 0) {
+        if (parseCtx.sideEffects.warnings.length > 0) {
 
+            // got some warnings, convert to diags
+            parseCtx.sideEffects.warnings.forEach(warning => {
+
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Warning,
+                    range: new vscode.Range(
+                        document.positionAt(warning.tokens[0].getStartIndex()),
+                        document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())
+                    ),
+                    message: warning.message,
+                    code: '',
+                    source: ''
+                });
+
+            });
+
+        }
+
+        if (evalCtx.sideEffects.warnings.length > 0) {
+            
+            // got some warnings, convert to diags
             evalCtx.sideEffects.warnings.forEach(warning => {
 
-                // found some warnings
                 diags.push({
                     severity: vscode.DiagnosticSeverity.Warning,
                     range: new vscode.Range(

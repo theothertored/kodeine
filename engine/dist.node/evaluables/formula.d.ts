@@ -6,5 +6,5 @@ import { EvaluationContext } from "./evaluation-context.js";
 export declare class Formula extends Evaluable {
     readonly evaluables: Evaluable[];
     constructor(evaluables: Evaluable[]);
-    evaluate(env: EvaluationContext): KodeValue;
+    evaluate(evalCtx: EvaluationContext): KodeValue;
 }

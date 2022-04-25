@@ -24,9 +24,9 @@ export declare enum KodeineParserState {
  */
 export declare class KodeineParser implements IFormulaStringParser {
     /** The parsing context. Contains function and operator implementations. */
-    private _env;
+    private _parseCtx;
     /** Constructs a {@link KodeineParser} with a parsing context.*/
-    constructor(env: ParsingContext);
+    constructor(parseCtx: ParsingContext);
     parse(source: string | ICharReader | ILexer): Formula;
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
     private _parseCore;

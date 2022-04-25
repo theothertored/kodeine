@@ -1,15 +1,16 @@
 import { IKodeFunction, KodeValue } from "../base.js";
 import { EvaluationContext } from "../evaluables/evaluation-context.js";
-import { InternalInvalidArgumentCountError } from "../errors.js";
+import { InvalidArgumentCountError } from "../errors.js";
+import { FunctionCall } from "../evaluables/function-call.js";
 
 /** Implementation of kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
     getName() { return 'if'; }
-    call(env: EvaluationContext, args: KodeValue[]): KodeValue {
+    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
 
         // require at least two arguments (one condition and one value)
         if (args.length <= 1) {
-            throw new InternalInvalidArgumentCountError('At least two arguments required.');
+            throw new InvalidArgumentCountError(call, 'At least two arguments required.');
         }
 
         // calculate the index of the last condition argument
@@ -25,7 +26,7 @@ export class IfFunction extends IKodeFunction {
             if ((!condArg.isNumeric && condArg.text !== '') || (condArg.isNumeric && condArg.numericValue !== 0)) {
 
                 // the current condition argument is truthy, return the following value argument
-                return args[i + 1];
+                return new KodeValue(args[i + 1], call.source);
 
             }
 
@@ -36,12 +37,12 @@ export class IfFunction extends IKodeFunction {
         if (lastCondArgI + 2 < args.length) {
 
             // return the final "else" value argument
-            return args[lastCondArgI + 2];
+            return new KodeValue(args[lastCondArgI + 2], call.source);
 
         } else {
 
             // return an empty string
-            return new KodeValue('');
+            return new KodeValue('', call.source);
 
         }
     }

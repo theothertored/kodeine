@@ -13,5 +13,5 @@ export declare class FunctionCall extends Evaluable {
      * @param source Optionally, the source of the call.
      */
     constructor(func: IKodeFunction, args: Evaluable[], source?: EvaluableSource);
-    evaluate(env: EvaluationContext): KodeValue;
+    evaluate(evalCtx: EvaluationContext): KodeValue;
 }

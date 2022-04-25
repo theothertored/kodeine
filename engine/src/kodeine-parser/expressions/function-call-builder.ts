@@ -12,7 +12,7 @@ import { IExpressionBuilder } from "./i-expression-builder.js";
 export class FunctionCallBuilder extends IExpressionBuilder {
 
     /** The parsing context for this builder. */
-    private readonly _env: ParsingContext;
+    private readonly _parseCtx: ParsingContext;
 
     /** The function occurence that started this function call. */
     private readonly _functionOccurence: FunctionOccurence;
@@ -30,14 +30,14 @@ export class FunctionCallBuilder extends IExpressionBuilder {
 
     /**
      * Constructs a {@link FunctionCallBuilder} with a given parsing context and a function occurence that started this function call.
-     * @param env The parsing context for this function call builder.
+     * @param parseCtx The parsing context for this function call builder.
      * @param functionOccurence The function occurrence that started this function call.
      */
-    constructor(env: ParsingContext, functionOccurence: FunctionOccurence) {
+    constructor(parseCtx: ParsingContext, functionOccurence: FunctionOccurence) {
         super();
-        this._env = env;
+        this._parseCtx = parseCtx;
         this._functionOccurence = functionOccurence;
-        this._currentArgumentBuilder = new ExpressionBuilder(env, false, ...functionOccurence.openingTokens);
+        this._currentArgumentBuilder = new ExpressionBuilder(parseCtx, false, ...functionOccurence.openingTokens);
     }
 
 
@@ -75,7 +75,7 @@ export class FunctionCallBuilder extends IExpressionBuilder {
 
             this._args.push(this._currentArgumentBuilder.build(comma));
 
-            this._currentArgumentBuilder = new ExpressionBuilder(this._env, false, comma);
+            this._currentArgumentBuilder = new ExpressionBuilder(this._parseCtx, false, comma);
 
         }
     }

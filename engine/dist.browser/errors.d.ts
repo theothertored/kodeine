@@ -66,28 +66,3 @@ export declare class RegexEvaluationError extends EvaluationError {
      */
     constructor(evaluable: Evaluable, message: string);
 }
-/**
- * An error thrown internally by an implementation of a function or operator.
- * Should be caught by the parent evaluble and rethrown as an EvaluationError.
- *
- * **This is an internal error class that, ideally, should never make it outside the formula.**
- */
-export declare abstract class InternalEvaluationError {
-    /** The error message. */
-    message: string;
-    /**
-     * Constructs an {@link InternalEvaluationError} with a given message.
-     * @param message The message to construct the error with.
-     */
-    constructor(message: string);
-    /** Converts this internal error to an error that can be thrown outside of the formula. */
-    abstract toExternalError(evaluable: Evaluable): EvaluationError;
-}
-/** An internal invalid argument count error to be thrown by function implementations. */
-export declare class InternalInvalidArgumentCountError extends InternalEvaluationError {
-    toExternalError(evaluable: FunctionCall): InvalidArgumentCountError;
-}
-/** An internal regex error to be thrown by function or operator implementations. */
-export declare class InternalRegexEvaluationError extends InternalEvaluationError {
-    toExternalError(evaluable: Evaluable): InvalidArgumentCountError;
-}

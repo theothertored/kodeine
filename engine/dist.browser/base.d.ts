@@ -3,6 +3,7 @@ import { EvaluationContext } from "./evaluables/evaluation-context.js";
 import { QuotedValueToken, UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
 import { BinaryOperation } from "./evaluables/binary-operation.js";
 import { UnaryOperation } from "./evaluables/unary-operation.js";
+import { FunctionCall } from "./evaluables/function-call.js";
 /** Represents a token emited by the lexer. */
 export declare abstract class IFormulaToken {
     /** Returns the index of the first character of this token in the formula source text. */
@@ -46,8 +47,13 @@ export declare abstract class IBinaryOperator extends IOperator {
 export declare abstract class IKodeFunction {
     /** Returns the name of this function. */
     abstract getName(): string;
-    /** Implements the function. */
-    abstract call(env: EvaluationContext, args: KodeValue[]): KodeValue;
+    /**
+     * Function implementation.
+     * @param evalCtx The context in which this evaluation is taking place.
+     * @param call The function call being evaluated.
+     * @param args The arguments of the function call.
+     */
+    abstract call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 }
 /** Represents a part of a formula that can be evaluated. */
 export declare abstract class Evaluable {
@@ -57,9 +63,9 @@ export declare abstract class Evaluable {
     constructor(source?: EvaluableSource);
     /**
      * Evaluates this evaluable into a concrete kode value.
-     * @param env The context in which this evaluation is taking place.
+     * @param evalCtx The context in which this evaluation is taking place.
      */
-    abstract evaluate(env: EvaluationContext): KodeValue;
+    abstract evaluate(evalCtx: EvaluationContext): KodeValue;
 }
 /** A concrete kode value. */
 export declare class KodeValue extends Evaluable {
@@ -76,8 +82,8 @@ export declare class KodeValue extends Evaluable {
      * @param value The value to create the kode value from.
      * @param source Optionally, the source of this value.
      */
-    constructor(value: (string | number | boolean), source?: EvaluableSource);
-    evaluate(env: EvaluationContext): KodeValue;
+    constructor(value: (string | number | boolean | KodeValue), source?: EvaluableSource);
+    evaluate(evalCtx: EvaluationContext): KodeValue;
     static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue;
 }
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */

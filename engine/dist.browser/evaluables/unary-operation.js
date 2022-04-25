@@ -1,5 +1,4 @@
 import { Evaluable } from "../base.js";
-import { InternalEvaluationError } from "../errors.js";
 /** An operation consisting of a unary operator and an evaluable argument. */
 export class UnaryOperation extends Evaluable {
     /**
@@ -13,20 +12,8 @@ export class UnaryOperation extends Evaluable {
         this.operator = operator;
         this.arg = arg;
     }
-    evaluate(env) {
-        try {
-            return this.operator.operation(env, this, this.arg.evaluate(env));
-        }
-        catch (err) {
-            if (err instanceof InternalEvaluationError) {
-                // if an internal evaluation was thrown, we need to convert it
-                // to an external one with this operation as the evaluable
-                throw err.toExternalError(this);
-            }
-            else {
-                throw err;
-            }
-        }
+    evaluate(evalCtx) {
+        return this.operator.operation(evalCtx, this, this.arg.evaluate(evalCtx));
     }
 }
 //# sourceMappingURL=unary-operation.js.map

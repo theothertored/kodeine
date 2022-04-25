@@ -18,5 +18,5 @@ export declare class BinaryOperation extends Evaluable {
      */
     constructor(operator: IBinaryOperator, argA: Evaluable, argB: Evaluable, source?: EvaluableSource);
     /** Evaluates both arguments and runs the operation using the resulting values. */
-    evaluate(env: EvaluationContext): KodeValue;
+    evaluate(evalCtx: EvaluationContext): KodeValue;
 }

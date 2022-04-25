@@ -57,11 +57,11 @@ class AdditionOperator extends base_js_1.IBinaryOperator {
         }
         else {
             if (a.isNumeric)
-                return new base_js_1.KodeValue(a.numericValue + b.text);
+                return new base_js_1.KodeValue(a.numericValue + b.text, operation.source);
             else if (b.isNumeric)
-                return new base_js_1.KodeValue(a.text + b.numericValue);
+                return new base_js_1.KodeValue(a.text + b.numericValue, operation.source);
             else
-                return new base_js_1.KodeValue(a.text + b.text);
+                return new base_js_1.KodeValue(a.text + b.text, operation.source);
         }
     }
 }
@@ -80,11 +80,11 @@ class EqualityOperator extends base_js_1.IBinaryOperator {
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
-            return new base_js_1.KodeValue(a.numericValue == b.numericValue);
+            return new base_js_1.KodeValue(a.numericValue == b.numericValue, operation.source);
         else if (a.isNumeric || b.isNumeric)
-            return new base_js_1.KodeValue(0);
+            return new base_js_1.KodeValue(0, operation.source);
         else
-            return new base_js_1.KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase());
+            return new base_js_1.KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase(), operation.source);
     }
 }
 exports.EqualityOperator = EqualityOperator;
@@ -93,11 +93,11 @@ class InequalityOperator extends base_js_1.IBinaryOperator {
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
-            return new base_js_1.KodeValue(a.numericValue != b.numericValue);
+            return new base_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
         else if (a.isNumeric || b.isNumeric)
-            return new base_js_1.KodeValue(1);
+            return new base_js_1.KodeValue(1, operation.source);
         else
-            return new base_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase());
+            return new base_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
     }
 }
 exports.InequalityOperator = InequalityOperator;
@@ -138,10 +138,10 @@ class RegexMatchOperator extends base_js_1.IBinaryOperator {
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
         try {
-            return new base_js_1.KodeValue(new RegExp(b.text).test(a.text));
+            return new base_js_1.KodeValue(new RegExp(b.text).test(a.text), operation.source);
         }
         catch (err) {
-            throw new errors_js_1.InternalRegexEvaluationError(err?.toString());
+            throw new errors_js_1.RegexEvaluationError(operation.argB, err?.toString());
         }
     }
 }

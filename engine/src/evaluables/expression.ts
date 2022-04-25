@@ -27,8 +27,8 @@ export class Expression extends Evaluable {
         this.evaluable = evaluable;
     }
 
-    evaluate(env: EvaluationContext): KodeValue {
-        return this.evaluable.evaluate(env);
+    evaluate(evalCtx: EvaluationContext): KodeValue {
+        return this.evaluable.evaluate(evalCtx);
     }
 
 }

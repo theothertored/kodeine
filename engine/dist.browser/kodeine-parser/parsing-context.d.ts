@@ -1,4 +1,4 @@
-import { IBinaryOperator, IKodeFunction, IUnaryOperator } from "../base.js";
+import { IBinaryOperator, IFormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -13,6 +13,8 @@ export declare class ParsingContext {
     private readonly _binaryOperators;
     /** A collection of all unique operator symbols. */
     private readonly _operatorSymbols;
+    /** Side effects produced during the last parsing attempt. */
+    sideEffects: ParsingSideEffects;
     /**
      * Constructs a {@link ParsingContext} with function and operator implementations.
      * @param functions An object with function names as keys and implementations as values.
@@ -40,6 +42,7 @@ export declare class ParsingContext {
     findBinaryOperator(symbol: string): IBinaryOperator;
     /** Returns an array of operator symbols, sorted by length, descending. */
     getOperatorSymbolsLongestFirst(): string[];
+    clearSideEffects(): void;
 }
 /** A union of types that can be added to a parsing context. */
 declare type ParsingContextItem = IKodeFunction | IUnaryOperator | IBinaryOperator;
@@ -92,5 +95,30 @@ export declare class ParsingContextBuilder {
     build(): ParsingContext;
     /** Shorthand for `new ParsingContextBuilder().addDefaults().build()`. */
     static buildDefault(): ParsingContext;
+}
+/** Holds all side effects produced during parsing. */
+export declare class ParsingSideEffects {
+    /** A list of warnings produced during parsing. */
+    warnings: ParsingWarning[];
+}
+/** A warning produced during parsing. */
+export declare class ParsingWarning {
+    /** The token this warning is related to. */
+    tokens: IFormulaToken[];
+    /** A message explaining the warning. */
+    message: string;
+    /**
+     * Constructs a {@link ParsingWarning} for a token with a message.
+     * @param tokens The tokens this warning is related to.
+     * @param message A message explaining the warning.
+     */
+    constructor(message: string, ...tokens: IFormulaToken[]);
+}
+/** Warns about an unclosed dollar sign. */
+export declare class UnclosedDollarSignWarning extends ParsingWarning {
+    constructor(...tokens: IFormulaToken[]);
+}
+export declare class UnclosedQuotedValueWarning extends ParsingWarning {
+    constructor(...tokens: IFormulaToken[]);
 }
 export {};

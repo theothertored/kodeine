@@ -9,14 +9,14 @@ import { UnaryOperatorOccurence, BinaryOperatorOccurence } from "./operator-occu
 export class ExpressionBuilder {
     /**
      * Constructs an expression builder with a given parsing context.
-     * @param env The parsing context for this expression builder.
+     * @param parseCtx The parsing context for this expression builder.
      * @param includeSurroundingTokens Whether the built expression should include starting and ending tokens in its source.
      * @param startingTokens The token or tokens that started the built expression.
      */
-    constructor(env, includeSurroundingTokens, ...startingTokens) {
+    constructor(parseCtx, includeSurroundingTokens, ...startingTokens) {
         /** Elements of the built expression. Expressions consist of evaluables and operators. */
         this._elements = [];
-        this._env = env;
+        this._parseCtx = parseCtx;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
     }
@@ -51,14 +51,14 @@ export class ExpressionBuilder {
             || lastElement instanceof BinaryOperatorOccurence
             || lastElement instanceof UnaryOperatorOccurence;
         if (tokenShouldBeUnaryOperator) {
-            let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
+            let unaryOperator = this._parseCtx.findUnaryOperator(token.getSymbol());
             if (unaryOperator) {
                 // found the unary operator
                 this._elements.push(new UnaryOperatorOccurence(unaryOperator, token));
             }
             else {
                 // unary operator not found
-                let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
+                let binaryOperator = this._parseCtx.findBinaryOperator(token.getSymbol());
                 if (binaryOperator) {
                     // cannot have a binary operator at the start or after another operator
                     throw new KodeSyntaxError(token, `Left hand side argument for binary operator "${token.getSymbol()}" missing.`);
@@ -71,14 +71,14 @@ export class ExpressionBuilder {
         }
         else {
             // token should be a binary operator
-            let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
+            let binaryOperator = this._parseCtx.findBinaryOperator(token.getSymbol());
             if (binaryOperator) {
                 // found the binary operator
                 this._elements.push(new BinaryOperatorOccurence(binaryOperator, token));
             }
             else {
                 // binary operator not found
-                let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
+                let unaryOperator = this._parseCtx.findUnaryOperator(token.getSymbol());
                 if (unaryOperator) {
                     // cannot have a unary operator with a left hand side argument
                     throw new KodeSyntaxError(token, `Unary operator "${token.getSymbol()}" cannot have a left hand side argument.`);

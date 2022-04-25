@@ -10,18 +10,18 @@ const i_expression_builder_js_1 = require("./i-expression-builder.js");
 class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
     /**
      * Constructs a {@link FunctionCallBuilder} with a given parsing context and a function occurence that started this function call.
-     * @param env The parsing context for this function call builder.
+     * @param parseCtx The parsing context for this function call builder.
      * @param functionOccurence The function occurrence that started this function call.
      */
-    constructor(env, functionOccurence) {
+    constructor(parseCtx, functionOccurence) {
         super();
         /** Tokens between the opening and closing parenthesis of this function call. */
         this._innerTokens = [];
         /** An array of evaluables representing arguments of this function call that were already built. */
         this._args = [];
-        this._env = env;
+        this._parseCtx = parseCtx;
         this._functionOccurence = functionOccurence;
-        this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(env, false, ...functionOccurence.openingTokens);
+        this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(parseCtx, false, ...functionOccurence.openingTokens);
     }
     addEvaluable(evaluable) {
         // TODO: make this not crash when the evaluable has no source
@@ -48,7 +48,7 @@ class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
         else {
             this._innerTokens.push(comma);
             this._args.push(this._currentArgumentBuilder.build(comma));
-            this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(this._env, false, comma);
+            this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(this._parseCtx, false, comma);
         }
     }
     /**

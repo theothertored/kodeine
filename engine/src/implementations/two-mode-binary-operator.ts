@@ -17,12 +17,12 @@ export abstract class TwoModeBinaryOperator extends IBinaryOperator {
         if (a.isNumeric && b.isNumeric) {
 
             // both values are numeric, run numeric mode
-            return new KodeValue(this.numericMode(a.numericValue, b.numericValue));
+            return new KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
 
         } else {
 
             // at least one of the values is not numeric, run text mode
-            return new KodeValue(this.textMode(a, b));
+            return new KodeValue(this.textMode(a, b), operation.source);
 
         }
     }

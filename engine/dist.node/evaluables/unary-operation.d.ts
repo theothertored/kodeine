@@ -13,5 +13,5 @@ export declare class UnaryOperation extends Evaluable {
      * @param source Optionally, the source of this operation.
      */
     constructor(operator: IUnaryOperator, arg: Evaluable, source?: EvaluableSource);
-    evaluate(env: EvaluationContext): KodeValue;
+    evaluate(evalCtx: EvaluationContext): KodeValue;
 }

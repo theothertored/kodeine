@@ -1,4 +1,4 @@
-import { IBinaryOperator, IKodeFunction, IOperator, IUnaryOperator } from "../base.js";
+import { IBinaryOperator, IFormulaToken, IKodeFunction, IOperator, IUnaryOperator } from "../base.js";
 import { IfFunction } from "../implementations/if-function.js";
 import * as UnimplementedFunctions from "../implementations/unimplemented-functions.js";
 import * as UnaryOperators from "../implementations/unary-operators.js";
@@ -13,7 +13,7 @@ export class ParsingContext {
 
     /** An object with function names as keys and implementations as values. */
     private readonly _functions: Record<string, IKodeFunction>;
-    
+
     /** An object with unary operator symbols as keys and implementations as values. */
     private readonly _unaryOperators: Record<string, IUnaryOperator>;
 
@@ -22,6 +22,9 @@ export class ParsingContext {
 
     /** A collection of all unique operator symbols. */
     private readonly _operatorSymbols: Set<string> = new Set<string>();
+
+    /** Side effects produced during the last parsing attempt. */
+    public sideEffects: ParsingSideEffects;
 
     /**
      * Constructs a {@link ParsingContext} with function and operator implementations.
@@ -46,6 +49,8 @@ export class ParsingContext {
 
         for (const opSymbol in binaryOperators)
             this._operatorSymbols.add(opSymbol);
+
+        this.sideEffects = new ParsingSideEffects();
     }
 
     /**
@@ -78,6 +83,10 @@ export class ParsingContext {
     /** Returns an array of operator symbols, sorted by length, descending. */
     getOperatorSymbolsLongestFirst(): string[] {
         return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
+    }
+
+    clearSideEffects() {
+        this.sideEffects = new ParsingSideEffects();
     }
 
 }
@@ -196,4 +205,47 @@ export class ParsingContextBuilder {
             .build();
     }
 
+}
+
+/** Holds all side effects produced during parsing. */
+export class ParsingSideEffects {
+
+    /** A list of warnings produced during parsing. */
+    public warnings: ParsingWarning[] = [];
+
+}
+
+/** A warning produced during parsing. */
+export class ParsingWarning {
+
+    /** The token this warning is related to. */
+    public tokens: IFormulaToken[];
+
+    /** A message explaining the warning. */
+    public message: string;
+
+    /** 
+     * Constructs a {@link ParsingWarning} for a token with a message.
+     * @param tokens The tokens this warning is related to.
+     * @param message A message explaining the warning.
+     */
+    constructor(message: string, ...tokens: IFormulaToken[]) {
+        this.tokens = tokens;
+        this.message = message;
+    }
+
+}
+
+/** Warns about an unclosed dollar sign. */
+export class UnclosedDollarSignWarning extends ParsingWarning {
+    constructor(...tokens: IFormulaToken[]) {
+        super('Unclosed dollar sign. The $ will be ignored and everything after it will be printed as plain text.', ...tokens);
+    }
+}
+
+
+export class UnclosedQuotedValueWarning extends ParsingWarning {
+    constructor(...tokens: IFormulaToken[]) {
+        super('Unclosed quotation mark. The $ that started this evaluable part will be ignored, and everything after it will be printed as plain text.', ...tokens);
+    }
 }

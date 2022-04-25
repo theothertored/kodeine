@@ -20,5 +20,5 @@ export declare class Expression extends Evaluable {
      * @param source Optionally, a source of this expression.
      */
     constructor(evaluable: Evaluable, source?: EvaluableSource);
-    evaluate(env: EvaluationContext): KodeValue;
+    evaluate(evalCtx: EvaluationContext): KodeValue;
 }

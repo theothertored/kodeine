@@ -19,8 +19,8 @@ export class Expression extends Evaluable {
         super(source);
         this.evaluable = evaluable;
     }
-    evaluate(env) {
-        return this.evaluable.evaluate(env);
+    evaluate(evalCtx) {
+        return this.evaluable.evaluate(evalCtx);
     }
 }
 //# sourceMappingURL=expression.js.map

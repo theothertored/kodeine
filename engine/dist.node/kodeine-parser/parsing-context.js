@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ParsingContextBuilder = exports.ParsingContext = void 0;
+exports.UnclosedQuotedValueWarning = exports.UnclosedDollarSignWarning = exports.ParsingWarning = exports.ParsingSideEffects = exports.ParsingContextBuilder = exports.ParsingContext = void 0;
 const base_js_1 = require("../base.js");
 const if_function_js_1 = require("../implementations/if-function.js");
 const UnimplementedFunctions = require("../implementations/unimplemented-functions.js");
@@ -29,6 +29,7 @@ class ParsingContext {
             this._operatorSymbols.add(opSymbol);
         for (const opSymbol in binaryOperators)
             this._operatorSymbols.add(opSymbol);
+        this.sideEffects = new ParsingSideEffects();
     }
     /**
      * Finds a function implementation with a given name or `null` if it is not found.
@@ -57,6 +58,9 @@ class ParsingContext {
     /** Returns an array of operator symbols, sorted by length, descending. */
     getOperatorSymbolsLongestFirst() {
         return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
+    }
+    clearSideEffects() {
+        this.sideEffects = new ParsingSideEffects();
     }
 }
 exports.ParsingContext = ParsingContext;
@@ -153,4 +157,38 @@ class ParsingContextBuilder {
     }
 }
 exports.ParsingContextBuilder = ParsingContextBuilder;
+/** Holds all side effects produced during parsing. */
+class ParsingSideEffects {
+    constructor() {
+        /** A list of warnings produced during parsing. */
+        this.warnings = [];
+    }
+}
+exports.ParsingSideEffects = ParsingSideEffects;
+/** A warning produced during parsing. */
+class ParsingWarning {
+    /**
+     * Constructs a {@link ParsingWarning} for a token with a message.
+     * @param tokens The tokens this warning is related to.
+     * @param message A message explaining the warning.
+     */
+    constructor(message, ...tokens) {
+        this.tokens = tokens;
+        this.message = message;
+    }
+}
+exports.ParsingWarning = ParsingWarning;
+/** Warns about an unclosed dollar sign. */
+class UnclosedDollarSignWarning extends ParsingWarning {
+    constructor(...tokens) {
+        super('Unclosed dollar sign. The $ will be ignored and everything after it will be printed as plain text.', ...tokens);
+    }
+}
+exports.UnclosedDollarSignWarning = UnclosedDollarSignWarning;
+class UnclosedQuotedValueWarning extends ParsingWarning {
+    constructor(...tokens) {
+        super('Unclosed quotation mark. The $ that started this evaluable part will be ignored, and everything after it will be printed as plain text.', ...tokens);
+    }
+}
+exports.UnclosedQuotedValueWarning = UnclosedQuotedValueWarning;
 //# sourceMappingURL=parsing-context.js.map

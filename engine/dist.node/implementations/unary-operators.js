@@ -16,7 +16,7 @@ class NegationOperator extends base_js_1.IUnaryOperator {
             // the argument is not numeric, panic
             // ...no, really, this is what kustom does
             // -abc => abc-null
-            return new base_js_1.KodeValue(a.text + '-null');
+            return new base_js_1.KodeValue(a.text + '-null', operation.source);
         }
     }
 }

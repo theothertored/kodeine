@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BinaryOperation = void 0;
 const base_js_1 = require("../base.js");
-const errors_js_1 = require("../errors.js");
 /** An operation consisting of an binary operator and two evaluable arguments. */
 class BinaryOperation extends base_js_1.Evaluable {
     /**
@@ -19,24 +18,8 @@ class BinaryOperation extends base_js_1.Evaluable {
         this.argB = argB;
     }
     /** Evaluates both arguments and runs the operation using the resulting values. */
-    evaluate(env) {
-        try {
-            // run the operation to obtain a kode value
-            let kodeVal = this.operator.operation(env, this, this.argA.evaluate(env), this.argB.evaluate(env));
-            // the value resulting from this operation should have the same source as the operation 
-            kodeVal.source = this.source;
-            return kodeVal;
-        }
-        catch (err) {
-            if (err instanceof errors_js_1.InternalEvaluationError) {
-                // if an internal evaluation was thrown, we need to convert it
-                // to an external one with this operation as the evaluable
-                throw err.toExternalError(this);
-            }
-            else {
-                throw err;
-            }
-        }
+    evaluate(evalCtx) {
+        return this.operator.operation(evalCtx, this, this.argA.evaluate(evalCtx), this.argB.evaluate(evalCtx));
     }
 }
 exports.BinaryOperation = BinaryOperation;

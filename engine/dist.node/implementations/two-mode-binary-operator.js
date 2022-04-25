@@ -14,11 +14,11 @@ class TwoModeBinaryOperator extends base_js_1.IBinaryOperator {
     operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
             // both values are numeric, run numeric mode
-            return new base_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue));
+            return new base_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
         }
         else {
             // at least one of the values is not numeric, run text mode
-            return new base_js_1.KodeValue(this.textMode(a, b));
+            return new base_js_1.KodeValue(this.textMode(a, b), operation.source);
         }
     }
     /**

@@ -12,7 +12,7 @@ import { UnaryOperatorOccurence, BinaryOperatorOccurence } from "./operator-occu
 export class ExpressionBuilder {
 
     /** The parsing context. Contains information on what functions and operators exist and ties their names/symbols to implementations. */
-    protected readonly _env: ParsingContext;
+    protected readonly _parseCtx: ParsingContext;
 
     /** 
      * Whether the built expression should include starting and ending tokens in its source.  
@@ -25,12 +25,12 @@ export class ExpressionBuilder {
 
     /**
      * Constructs an expression builder with a given parsing context.
-     * @param env The parsing context for this expression builder.
+     * @param parseCtx The parsing context for this expression builder.
      * @param includeSurroundingTokens Whether the built expression should include starting and ending tokens in its source.
      * @param startingTokens The token or tokens that started the built expression.
      */
-    constructor(env: ParsingContext, includeSurroundingTokens: boolean, ...startingTokens: IFormulaToken[]) {
-        this._env = env;
+    constructor(parseCtx: ParsingContext, includeSurroundingTokens: boolean, ...startingTokens: IFormulaToken[]) {
+        this._parseCtx = parseCtx;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
     }
@@ -86,7 +86,7 @@ export class ExpressionBuilder {
 
         if (tokenShouldBeUnaryOperator) {
 
-            let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
+            let unaryOperator = this._parseCtx.findUnaryOperator(token.getSymbol());
 
             if (unaryOperator) {
 
@@ -96,7 +96,7 @@ export class ExpressionBuilder {
             } else {
 
                 // unary operator not found
-                let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
+                let binaryOperator = this._parseCtx.findBinaryOperator(token.getSymbol());
 
                 if (binaryOperator) {
 
@@ -115,7 +115,7 @@ export class ExpressionBuilder {
         } else {
 
             // token should be a binary operator
-            let binaryOperator = this._env.findBinaryOperator(token.getSymbol());
+            let binaryOperator = this._parseCtx.findBinaryOperator(token.getSymbol());
 
             if (binaryOperator) {
 
@@ -125,7 +125,7 @@ export class ExpressionBuilder {
             } else {
 
                 // binary operator not found
-                let unaryOperator = this._env.findUnaryOperator(token.getSymbol());
+                let unaryOperator = this._parseCtx.findUnaryOperator(token.getSymbol());
 
                 if (unaryOperator) {
 

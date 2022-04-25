@@ -7,7 +7,7 @@ const kodeine_parser_js_1 = require("../../engine/dist.node/kodeine-parser/kodei
 const evaluation_context_js_1 = require("../../engine/dist.node/evaluables/evaluation-context.js");
 const errors_js_1 = require("../../engine/dist.node/errors.js");
 function activate(context) {
-    let outChannel = vscode.window.createOutputChannel('Formula Result', 'kode');
+    let outChannel = vscode.window.createOutputChannel('Formula Result');
     outChannel.show(true);
     let parseCtx = parsing_context_js_1.ParsingContextBuilder.buildDefault();
     let parser = new kodeine_parser_js_1.KodeineParser(parseCtx);
@@ -17,7 +17,6 @@ function activate(context) {
         // create a list of diagnostics (warnings, errors etc.)
         let diags = [];
         try {
-            evalCtx.clearSideEffects();
             let formulaText = document.getText();
             let formula = parser.parse(formulaText);
             let result = formula.evaluate(evalCtx);
@@ -58,9 +57,21 @@ function activate(context) {
                 outChannel.replace('kodeine crashed: ' + err?.toString());
             }
         }
+        if (parseCtx.sideEffects.warnings.length > 0) {
+            // got some warnings, convert to diags
+            parseCtx.sideEffects.warnings.forEach(warning => {
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Warning,
+                    range: new vscode.Range(document.positionAt(warning.tokens[0].getStartIndex()), document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())),
+                    message: warning.message,
+                    code: '',
+                    source: ''
+                });
+            });
+        }
         if (evalCtx.sideEffects.warnings.length > 0) {
+            // got some warnings, convert to diags
             evalCtx.sideEffects.warnings.forEach(warning => {
-                // found some warnings
                 diags.push({
                     severity: vscode.DiagnosticSeverity.Warning,
                     range: new vscode.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),

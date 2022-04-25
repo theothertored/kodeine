@@ -1,4 +1,4 @@
-﻿import { EvaluationContext } from "engine/dist.browser/evaluables/evaluation-context.js";
+﻿import { EvaluationContext } from "../../engine/dist.browser/evaluables/evaluation-context.js";
 import { EvaluationError, KodeParseError } from "../../engine/dist.browser/errors.js";
 import { KodeineParser } from "../../engine/dist.browser/kodeine-parser/kodeine-parser.js";
 import { ParsingContextBuilder } from "../../engine/dist.browser/kodeine-parser/parsing-context.js";
@@ -34,8 +34,8 @@ function formulaInputEl_input(ev: InputEvent) {
     let formulaText = formulaInputEl.value;
     localStorage.setItem('formula', formulaText);
 
-    let parsingEnv = ParsingContextBuilder.buildDefault();
-    let parser = new KodeineParser(parsingEnv);
+    let parseCtx = ParsingContextBuilder.buildDefault();
+    let parser = new KodeineParser(parseCtx);
 
     try {
 
@@ -43,8 +43,8 @@ function formulaInputEl_input(ev: InputEvent) {
         console.log('input text: ', formulaText);
         console.log('parsed formula: ', formula);
 
-        let evaluationEnv = new EvaluationContext();
-        evaluationOutputEl.value = formula.evaluate(evaluationEnv).text;
+        let evalCtx = new EvaluationContext();
+        evaluationOutputEl.value = formula.evaluate(evalCtx).text;
 
         formulaErrorEl.innerText = '';
 

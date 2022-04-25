@@ -9,7 +9,7 @@ import { ExpressionBuilder } from "./expressions/expression-builder.js";
 import { FunctionCallBuilder } from "./expressions/function-call-builder.js";
 import { FunctionOccurence } from "./expressions/function-occurence.js";
 import { IExpressionBuilder } from "./expressions/i-expression-builder.js";
-import { ParsingContext } from "./parsing-context.js";
+import { ParsingContext, UnclosedDollarSignWarning, UnclosedQuotedValueWarning } from "./parsing-context.js";
 
 /** 
  * Values representing the current state of the parser. 
@@ -35,11 +35,11 @@ export enum KodeineParserState {
 export class KodeineParser implements IFormulaStringParser {
 
     /** The parsing context. Contains function and operator implementations. */
-    private _env: ParsingContext;
+    private _parseCtx: ParsingContext;
 
     /** Constructs a {@link KodeineParser} with a parsing context.*/
-    constructor(env: ParsingContext) {
-        this._env = env;
+    constructor(parseCtx: ParsingContext) {
+        this._parseCtx = parseCtx;
     }
 
     parse(source: string | ICharReader | ILexer): Formula {
@@ -47,12 +47,12 @@ export class KodeineParser implements IFormulaStringParser {
         if (typeof source === 'string') {
 
             let charReader = new StringCharReader(source);
-            let lexer = new KodeineLexer(charReader, this._env.getOperatorSymbolsLongestFirst());
+            let lexer = new KodeineLexer(charReader, this._parseCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
 
         } else if (source instanceof ICharReader) {
 
-            let lexer = new KodeineLexer(source, this._env.getOperatorSymbolsLongestFirst());
+            let lexer = new KodeineLexer(source, this._parseCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
 
         } else if (source instanceof ILexer) {
@@ -69,6 +69,8 @@ export class KodeineParser implements IFormulaStringParser {
 
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
     private _parseCore(lexer: ILexer): Formula {
+
+        this._parseCtx.clearSideEffects();
 
         /** The current state of the parser. */
         let state = KodeineParserState.Default;
@@ -141,7 +143,7 @@ export class KodeineParser implements IFormulaStringParser {
                     state = KodeineParserState.Kode;
 
                     // add a base expression builder to the stack
-                    exprBuilderStack = [new ExpressionBuilder(this._env, true, token)];
+                    exprBuilderStack = [new ExpressionBuilder(this._parseCtx, true, token)];
 
                     // check the token buffer
                     if (tokenBuffer.length > 0) {
@@ -218,13 +220,13 @@ export class KodeineParser implements IFormulaStringParser {
 
                         // get function implementation from the parsing context
                         let funcName = token.getValue();
-                        let func = this._env.findFunction(funcName);
+                        let func = this._parseCtx.findFunction(funcName);
 
                         if (func) {
 
                             // implementation found, create a function call builder and push it to the stack
                             exprBuilderStack.push(new FunctionCallBuilder(
-                                this._env,
+                                this._parseCtx,
                                 new FunctionOccurence(func, token, ...whitespaceTokens, nextToken)
                             ));
 
@@ -297,7 +299,7 @@ export class KodeineParser implements IFormulaStringParser {
 
                         // if there is no previous token or this parenthesis follows an operator,
                         // the parenthesis starts a subexpression
-                        exprBuilderStack.push(new ExpressionBuilder(this._env, true, token));
+                        exprBuilderStack.push(new ExpressionBuilder(this._parseCtx, true, token));
 
                     } else if (prevToken instanceof UnquotedValueToken) {
 
@@ -385,7 +387,18 @@ export class KodeineParser implements IFormulaStringParser {
                     // except the leading $ gets removed from the output.
                     state = KodeineParserState.Default;
 
+                    // override the default behaviour - we'll reset the buffer
+                    // this does not really matter since an unclosed quoted value token should be the last token of any formula
+                    skipPushingToBuffer = true;
+
                     if (tokenBuffer.length > 0) {
+
+                        // add the unclosed quoted value token to the output
+                        tokenBuffer.push(token);
+
+                        this._parseCtx.sideEffects.warnings.push(
+                            new UnclosedQuotedValueWarning(...tokenBuffer)
+                        );
 
                         // we read some plain text tokens before this point, add a plain text part
                         formulaEvaluables.push(new KodeValue(
@@ -444,6 +457,11 @@ export class KodeineParser implements IFormulaStringParser {
                 
                 // we read an opening dollar sign, but not a closing one
                 // in this case, kustom prints all tokens except the opening dollar sign as plain text
+
+                this._parseCtx.sideEffects.warnings.push(
+                    new UnclosedDollarSignWarning(...tokenBuffer)
+                );
+
                 formulaEvaluables.push(new KodeValue(
                     tokenBuffer.slice(1).map(t => t.getSourceText()).join(''),
                     new EvaluableSource(...tokenBuffer)

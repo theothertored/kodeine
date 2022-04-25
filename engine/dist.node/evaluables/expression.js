@@ -22,8 +22,8 @@ class Expression extends base_js_1.Evaluable {
         super(source);
         this.evaluable = evaluable;
     }
-    evaluate(env) {
-        return this.evaluable.evaluate(env);
+    evaluate(evalCtx) {
+        return this.evaluable.evaluate(evalCtx);
     }
 }
 exports.Expression = Expression;

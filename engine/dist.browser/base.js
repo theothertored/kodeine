@@ -44,14 +44,19 @@ export class KodeValue extends Evaluable {
             this.numericValue = Number(value);
             this.isNumeric = !isNaN(this.numericValue);
         }
-        else {
+        else if (typeof value === 'number') {
             // the value is a number
             this.numericValue = value;
             this.text = value.toString();
             this.isNumeric = true;
         }
+        else {
+            this.text = value.text;
+            this.isNumeric = value.isNumeric;
+            this.numericValue = value.numericValue;
+        }
     }
-    evaluate(env) {
+    evaluate(evalCtx) {
         return this;
     }
     static fromToken(token) {

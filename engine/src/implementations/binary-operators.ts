@@ -1,5 +1,5 @@
 import { IBinaryOperator, KodeValue } from "../base.js";
-import { InternalRegexEvaluationError } from "../errors.js";
+import { RegexEvaluationError } from "../errors.js";
 import { BinaryOperation } from "../evaluables/binary-operation.js";
 import { EvaluationContext } from "../evaluables/evaluation-context.js";
 import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
@@ -64,11 +64,11 @@ export class AdditionOperator extends IBinaryOperator {
             return new KodeValue(a.numericValue + b.numericValue);
         } else {
             if (a.isNumeric)
-                return new KodeValue(a.numericValue + b.text);
+                return new KodeValue(a.numericValue + b.text, operation.source);
             else if (b.isNumeric)
-                return new KodeValue(a.text + b.numericValue);
+                return new KodeValue(a.text + b.numericValue, operation.source);
             else
-                return new KodeValue(a.text + b.text);
+                return new KodeValue(a.text + b.text, operation.source);
         }
     }
 }
@@ -89,11 +89,11 @@ export class EqualityOperator extends IBinaryOperator {
     getPrecedence() { return 2; }
     operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
         if (a.isNumeric && b.isNumeric)
-            return new KodeValue(a.numericValue == b.numericValue);
+            return new KodeValue(a.numericValue == b.numericValue, operation.source);
         else if (a.isNumeric || b.isNumeric)
-            return new KodeValue(0);
+            return new KodeValue(0, operation.source);
         else
-            return new KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase());
+            return new KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase(), operation.source);
     }
 }
 
@@ -102,11 +102,11 @@ export class InequalityOperator extends IBinaryOperator {
     getPrecedence() { return 2; }
     operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
         if (a.isNumeric && b.isNumeric)
-            return new KodeValue(a.numericValue != b.numericValue);
+            return new KodeValue(a.numericValue != b.numericValue, operation.source);
         else if (a.isNumeric || b.isNumeric)
-            return new KodeValue(1);
+            return new KodeValue(1, operation.source);
         else
-            return new KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase());
+            return new KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
     }
 }
 
@@ -147,9 +147,9 @@ export class RegexMatchOperator extends IBinaryOperator {
     getPrecedence() { return 2; }
     operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
         try {
-            return new KodeValue(new RegExp(b.text).test(a.text));
+            return new KodeValue(new RegExp(b.text).test(a.text), operation.source);
         } catch (err: any) {
-            throw new InternalRegexEvaluationError(err?.toString());
+            throw new RegexEvaluationError(operation.argB, err?.toString());
         }
     }
 }

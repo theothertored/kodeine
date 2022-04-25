@@ -21,7 +21,7 @@ export class NegationOperator extends IUnaryOperator {
             // the argument is not numeric, panic
             // ...no, really, this is what kustom does
             // -abc => abc-null
-            return new KodeValue(a.text + '-null');
+            return new KodeValue(a.text + '-null', operation.source);
 
         }
     }

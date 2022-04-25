@@ -3,6 +3,7 @@ import { EvaluationContext } from "./evaluables/evaluation-context.js";
 import { QuotedValueToken, UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
 import { BinaryOperation } from "./evaluables/binary-operation.js";
 import { UnaryOperation } from "./evaluables/unary-operation.js";
+import { FunctionCall } from "./evaluables/function-call.js";
 
 
 /** Represents a token emited by the lexer. */
@@ -55,7 +56,7 @@ export abstract class IBinaryOperator extends IOperator {
      * @param b The right hand side argument.
      */
     abstract operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
-    
+
 }
 
 
@@ -65,8 +66,13 @@ export abstract class IKodeFunction {
     /** Returns the name of this function. */
     abstract getName(): string;
 
-    /** Implements the function. */
-    abstract call(env: EvaluationContext, args: KodeValue[]): KodeValue;
+    /** 
+     * Function implementation. 
+     * @param evalCtx The context in which this evaluation is taking place.
+     * @param call The function call being evaluated.
+     * @param args The arguments of the function call.
+     */
+    abstract call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 
 }
 
@@ -84,9 +90,9 @@ export abstract class Evaluable {
 
     /** 
      * Evaluates this evaluable into a concrete kode value.
-     * @param env The context in which this evaluation is taking place.
+     * @param evalCtx The context in which this evaluation is taking place.
      */
-    abstract evaluate(env: EvaluationContext): KodeValue;
+    abstract evaluate(evalCtx: EvaluationContext): KodeValue;
 
 }
 
@@ -109,7 +115,7 @@ export class KodeValue extends Evaluable {
      * @param value The value to create the kode value from.
      * @param source Optionally, the source of this value.
      */
-    constructor(value: (string | number | boolean), source?: EvaluableSource) {
+    constructor(value: (string | number | boolean | KodeValue), source?: EvaluableSource) {
 
         // pass the source to the Evaluable constructor
         super(source);
@@ -128,17 +134,24 @@ export class KodeValue extends Evaluable {
             this.numericValue = Number(value);
             this.isNumeric = !isNaN(this.numericValue);
 
-        } else {
+        } else if (typeof value === 'number') {
 
             // the value is a number
             this.numericValue = value;
             this.text = value.toString();
             this.isNumeric = true;
 
+        } else {
+
+            this.text = value.text;
+            this.isNumeric = value.isNumeric;
+            this.numericValue = value.numericValue;
+
         }
+        
     }
 
-    evaluate(env: EvaluationContext): KodeValue {
+    evaluate(evalCtx: EvaluationContext): KodeValue {
         return this;
     }
 
@@ -177,7 +190,7 @@ export class EvaluableSource {
         let tokens: IFormulaToken[] = [];
 
         evaluables.forEach(ev => {
-            if(Array.isArray(ev.source?.tokens)) {
+            if (Array.isArray(ev.source?.tokens)) {
                 tokens.push(...ev.source!.tokens);
             }
         })
@@ -238,7 +251,7 @@ export abstract class ILexer {
 
 /** Represents a parser that converts text into an evaluable {@link Formula}. */
 export abstract class IFormulaStringParser {
-    
+
     /**
      * Creates an evaluable {@link Formula} .
      * @param source The source of the formula text.

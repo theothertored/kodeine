@@ -13,7 +13,9 @@ export class Formula extends Evaluable {
         this.evaluables = evaluables;
     }
 
-    evaluate(env: EvaluationContext): KodeValue {
+    evaluate(evalCtx: EvaluationContext): KodeValue {
+
+        evalCtx.clearSideEffects();
 
         if (this.evaluables.length === 0) {
 
@@ -23,7 +25,7 @@ export class Formula extends Evaluable {
         } else if (this.evaluables.length === 1) {
 
             // there is only one evaluable, evaluate it and return the result.
-            return this.evaluables[0].evaluate(env);
+            return this.evaluables[0].evaluate(evalCtx);
 
         } else {
 
@@ -32,7 +34,7 @@ export class Formula extends Evaluable {
             let output = '';
 
             for (var evaluable of this.evaluables) {
-                output += evaluable.evaluate(env).text;
+                output += evaluable.evaluate(evalCtx).text;
             }
 
             return new KodeValue(output);
