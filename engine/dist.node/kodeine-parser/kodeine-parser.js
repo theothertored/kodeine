@@ -215,7 +215,8 @@ class KodeineParser {
                     if (prevToken === null
                         || prevToken instanceof formula_tokens_js_1.OperatorToken
                         || prevToken instanceof formula_tokens_js_1.OpeningParenthesisToken
-                        || prevToken instanceof formula_tokens_js_1.DollarSignToken) {
+                        || prevToken instanceof formula_tokens_js_1.DollarSignToken
+                        || prevToken instanceof formula_tokens_js_1.CommaToken) {
                         // if there is no previous token or this parenthesis follows an operator,
                         // the parenthesis starts a subexpression
                         exprBuilderStack.push(new expression_builder_js_1.ExpressionBuilder(this._env, true, token));

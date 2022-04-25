@@ -292,7 +292,8 @@ export class KodeineParser implements IFormulaStringParser {
                     if (prevToken === null
                         || prevToken instanceof OperatorToken
                         || prevToken instanceof OpeningParenthesisToken
-                        || prevToken instanceof DollarSignToken) {
+                        || prevToken instanceof DollarSignToken
+                        || prevToken instanceof CommaToken) {
 
                         // if there is no previous token or this parenthesis follows an operator,
                         // the parenthesis starts a subexpression

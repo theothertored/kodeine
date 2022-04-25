@@ -11,7 +11,7 @@
         "Programming Languages"
     ],
     "activationEvents": [
-        "onCommand:kodeine.formulaResult"
+        "onLanguage:kode"
     ],
     "main": "./extension/dist/extension.js",
     "contributes": {
