@@ -58,6 +58,14 @@ export declare class InvalidArgumentCountError extends EvaluationError {
      */
     constructor(funcCall: FunctionCall, message: string);
 }
+export declare class RegexEvaluationError extends EvaluationError {
+    /**
+     * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.
+     * @param funcCall The function call with an invalid number of arguments.
+     * @param message A message explaining the error.
+     */
+    constructor(evaluable: Evaluable, message: string);
+}
 /**
  * An error thrown internally by an implementation of a function or operator.
  * Should be caught by the parent evaluble and rethrown as an EvaluationError.
@@ -78,4 +86,8 @@ export declare abstract class InternalEvaluationError {
 /** An internal invalid argument count error to be thrown by function implementations. */
 export declare class InternalInvalidArgumentCountError extends InternalEvaluationError {
     toExternalError(evaluable: FunctionCall): InvalidArgumentCountError;
+}
+/** An internal regex error to be thrown by function or operator implementations. */
+export declare class InternalRegexEvaluationError extends InternalEvaluationError {
+    toExternalError(evaluable: Evaluable): InvalidArgumentCountError;
 }

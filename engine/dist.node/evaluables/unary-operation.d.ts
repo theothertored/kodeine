@@ -1,4 +1,5 @@
-import { Evaluable, IUnaryOperator, EvaluableSource, EvaluationContext, KodeValue } from "../base.js";
+import { Evaluable, IUnaryOperator, EvaluableSource, KodeValue } from "../base.js";
+import { EvaluationContext } from "./evaluation-context.js";
 /** An operation consisting of a unary operator and an evaluable argument. */
 export declare class UnaryOperation extends Evaluable {
     /** The operator. */

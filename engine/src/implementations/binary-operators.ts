@@ -1,4 +1,7 @@
 import { IBinaryOperator, KodeValue } from "../base.js";
+import { InternalRegexEvaluationError } from "../errors.js";
+import { BinaryOperation } from "../evaluables/binary-operation.js";
+import { EvaluationContext } from "../evaluables/evaluation-context.js";
 import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
 
 // this module contains implementations of all binary operators available in Kustom.
@@ -56,7 +59,7 @@ export class ModuloOperator extends TwoModeBinaryOperator {
 export class AdditionOperator extends IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
         if (a.isNumeric && b.isNumeric) {
             return new KodeValue(a.numericValue + b.numericValue);
         } else {
@@ -84,7 +87,7 @@ export class SubtractionOperator extends TwoModeBinaryOperator {
 export class EqualityOperator extends IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
         if (a.isNumeric && b.isNumeric)
             return new KodeValue(a.numericValue == b.numericValue);
         else if (a.isNumeric || b.isNumeric)
@@ -97,7 +100,7 @@ export class EqualityOperator extends IBinaryOperator {
 export class InequalityOperator extends IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
         if (a.isNumeric && b.isNumeric)
             return new KodeValue(a.numericValue != b.numericValue);
         else if (a.isNumeric || b.isNumeric)
@@ -142,8 +145,12 @@ export class GreaterThanOrEqualToOperator extends TwoModeBinaryOperator {
 export class RegexMatchOperator extends IBinaryOperator {
     getSymbol() { return '~='; }
     getPrecedence() { return 2; }
-    operation(a: KodeValue, b: KodeValue): KodeValue {
-        return new KodeValue(new RegExp(b.text).test(a.text));
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
+        try {
+            return new KodeValue(new RegExp(b.text).test(a.text));
+        } catch (err: any) {
+            throw new InternalRegexEvaluationError(err?.toString());
+        }
     }
 }
 

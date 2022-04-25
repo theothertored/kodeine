@@ -11,7 +11,7 @@ const base_js_1 = require("../base.js");
  */
 class TwoModeBinaryOperator extends base_js_1.IBinaryOperator {
     /** Selects between a numeric mode and default text mode. */
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
             // both values are numeric, run numeric mode
             return new base_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue));

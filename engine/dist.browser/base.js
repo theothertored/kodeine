@@ -88,9 +88,6 @@ export class EvaluableSource {
         return new EvaluableSource(...tokens);
     }
 }
-/** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
-export class EvaluationContext {
-}
 /** Represents a forward-only character reader. */
 export class ICharReader {
 }

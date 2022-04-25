@@ -22,7 +22,7 @@ class BinaryOperation extends base_js_1.Evaluable {
     evaluate(env) {
         try {
             // run the operation to obtain a kode value
-            let kodeVal = this.operator.operation(this.argA.evaluate(env), this.argB.evaluate(env));
+            let kodeVal = this.operator.operation(env, this, this.argA.evaluate(env), this.argB.evaluate(env));
             // the value resulting from this operation should have the same source as the operation 
             kodeVal.source = this.source;
             return kodeVal;

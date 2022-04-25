@@ -1,4 +1,6 @@
 import { IBinaryOperator, KodeValue } from "../base.js";
+import { BinaryOperation } from "../evaluables/binary-operation.js";
+import { EvaluationContext } from "../evaluables/evaluation-context.js";
 import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
 export declare class ExponentiationOperator extends TwoModeBinaryOperator {
     getSymbol(): string;
@@ -23,7 +25,7 @@ export declare class ModuloOperator extends TwoModeBinaryOperator {
 export declare class AdditionOperator extends IBinaryOperator {
     getSymbol(): string;
     getPrecedence(): number;
-    operation(a: KodeValue, b: KodeValue): KodeValue;
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
 }
 export declare class SubtractionOperator extends TwoModeBinaryOperator {
     getSymbol(): string;
@@ -33,12 +35,12 @@ export declare class SubtractionOperator extends TwoModeBinaryOperator {
 export declare class EqualityOperator extends IBinaryOperator {
     getSymbol(): string;
     getPrecedence(): number;
-    operation(a: KodeValue, b: KodeValue): KodeValue;
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
 }
 export declare class InequalityOperator extends IBinaryOperator {
     getSymbol(): string;
     getPrecedence(): number;
-    operation(a: KodeValue, b: KodeValue): KodeValue;
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
 }
 export declare class LesserThanOperator extends TwoModeBinaryOperator {
     getSymbol(): string;
@@ -63,7 +65,7 @@ export declare class GreaterThanOrEqualToOperator extends TwoModeBinaryOperator 
 export declare class RegexMatchOperator extends IBinaryOperator {
     getSymbol(): string;
     getPrecedence(): number;
-    operation(a: KodeValue, b: KodeValue): KodeValue;
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
 }
 export declare class LogicalOrOperator extends TwoModeBinaryOperator {
     getSymbol(): string;

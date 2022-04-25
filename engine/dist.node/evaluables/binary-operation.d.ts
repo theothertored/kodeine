@@ -1,5 +1,6 @@
 import { IBinaryOperator, Evaluable, KodeValue } from "../base.js";
-import { EvaluableSource, EvaluationContext } from "../base.js";
+import { EvaluableSource } from "../base.js";
+import { EvaluationContext } from "./evaluation-context.js";
 /** An operation consisting of an binary operator and two evaluable arguments. */
 export declare class BinaryOperation extends Evaluable {
     /** The operator. */

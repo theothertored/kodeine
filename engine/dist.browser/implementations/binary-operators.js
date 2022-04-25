@@ -1,4 +1,5 @@
 import { IBinaryOperator, KodeValue } from "../base.js";
+import { InternalRegexEvaluationError } from "../errors.js";
 import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
 // this module contains implementations of all binary operators available in Kustom.
 // most operators here extend TwoModeBinaryOperator and therefore only need to
@@ -43,7 +44,7 @@ export class ModuloOperator extends TwoModeBinaryOperator {
 export class AdditionOperator extends IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
             return new KodeValue(a.numericValue + b.numericValue);
         }
@@ -68,7 +69,7 @@ export class SubtractionOperator extends TwoModeBinaryOperator {
 export class EqualityOperator extends IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
             return new KodeValue(a.numericValue == b.numericValue);
         else if (a.isNumeric || b.isNumeric)
@@ -80,7 +81,7 @@ export class EqualityOperator extends IBinaryOperator {
 export class InequalityOperator extends IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
             return new KodeValue(a.numericValue != b.numericValue);
         else if (a.isNumeric || b.isNumeric)
@@ -120,8 +121,13 @@ export class GreaterThanOrEqualToOperator extends TwoModeBinaryOperator {
 export class RegexMatchOperator extends IBinaryOperator {
     getSymbol() { return '~='; }
     getPrecedence() { return 2; }
-    operation(a, b) {
-        return new KodeValue(new RegExp(b.text).test(a.text));
+    operation(evalCtx, operation, a, b) {
+        try {
+            return new KodeValue(new RegExp(b.text).test(a.text));
+        }
+        catch (err) {
+            throw new InternalRegexEvaluationError(err === null || err === void 0 ? void 0 : err.toString());
+        }
     }
 }
 // precedence: 1

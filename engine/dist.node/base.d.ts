@@ -1,5 +1,8 @@
 import { Formula } from "./evaluables/formula.js";
+import { EvaluationContext } from "./evaluables/evaluation-context.js";
 import { QuotedValueToken, UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
+import { BinaryOperation } from "./evaluables/binary-operation.js";
+import { UnaryOperation } from "./evaluables/unary-operation.js";
 /** Represents a token emited by the lexer. */
 export declare abstract class IFormulaToken {
     /** Returns the index of the first character of this token in the formula source text. */
@@ -18,15 +21,26 @@ export declare abstract class IOperator {
 }
 /** Represents a kode unary operator. */
 export declare abstract class IUnaryOperator extends IOperator {
-    /** Implements the operation performed by this operator. */
-    abstract operation(a: KodeValue): KodeValue;
+    /**
+     * Implements the operation performed by this operator.
+     * @param evalCtx The context of this evaluation.
+     * @param operation The operation being evaluated.
+     * @param a The argument.
+     */
+    abstract operation(evalCtx: EvaluationContext, operation: UnaryOperation, a: KodeValue): KodeValue;
 }
 /** Represents a kode binary operator. */
 export declare abstract class IBinaryOperator extends IOperator {
     /** Returns the precedence of this operator. Operators with higher precedence values will be evaluated first. */
     abstract getPrecedence(): number;
-    /** Implements the operation performed by this operator. */
-    abstract operation(a: KodeValue, b: KodeValue): KodeValue;
+    /**
+     * Implements the operation performed by this operator.
+     * @param evalCtx The context of this evaluation.
+     * @param operation The operation being evaluated.
+     * @param a The left hand side argument.
+     * @param b The right hand side argument.
+     */
+    abstract operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
 }
 /** Represents a kode function. */
 export declare abstract class IKodeFunction {
@@ -75,9 +89,6 @@ export declare class EvaluableSource {
     /** Gets the end index of the last source token. */
     getEndIndex(): number;
     static createByConcatenatingSources(evaluables: Evaluable[]): EvaluableSource;
-}
-/** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
-export declare class EvaluationContext {
 }
 /** Represents a forward-only character reader. */
 export declare abstract class ICharReader {

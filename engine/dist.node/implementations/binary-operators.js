@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogicalAndOperator = exports.LogicalOrOperator = exports.RegexMatchOperator = exports.GreaterThanOrEqualToOperator = exports.LesserThanOrEqualToOperator = exports.GreaterThanOperator = exports.LesserThanOperator = exports.InequalityOperator = exports.EqualityOperator = exports.SubtractionOperator = exports.AdditionOperator = exports.ModuloOperator = exports.DivisionOperator = exports.MultiplicationOperator = exports.ExponentiationOperator = void 0;
 const base_js_1 = require("../base.js");
+const errors_js_1 = require("../errors.js");
 const two_mode_binary_operator_js_1 = require("./two-mode-binary-operator.js");
 // this module contains implementations of all binary operators available in Kustom.
 // most operators here extend TwoModeBinaryOperator and therefore only need to
@@ -50,7 +51,7 @@ exports.ModuloOperator = ModuloOperator;
 class AdditionOperator extends base_js_1.IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
             return new base_js_1.KodeValue(a.numericValue + b.numericValue);
         }
@@ -77,7 +78,7 @@ exports.SubtractionOperator = SubtractionOperator;
 class EqualityOperator extends base_js_1.IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
             return new base_js_1.KodeValue(a.numericValue == b.numericValue);
         else if (a.isNumeric || b.isNumeric)
@@ -90,7 +91,7 @@ exports.EqualityOperator = EqualityOperator;
 class InequalityOperator extends base_js_1.IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
             return new base_js_1.KodeValue(a.numericValue != b.numericValue);
         else if (a.isNumeric || b.isNumeric)
@@ -135,8 +136,13 @@ exports.GreaterThanOrEqualToOperator = GreaterThanOrEqualToOperator;
 class RegexMatchOperator extends base_js_1.IBinaryOperator {
     getSymbol() { return '~='; }
     getPrecedence() { return 2; }
-    operation(a, b) {
-        return new base_js_1.KodeValue(new RegExp(b.text).test(a.text));
+    operation(evalCtx, operation, a, b) {
+        try {
+            return new base_js_1.KodeValue(new RegExp(b.text).test(a.text));
+        }
+        catch (err) {
+            throw new errors_js_1.InternalRegexEvaluationError(err?.toString());
+        }
     }
 }
 exports.RegexMatchOperator = RegexMatchOperator;

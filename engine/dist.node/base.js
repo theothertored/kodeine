@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluationContext = exports.EvaluableSource = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.IFormulaToken = void 0;
+exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluableSource = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.IFormulaToken = void 0;
 /** Represents a token emited by the lexer. */
 class IFormulaToken {
 }
@@ -98,10 +98,6 @@ class EvaluableSource {
     }
 }
 exports.EvaluableSource = EvaluableSource;
-/** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
-class EvaluationContext {
-}
-exports.EvaluationContext = EvaluationContext;
 /** Represents a forward-only character reader. */
 class ICharReader {
 }

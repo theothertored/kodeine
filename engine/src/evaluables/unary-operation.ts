@@ -1,5 +1,6 @@
-import { Evaluable, IUnaryOperator, EvaluableSource, EvaluationContext, KodeValue } from "../base.js";
+import { Evaluable, IUnaryOperator, EvaluableSource, KodeValue } from "../base.js";
 import { InternalEvaluationError } from "../errors.js";
+import { EvaluationContext } from "./evaluation-context.js";
 
 /** An operation consisting of a unary operator and an evaluable argument. */
 export class UnaryOperation extends Evaluable {
@@ -26,8 +27,7 @@ export class UnaryOperation extends Evaluable {
 
         try {
 
-        return this.operator.operation(this.arg.evaluate(env));
-
+            return this.operator.operation(env, this, this.arg.evaluate(env));
 
         } catch (err) {
 

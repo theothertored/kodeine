@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.InternalInvalidArgumentCountError = exports.InternalEvaluationError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParseError = exports.KodeError = void 0;
+exports.InternalRegexEvaluationError = exports.InternalInvalidArgumentCountError = exports.InternalEvaluationError = exports.RegexEvaluationError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParseError = exports.KodeError = void 0;
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 class KodeError {
     constructor(message) {
@@ -76,6 +76,17 @@ class InvalidArgumentCountError extends EvaluationError {
     }
 }
 exports.InvalidArgumentCountError = InvalidArgumentCountError;
+class RegexEvaluationError extends EvaluationError {
+    /**
+     * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.
+     * @param funcCall The function call with an invalid number of arguments.
+     * @param message A message explaining the error.
+     */
+    constructor(evaluable, message) {
+        super(evaluable, `Regex error: ${message}`);
+    }
+}
+exports.RegexEvaluationError = RegexEvaluationError;
 /**
  * An error thrown internally by an implementation of a function or operator.
  * Should be caught by the parent evaluble and rethrown as an EvaluationError.
@@ -99,4 +110,11 @@ class InternalInvalidArgumentCountError extends InternalEvaluationError {
     }
 }
 exports.InternalInvalidArgumentCountError = InternalInvalidArgumentCountError;
+/** An internal regex error to be thrown by function or operator implementations. */
+class InternalRegexEvaluationError extends InternalEvaluationError {
+    toExternalError(evaluable) {
+        return new RegexEvaluationError(evaluable, this.message);
+    }
+}
+exports.InternalRegexEvaluationError = InternalRegexEvaluationError;
 //# sourceMappingURL=errors.js.map

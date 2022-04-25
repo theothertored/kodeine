@@ -15,7 +15,7 @@ export class UnaryOperation extends Evaluable {
     }
     evaluate(env) {
         try {
-            return this.operator.operation(this.arg.evaluate(env));
+            return this.operator.operation(env, this, this.arg.evaluate(env));
         }
         catch (err) {
             if (err instanceof InternalEvaluationError) {

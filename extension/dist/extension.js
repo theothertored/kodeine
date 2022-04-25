@@ -4,28 +4,28 @@ exports.activate = void 0;
 const vscode = require("vscode");
 const parsing_context_js_1 = require("../../engine/dist.node/kodeine-parser/parsing-context.js");
 const kodeine_parser_js_1 = require("../../engine/dist.node/kodeine-parser/kodeine-parser.js");
-const base_js_1 = require("../../engine/dist.node/base.js");
+const evaluation_context_js_1 = require("../../engine/dist.node/evaluables/evaluation-context.js");
 const errors_js_1 = require("../../engine/dist.node/errors.js");
 function activate(context) {
     let outChannel = vscode.window.createOutputChannel('Formula Result', 'kode');
     outChannel.show(true);
     let parseCtx = parsing_context_js_1.ParsingContextBuilder.buildDefault();
     let parser = new kodeine_parser_js_1.KodeineParser(parseCtx);
-    let evalCtx = new base_js_1.EvaluationContext();
+    let evalCtx = new evaluation_context_js_1.EvaluationContext();
     let diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     let evaluateToOutput = (document) => {
+        // create a list of diagnostics (warnings, errors etc.)
+        let diags = [];
         try {
+            evalCtx.clearSideEffects();
             let formulaText = document.getText();
             let formula = parser.parse(formulaText);
             let result = formula.evaluate(evalCtx);
             outChannel.replace(result.text);
-            // clear diagnostics
-            diagColl.delete(vscode.window.activeTextEditor.document.uri);
         }
         catch (err) {
             if (err instanceof errors_js_1.KodeError) {
                 outChannel.replace(err.message);
-                let diags = [];
                 if (err instanceof errors_js_1.KodeParseError) {
                     diags.push({
                         severity: vscode.DiagnosticSeverity.Error,
@@ -53,14 +53,25 @@ function activate(context) {
                         source: ''
                     });
                 }
-                diagColl.set(vscode.window.activeTextEditor.document.uri, diags);
             }
             else {
                 outChannel.replace('kodeine crashed: ' + err?.toString());
-                // clear diagnostics
-                diagColl.delete(vscode.window.activeTextEditor.document.uri);
             }
         }
+        if (evalCtx.sideEffects.warnings.length > 0) {
+            evalCtx.sideEffects.warnings.forEach(warning => {
+                // found some warnings
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Warning,
+                    range: new vscode.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
+                    message: warning.message,
+                    code: '',
+                    source: ''
+                });
+            });
+        }
+        // apply the created list to the problems panel
+        diagColl.set(vscode.window.activeTextEditor.document.uri, diags);
     };
     if (vscode.window.activeTextEditor?.document.languageId === 'kode') {
         evaluateToOutput(vscode.window.activeTextEditor.document);

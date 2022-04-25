@@ -1,4 +1,5 @@
 import { Evaluable, IFormulaToken, IKodeFunction } from "./base.js";
+import { BinaryOperation } from "./evaluables/binary-operation.js";
 import { FunctionCall } from "./evaluables/function-call.js";
 import { UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
 
@@ -99,6 +100,17 @@ export class InvalidArgumentCountError extends EvaluationError {
 
 }
 
+export class RegexEvaluationError extends EvaluationError {
+    /** 
+     * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message. 
+     * @param funcCall The function call with an invalid number of arguments.
+     * @param message A message explaining the error.
+     */
+    constructor(evaluable: Evaluable, message: string) {
+        super(evaluable, `Regex error: ${message}`)
+    }
+}
+
 
 /** 
  * An error thrown internally by an implementation of a function or operator. 
@@ -129,6 +141,15 @@ export class InternalInvalidArgumentCountError extends InternalEvaluationError {
 
     toExternalError(evaluable: FunctionCall): InvalidArgumentCountError {
         return new InvalidArgumentCountError(evaluable, this.message);
+    }
+
+}
+
+/** An internal regex error to be thrown by function or operator implementations. */
+export class InternalRegexEvaluationError extends InternalEvaluationError {
+
+    toExternalError(evaluable: Evaluable): InvalidArgumentCountError {
+        return new RegexEvaluationError(evaluable, this.message);
     }
 
 }

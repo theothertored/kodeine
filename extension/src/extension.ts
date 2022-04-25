@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { ParsingContextBuilder } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
 import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
-import { EvaluationContext } from '../../engine/dist.node/base.js';
+import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
 import { KodeParseError, EvaluationError, KodeError } from '../../engine/dist.node/errors.js';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -17,24 +17,25 @@ export function activate(context: vscode.ExtensionContext) {
 
     let evaluateToOutput = (document: vscode.TextDocument) => {
 
+        // create a list of diagnostics (warnings, errors etc.)
+        let diags: vscode.Diagnostic[] = [];
+
         try {
+
+            evalCtx.clearSideEffects();
 
             let formulaText = document.getText();
             let formula = parser.parse(formulaText);
+
             let result = formula.evaluate(evalCtx);
 
             outChannel.replace(result.text);
-
-            // clear diagnostics
-            diagColl.delete(vscode.window.activeTextEditor!.document.uri);
 
         } catch (err: any) {
 
             if (err instanceof KodeError) {
 
                 outChannel.replace(err.message);
-
-                let diags: vscode.Diagnostic[] = [];
 
                 if (err instanceof KodeParseError) {
 
@@ -77,17 +78,36 @@ export function activate(context: vscode.ExtensionContext) {
 
                 }
 
-                diagColl.set(vscode.window.activeTextEditor!.document.uri, diags)
 
             } else {
 
                 outChannel.replace('kodeine crashed: ' + err?.toString());
 
-                // clear diagnostics
-                diagColl.delete(vscode.window.activeTextEditor!.document.uri);
-                
             }
         }
+
+        if (evalCtx.sideEffects.warnings.length > 0) {
+
+            evalCtx.sideEffects.warnings.forEach(warning => {
+
+                // found some warnings
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Warning,
+                    range: new vscode.Range(
+                        document.positionAt(warning.evaluable.source!.getStartIndex()),
+                        document.positionAt(warning.evaluable.source!.getEndIndex())
+                    ),
+                    message: warning.message,
+                    code: '',
+                    source: ''
+                });
+
+            });
+
+        }
+        
+        // apply the created list to the problems panel
+        diagColl.set(vscode.window.activeTextEditor!.document.uri, diags);
 
     }
 

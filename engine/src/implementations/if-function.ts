@@ -1,5 +1,5 @@
 import { IKodeFunction, KodeValue } from "../base.js";
-import { EvaluationContext } from "../base.js";
+import { EvaluationContext } from "../evaluables/evaluation-context.js";
 import { InternalInvalidArgumentCountError } from "../errors.js";
 
 /** Implementation of kustom's `if()` function. */

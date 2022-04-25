@@ -1,4 +1,6 @@
 import { IBinaryOperator, KodeValue } from "../base.js";
+import { BinaryOperation } from "../evaluables/binary-operation.js";
+import { EvaluationContext } from "../evaluables/evaluation-context.js";
 /**
  * Base class for operators that work in one way if both arguments are numeric,
  * and otherwise concatenate with the operator symbol in the middle.
@@ -8,7 +10,7 @@ import { IBinaryOperator, KodeValue } from "../base.js";
  */
 export declare abstract class TwoModeBinaryOperator extends IBinaryOperator {
     /** Selects between a numeric mode and default text mode. */
-    operation(a: KodeValue, b: KodeValue): KodeValue;
+    operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue;
     /**
      * Implements the numeric mode of this operator.
      * @param a Left hand side numeric argument.

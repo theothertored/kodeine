@@ -1,5 +1,5 @@
 import { IKodeFunction, KodeValue } from "../base.js";
-import { EvaluationContext } from "../base.js";
+import { EvaluationContext } from "../evaluables/evaluation-context.js";
 export declare class LocationInfoFunction extends IKodeFunction {
     getName(): string;
     call(env: EvaluationContext, args: KodeValue[]): KodeValue;

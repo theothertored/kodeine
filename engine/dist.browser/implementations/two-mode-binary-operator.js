@@ -8,7 +8,7 @@ import { IBinaryOperator, KodeValue } from "../base.js";
  */
 export class TwoModeBinaryOperator extends IBinaryOperator {
     /** Selects between a numeric mode and default text mode. */
-    operation(a, b) {
+    operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
             // both values are numeric, run numeric mode
             return new KodeValue(this.numericMode(a.numericValue, b.numericValue));

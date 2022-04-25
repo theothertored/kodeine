@@ -18,7 +18,7 @@ class UnaryOperation extends base_js_1.Evaluable {
     }
     evaluate(env) {
         try {
-            return this.operator.operation(this.arg.evaluate(env));
+            return this.operator.operation(env, this, this.arg.evaluate(env));
         }
         catch (err) {
             if (err instanceof errors_js_1.InternalEvaluationError) {

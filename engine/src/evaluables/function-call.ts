@@ -1,5 +1,6 @@
-import { Evaluable, IKodeFunction, KodeValue, EvaluableSource, EvaluationContext } from "../base.js";
+import { Evaluable, IKodeFunction, KodeValue, EvaluableSource } from "../base.js";
 import { InternalEvaluationError } from "../errors.js";
+import { EvaluationContext } from "./evaluation-context.js";
 
 /** A function call, consisting of a kode function being called and arguments for the call. */
 export class FunctionCall extends Evaluable {

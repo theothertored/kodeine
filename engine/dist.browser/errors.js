@@ -66,6 +66,16 @@ export class InvalidArgumentCountError extends EvaluationError {
         super(funcCall, `Not enough arguments given for ${funcCall.func.getName()}(): ${message}`);
     }
 }
+export class RegexEvaluationError extends EvaluationError {
+    /**
+     * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.
+     * @param funcCall The function call with an invalid number of arguments.
+     * @param message A message explaining the error.
+     */
+    constructor(evaluable, message) {
+        super(evaluable, `Regex error: ${message}`);
+    }
+}
 /**
  * An error thrown internally by an implementation of a function or operator.
  * Should be caught by the parent evaluble and rethrown as an EvaluationError.
@@ -85,6 +95,12 @@ export class InternalEvaluationError {
 export class InternalInvalidArgumentCountError extends InternalEvaluationError {
     toExternalError(evaluable) {
         return new InvalidArgumentCountError(evaluable, this.message);
+    }
+}
+/** An internal regex error to be thrown by function or operator implementations. */
+export class InternalRegexEvaluationError extends InternalEvaluationError {
+    toExternalError(evaluable) {
+        return new RegexEvaluationError(evaluable, this.message);
     }
 }
 //# sourceMappingURL=errors.js.map
