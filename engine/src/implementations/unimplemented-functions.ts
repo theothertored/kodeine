@@ -34,13 +34,6 @@ export class SystemNotificationsFunction extends IKodeFunction {
     }
 }
 
-export class TextConverterFunction extends IKodeFunction {
-    getName() { return 'tc'; }
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-
 export class WebGetFunction extends IKodeFunction {
     getName() { return 'wg'; }
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {

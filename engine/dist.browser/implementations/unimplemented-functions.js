@@ -26,12 +26,6 @@ export class SystemNotificationsFunction extends IKodeFunction {
         throw new EvaluationError(call, 'This function isn\'t implemented yet.');
     }
 }
-export class TextConverterFunction extends IKodeFunction {
-    getName() { return 'tc'; }
-    call(evalCtx, call, args) {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
 export class WebGetFunction extends IKodeFunction {
     getName() { return 'wg'; }
     call(evalCtx, call, args) {

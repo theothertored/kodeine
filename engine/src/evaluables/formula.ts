@@ -34,7 +34,10 @@ export class Formula extends Evaluable {
             let output = '';
 
             for (var evaluable of this.evaluables) {
+
+                // TODO: try catch this, if an exception is thrown, append empty string and add error to the evaluation context
                 output += evaluable.evaluate(evalCtx).text;
+
             }
 
             return new KodeValue(output);

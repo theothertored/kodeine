@@ -22,6 +22,7 @@ export class Formula extends Evaluable {
             // mulitple evaluables, evaluate each one and concatenate the results.
             let output = '';
             for (var evaluable of this.evaluables) {
+                // TODO: try catch this, if an exception is thrown, append empty string and add error to the evaluation context
                 output += evaluable.evaluate(evalCtx).text;
             }
             return new KodeValue(output);
