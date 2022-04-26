@@ -1,8 +1,9 @@
-- syntax highlight unquoted strings
 - implement tc()
 - implement mu()
 - implement fl()
 
 DONE:
-- catch evaluation errors in formula, append empty string, report errors via evalCtx
+- special highlighting for problematic chars (! ~)
+- syntax highlight unquoted strings
 - on parse error try to find closing dollar sign, if found, continue parsing instead of completely throwing
+- catch evaluation errors in formula, append empty string, report errors via evalCtx

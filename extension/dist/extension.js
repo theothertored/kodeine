@@ -21,7 +21,7 @@ function activate(context) {
             let result = formula.evaluate(evalCtx);
             let warnCount = parsingCtx.sideEffects.warnings.length + evalCtx.sideEffects.warnings.length;
             let errCount = parsingCtx.sideEffects.errors.length + evalCtx.sideEffects.errors.length;
-            if (warnCount + errCount > 0) {
+            if (errCount > 0) {
                 // merge errors in order
                 let errors = '';
                 let pi = 0;
