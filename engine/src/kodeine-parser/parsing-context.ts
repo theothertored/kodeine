@@ -4,6 +4,7 @@ import * as UnimplementedFunctions from "../implementations/functions/unimplemen
 import * as UnaryOperators from "../implementations/operators/unary-operators.js";
 import * as BinaryOperators from "../implementations/operators/binary-operators.js";
 import { TcFunction } from "../implementations/functions/tc-function.js";
+import { KodeParsingError } from "../errors.js";
 
 /** 
  * Exposes function and operator implementations. 
@@ -214,6 +215,7 @@ export class ParsingSideEffects {
 
     /** A list of warnings produced during parsing. */
     public warnings: ParsingWarning[] = [];
+    public errors: KodeParsingError[] = [];
 
 }
 

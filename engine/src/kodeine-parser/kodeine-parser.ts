@@ -1,6 +1,7 @@
 import { Evaluable, FormulaToken, ILexer, IFormulaStringParser, KodeValue, ICharReader } from "../base.js";
 import { EvaluableSource } from "../base.js";
-import { KodeFunctionNotFoundError, KodeSyntaxError, UnrecognizedTokenError } from "../errors.js";
+import { KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError } from "../errors.js";
+import { BrokenEvaluable } from "../evaluables/broken-evaluable.js";
 import { Formula } from "../evaluables/formula.js";
 import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine-lexer/formula-tokens.js";
 import { KodeineLexer } from "../kodeine-lexer/kodeine-lexer.js";
@@ -35,11 +36,11 @@ export enum KodeineParserState {
 export class KodeineParser implements IFormulaStringParser {
 
     /** The parsing context. Contains function and operator implementations. */
-    private _parseCtx: ParsingContext;
+    private _parsingCtx: ParsingContext;
 
     /** Constructs a {@link KodeineParser} with a parsing context.*/
-    constructor(parseCtx: ParsingContext) {
-        this._parseCtx = parseCtx;
+    constructor(parsingCtx: ParsingContext) {
+        this._parsingCtx = parsingCtx;
     }
 
     parse(source: string | ICharReader | ILexer): Formula {
@@ -47,12 +48,12 @@ export class KodeineParser implements IFormulaStringParser {
         if (typeof source === 'string') {
 
             let charReader = new StringCharReader(source);
-            let lexer = new KodeineLexer(charReader, this._parseCtx.getOperatorSymbolsLongestFirst());
+            let lexer = new KodeineLexer(charReader, this._parsingCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
 
         } else if (source instanceof ICharReader) {
 
-            let lexer = new KodeineLexer(source, this._parseCtx.getOperatorSymbolsLongestFirst());
+            let lexer = new KodeineLexer(source, this._parsingCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
 
         } else if (source instanceof ILexer) {
@@ -70,7 +71,7 @@ export class KodeineParser implements IFormulaStringParser {
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
     private _parseCore(lexer: ILexer): Formula {
 
-        this._parseCtx.clearSideEffects();
+        this._parsingCtx.clearSideEffects();
 
         /** The current state of the parser. */
         let state = KodeineParserState.Default;
@@ -143,7 +144,7 @@ export class KodeineParser implements IFormulaStringParser {
                     state = KodeineParserState.Kode;
 
                     // add a base expression builder to the stack
-                    exprBuilderStack = [new ExpressionBuilder(this._parseCtx, true, token)];
+                    exprBuilderStack = [new ExpressionBuilder(this._parsingCtx, true, token)];
 
                     // check the token buffer
                     if (tokenBuffer.length > 0) {
@@ -168,266 +169,337 @@ export class KodeineParser implements IFormulaStringParser {
 
             } else if (state === KodeineParserState.Kode) {
 
-                // we are currently in an evaluable part
+                try {
 
-                // expected tokens:
-                // WhitespaceToken, 
-                // QuotedValueToken, UnquotedValueToken, OperatorToken,
-                // OpeningParenthesisToken, ClosingParenthesisToken, CommaToken, 
-                // DollarSignToken, UnclosedQuotedValueToken
+                    // we are currently in an evaluable part
 
-                if (token instanceof UnquotedValueToken) {
+                    // expected tokens:
+                    // WhitespaceToken, 
+                    // QuotedValueToken, UnquotedValueToken, OperatorToken,
+                    // OpeningParenthesisToken, ClosingParenthesisToken, CommaToken, 
+                    // DollarSignToken, UnclosedQuotedValueToken
 
-                    // an unquoted value token could be a normal unquoted value, or the start of a function call
-                    // we need to see the following tokens to know
+                    if (token instanceof UnquotedValueToken) {
 
-                    let offset = 0;
-                    let nextToken = lexer.peek(1, offset++)[0];
+                        // an unquoted value token could be a normal unquoted value, or the start of a function call
+                        // we need to see the following tokens to know
 
-                    if (nextToken instanceof WhitespaceToken) {
+                        let offset = 0;
+                        let nextToken = lexer.peek(1, offset++)[0];
 
-                        // the next token being a whitespace token doesn't give us anything useful
-                        while (nextToken && nextToken instanceof WhitespaceToken) {
+                        if (nextToken instanceof WhitespaceToken) {
 
-                            nextToken = lexer.peek(1, offset++)[0];
+                            // the next token being a whitespace token doesn't give us anything useful
+                            while (nextToken && nextToken instanceof WhitespaceToken) {
 
+                                nextToken = lexer.peek(1, offset++)[0];
+
+                            }
+
+                            // after the loop above there are no more tokens or we have a non-whitespace token in nextToken
                         }
 
-                        // after the loop above there are no more tokens or we have a non-whitespace token in nextToken
-                    }
+                        if (nextToken instanceof OpeningParenthesisToken) {
 
-                    if (nextToken instanceof OpeningParenthesisToken) {
+                            // the next non-whitespace token is an opening parenthesis token, this is the start of a function call
 
-                        // the next non-whitespace token is an opening parenthesis token, this is the start of a function call
+                            // override the default buffer pushing behaviour
+                            skipPushingToBuffer = true;
 
-                        // override the default buffer pushing behaviour
-                        skipPushingToBuffer = true;
+                            // the function name token has already been consumed, and push it to the buffer
+                            tokenBuffer.push(token);
 
-                        // the function name token has already been consumed, and push it to the buffer
-                        tokenBuffer.push(token);
+                            let whitespaceTokens: FormulaToken[] = [];
 
-                        let whitespaceTokens: FormulaToken[] = [];
+                            if (offset > 1) {
+                                // consume all following whitespace tokens and push them to the buffer
+                                whitespaceTokens = lexer.consume(offset - 1)
+                                tokenBuffer.push(...whitespaceTokens);
+                            }
 
-                        if (offset > 1) {
-                            // consume all following whitespace tokens and push them to the buffer
-                            whitespaceTokens = lexer.consume(offset - 1)
-                            tokenBuffer.push(...whitespaceTokens);
-                        }
+                            // consume the opening parenthesis token and push it to the buffer
+                            lexer.consume(1);
+                            tokenBuffer.push(nextToken);
 
-                        // consume the opening parenthesis token and push it to the buffer
-                        lexer.consume(1);
-                        tokenBuffer.push(nextToken);
+                            // get function implementation from the parsing context
+                            let funcName = token.getValue();
+                            let func = this._parsingCtx.findFunction(funcName);
 
-                        // get function implementation from the parsing context
-                        let funcName = token.getValue();
-                        let func = this._parseCtx.findFunction(funcName);
+                            if (func) {
 
-                        if (func) {
+                                // implementation found, create a function call builder and push it to the stack
+                                exprBuilderStack.push(new FunctionCallBuilder(
+                                    this._parsingCtx,
+                                    new FunctionOccurence(func, token, ...whitespaceTokens, nextToken)
+                                ));
 
-                            // implementation found, create a function call builder and push it to the stack
-                            exprBuilderStack.push(new FunctionCallBuilder(
-                                this._parseCtx,
-                                new FunctionOccurence(func, token, ...whitespaceTokens, nextToken)
-                            ));
+                            } else {
+
+                                // function not found, throw
+                                throw new KodeFunctionNotFoundError(token);
+
+                            }
 
                         } else {
 
-                            // function not found, throw
-                            throw new KodeFunctionNotFoundError(token);
+                            // this is not a function call, let the current expression builder handle the token
+                            peekLastExprBuilder().addValue(token);
 
                         }
 
-                    } else {
 
-                        // this is not a function call, let the current expression builder handle the token
+                    } else if (token instanceof QuotedValueToken) {
+
+                        // pass the token to the current expression builder and let it throw exceptions if necessary
                         peekLastExprBuilder().addValue(token);
 
-                    }
+
+                    } else if (token instanceof OperatorToken) {
+
+                        // pass the token to the current expression builder and let it throw exceptions if necessary
+                        peekLastExprBuilder().addOperator(token);
 
 
-                } else if (token instanceof QuotedValueToken) {
+                    } else if (token instanceof OpeningParenthesisToken) {
 
-                    // pass the token to the current expression builder and let it throw exceptions if necessary
-                    peekLastExprBuilder().addValue(token);
+                        // found an opening parenthesis - it's either a subexpression or a function call
 
+                        // TODO: kustom has some funky behaviour around parentheses:
+                        // empty parentheses don't throw even when the function name is invalid
+                        // asdf() -> asdf
+                        // non-empty parentheses arguments throw
+                        // asdf(2) -> err: null
+                        // a comma not followed by a value throws
+                        // asdf(2,) -> err: argument is missing
+                        // binary operators inside of parentheses work and take whatever is in front of the parenthesis as the second argument
+                        // regardless of which side the operator got a value on
+                        // 1(/2) -> 1/2 -> 0.5
+                        // 1(2/) -> 1/2 -> 0.5
+                        // 1(2-) -> -1
+                        // unary minus with a value gets treated the same as a value, so it throws
+                        // 1(-2) -> err: null
+                        // unary minus without a value works like it was in front of the value before the parenthesis:
+                        // 1(-) -> -1.0
+                        // this behaviour overrides operator precedence:
+                        // 2 / 2 (a +) -> 22a (a got appended first despite / having a higher precedence)
+                        // and it works with subexpressions on the left as well:
+                        // (2 + 2)(a +) -> 4a
+                        // it does not work with following expressions:
+                        // (a+)1 -> err: null
+                        // but if you have an unclosed operator following the parenthesis it works:
+                        // (a)1/ -> 1/a
+                        // when there are multiple operators with missing arguments, the one with the highest precedence gets the value from in front of the parenthesis
+                        // 2(2+/2) -> 2 / 2 + 2 -> 3
+                        // this is probably a bug, but because it doesn't crash or throw, we need to find a way to simulate it
 
-                } else if (token instanceof OperatorToken) {
+                        let prevToken = getPrevNonWhitespaceToken();
 
-                    // pass the token to the current expression builder and let it throw exceptions if necessary
-                    peekLastExprBuilder().addOperator(token);
+                        if (prevToken === null
+                            || prevToken instanceof OperatorToken
+                            || prevToken instanceof OpeningParenthesisToken
+                            || prevToken instanceof DollarSignToken
+                            || prevToken instanceof CommaToken) {
 
+                            // if there is no previous token or this parenthesis follows an operator,
+                            // the parenthesis starts a subexpression
+                            exprBuilderStack.push(new ExpressionBuilder(this._parsingCtx, true, token));
 
-                } else if (token instanceof OpeningParenthesisToken) {
+                        } else if (prevToken instanceof UnquotedValueToken) {
 
-                    // found an opening parenthesis - it's either a subexpression or a function call
+                            // if the previous token is an unquoted value token, interpret this as a function call
+                            // this should never happen, but the error exists as a sanity check
+                            throw new KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
 
-                    // TODO: kustom has some funky behaviour around parentheses:
-                    // empty parentheses don't throw even when the function name is invalid
-                    // asdf() -> asdf
-                    // non-empty parentheses arguments throw
-                    // asdf(2) -> err: null
-                    // a comma not followed by a value throws
-                    // asdf(2,) -> err: argument is missing
-                    // binary operators inside of parentheses work and take whatever is in front of the parenthesis as the second argument
-                    // regardless of which side the operator got a value on
-                    // 1(/2) -> 1/2 -> 0.5
-                    // 1(2/) -> 1/2 -> 0.5
-                    // 1(2-) -> -1
-                    // unary minus with a value gets treated the same as a value, so it throws
-                    // 1(-2) -> err: null
-                    // unary minus without a value works like it was in front of the value before the parenthesis:
-                    // 1(-) -> -1.0
-                    // this behaviour overrides operator precedence:
-                    // 2 / 2 (a +) -> 22a (a got appended first despite / having a higher precedence)
-                    // and it works with subexpressions on the left as well:
-                    // (2 + 2)(a +) -> 4a
-                    // it does not work with following expressions:
-                    // (a+)1 -> err: null
-                    // but if you have an unclosed operator following the parenthesis it works:
-                    // (a)1/ -> 1/a
-                    // when there are multiple operators with missing arguments, the one with the highest precedence gets the value from in front of the parenthesis
-                    // 2(2+/2) -> 2 / 2 + 2 -> 3
-                    // this is probably a bug, but because it doesn't crash or throw, we need to find a way to simulate it
+                        } else {
 
-                    let prevToken = getPrevNonWhitespaceToken();
+                            // the parenthesis cannot follow any other token
+                            throw new KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${prevToken.getName()}.`);
 
-                    if (prevToken === null
-                        || prevToken instanceof OperatorToken
-                        || prevToken instanceof OpeningParenthesisToken
-                        || prevToken instanceof DollarSignToken
-                        || prevToken instanceof CommaToken) {
+                        }
 
-                        // if there is no previous token or this parenthesis follows an operator,
-                        // the parenthesis starts a subexpression
-                        exprBuilderStack.push(new ExpressionBuilder(this._parseCtx, true, token));
+                    } else if (token instanceof CommaToken) {
 
-                    } else if (prevToken instanceof UnquotedValueToken) {
+                        // a comma means the end of the current function argument
 
-                        // if the previous token is an unquoted value token, interpret this as a function call
-                        // this should never happen, but the error exists as a sanity check
-                        throw new KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
+                        // check if we are currently building a function call
+                        let lastExprBuilder = peekLastExprBuilder();
 
-                    } else {
+                        if (lastExprBuilder instanceof FunctionCallBuilder) {
 
-                        // the parenthesis cannot follow any other token
-                        throw new KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${prevToken.getName()}.`);
+                            // building a function call, let the builder handle the comma
+                            lastExprBuilder.nextArgument(token);
 
-                    }
+                        } else {
 
-                } else if (token instanceof CommaToken) {
+                            // not building a function call, the comma is invalid
+                            throw new KodeSyntaxError(token, `A comma cannot appear outside of function calls.`);
 
-                    // a comma means the end of the current function argument
-
-                    // check if we are currently building a function call
-                    let lastExprBuilder = peekLastExprBuilder();
-
-                    if (lastExprBuilder instanceof FunctionCallBuilder) {
-
-                        // building a function call, let the builder handle the comma
-                        lastExprBuilder.nextArgument(token);
-
-                    } else {
-
-                        // not building a function call, the comma is invalid
-                        throw new KodeSyntaxError(token, `A comma cannot appear outside of function calls.`);
-
-                    }
+                        }
 
 
-                } else if (token instanceof ClosingParenthesisToken) {
+                    } else if (token instanceof ClosingParenthesisToken) {
 
-                    // a closing parenthesis means the end of the current subexpression
+                        // a closing parenthesis means the end of the current subexpression
 
-                    // check if we have subexpressions
-                    if (exprBuilderStack.length <= 1) {
+                        // check if we have subexpressions
+                        if (exprBuilderStack.length <= 1) {
 
-                        // no subexpressions - the closing parenthesis is invalid
-                        throw new KodeSyntaxError(token, `Too many closing parentheses.`);
+                            // no subexpressions - the closing parenthesis is invalid
+                            throw new KodeSyntaxError(token, `Too many closing parentheses.`);
 
-                    } else {
+                        } else {
 
-                        // pop the last expression bulilder from the stack and build it
+                            // pop the last expression bulilder from the stack and build it
+                            let evaluable = exprBuilderStack.pop()!.build(token);
+
+                            // add the built evaluable to the new last expression builder
+                            peekLastExprBuilder().addEvaluable(evaluable);
+
+                        }
+
+                    } else if (token instanceof DollarSignToken) {
+
+                        // a dollar sign token ends the current evaluable part
+
+                        // override the default pushing to buffer behaviour - we are resetting the buffer after this token
+                        skipPushingToBuffer = true;
+
+                        // check if there are unclosed subexpressions
+                        if (exprBuilderStack.length > 1) {
+
+                            // there are unclosed subexpressions, missing closing parentheses
+                            throw new KodeSyntaxError(token, `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
+
+                        }
+
+                        // pop the root expression builder from the stack, build it
                         let evaluable = exprBuilderStack.pop()!.build(token);
 
-                        // add the built evaluable to the new last expression builder
-                        peekLastExprBuilder().addEvaluable(evaluable);
+                        // add the built evaluable directly to formula evaluables
+                        formulaEvaluables.push(evaluable);
+
+                        // switch the state back to plain text
+                        state = KodeineParserState.Default;
+
+                        // reset the buffer
+                        tokenBuffer = [];
+
+                    } else if (token instanceof UnclosedQuotedValueToken) {
+
+                        // an unclosed quoted value token causes the entire formula to be treated like plain text,
+                        // except the leading $ gets removed from the output.
+                        state = KodeineParserState.Default;
+
+                        // override the default behaviour - we'll reset the buffer
+                        // this does not really matter since an unclosed quoted value token should be the last token of any formula
+                        skipPushingToBuffer = true;
+
+                        if (tokenBuffer.length > 0) {
+
+                            // add the unclosed quoted value token to the output
+                            tokenBuffer.push(token);
+
+                            this._parsingCtx.sideEffects.warnings.push(
+                                new UnclosedQuotedValueWarning(...tokenBuffer)
+                            );
+
+                            // we read some plain text tokens before this point, add a plain text part
+                            formulaEvaluables.push(new KodeValue(
+                                tokenBuffer.slice(1).map(t => t.getSourceText()).join(''),
+                                new EvaluableSource(...tokenBuffer)
+                            ));
+
+                        }
+
+                        tokenBuffer = [];
+
+                        // there should be no more tokens after an unclosed quoted value token
+
+                    } else if (token instanceof WhitespaceToken) {
+
+                        // do nothing with whitespace, but don't throw UnrecognizedTokenError
+                        // TODO: put whitespace tokens in evaluable sources?
+
+                    } else {
+
+                        // forgot to implement something, or the lexer produced an unexpected token
+                        throw new UnrecognizedTokenError(token);
 
                     }
 
-                } else if (token instanceof DollarSignToken) {
+                    if (!skipPushingToBuffer) {
 
-                    // a dollar sign token ends the current evaluable part
-
-                    // override the default pushing to buffer behaviour - we are resetting the buffer after this token
-                    skipPushingToBuffer = true;
-
-                    // check if there are unclosed subexpressions
-                    if (exprBuilderStack.length > 1) {
-
-                        // there are unclosed subexpressions, missing closing parentheses
-                        throw new KodeSyntaxError(token, `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
-
-                    }
-
-                    // pop the root expression builder from the stack, build it
-                    let evaluable = exprBuilderStack.pop()!.build(token);
-
-                    // add the built evaluable directly to formula evaluables
-                    formulaEvaluables.push(evaluable);
-
-                    // switch the state back to plain text
-                    state = KodeineParserState.Default;
-
-                    // reset the buffer
-                    tokenBuffer = [];
-
-                } else if (token instanceof UnclosedQuotedValueToken) {
-
-                    // an unclosed quoted value token causes the entire formula to be treated like plain text,
-                    // except the leading $ gets removed from the output.
-                    state = KodeineParserState.Default;
-
-                    // override the default behaviour - we'll reset the buffer
-                    // this does not really matter since an unclosed quoted value token should be the last token of any formula
-                    skipPushingToBuffer = true;
-
-                    if (tokenBuffer.length > 0) {
-
-                        // add the unclosed quoted value token to the output
+                        // the default behaviour was not overriden, so push the current token to the buffer
                         tokenBuffer.push(token);
 
-                        this._parseCtx.sideEffects.warnings.push(
-                            new UnclosedQuotedValueWarning(...tokenBuffer)
-                        );
-
-                        // we read some plain text tokens before this point, add a plain text part
-                        formulaEvaluables.push(new KodeValue(
-                            tokenBuffer.slice(1).map(t => t.getSourceText()).join(''),
-                            new EvaluableSource(...tokenBuffer)
-                        ));
-
                     }
 
-                    tokenBuffer = [];
+                } catch (err) {
 
-                    // there should be no more tokens after an unclosed quoted value token
+                    if (err instanceof KodeParsingError) {
 
-                } else if (token instanceof WhitespaceToken) {
+                        // catch parsing errors thrown when parsing from current token
 
-                    // do nothing with whitespace, but don't throw UnrecognizedTokenError
-                    // TODO: put whitespace tokens in evaluable sources?
+                        // log parsing error as a side effect
+                        this._parsingCtx.sideEffects.errors.push(err);
 
-                } else {
+                        if (token instanceof DollarSignToken) {
 
-                    // forgot to implement something, or the lexer produced an unexpected token
-                    throw new UnrecognizedTokenError(token);
+                            // error thrown when reading a dollar sign token
+                            // switch state to default
+                            state = KodeineParserState.Default;
 
-                }
+                        } else {
+                            
+                            // error was not thrown when reading a dollar sign token,
+                            // try to find a following dollar sign token
 
-                if (!skipPushingToBuffer) {
+                            let nextToken: FormulaToken;
 
-                    // the default behaviour was not overriden, so push the current token to the buffer
-                    tokenBuffer.push(token);
+                            // read following tokens until EOF or a dollar sign token is encountered
+                            do {
+
+                                // consume a token
+                                nextToken = lexer.consume(1)[0];
+
+                                if (token) {
+
+                                    // store in buffer
+                                    tokenBuffer.push(token);
+
+                                    if (token instanceof DollarSignToken) {
+
+                                        // encountered a dollar sign token
+                                        // switch state to default and continue parsing despite the parsing error
+                                        state = KodeineParserState.Default;
+                                        break;
+
+                                    }
+
+                                }
+
+                            }
+                            while (!lexer.EOF() && token && !(token instanceof DollarSignToken))
+
+                        }
+
+                        // encountered either a dollar sign token or formula ended
+                        // add a broken evaluable to the formula - it will print an empty string
+                        formulaEvaluables.push(
+                            new BrokenEvaluable(
+                                new EvaluableSource(...tokenBuffer)
+                            )
+                        );
+
+                        // clear the token buffer
+                        tokenBuffer = [];
+
+                    } else {
+
+                        // rethrow other errors (crashes)
+                        throw err;
+
+                    }
 
                 }
 
@@ -454,11 +526,11 @@ export class KodeineParser implements IFormulaStringParser {
                 ));
 
             } else {
-                
+
                 // we read an opening dollar sign, but not a closing one
                 // in this case, kustom prints all tokens except the opening dollar sign as plain text
 
-                this._parseCtx.sideEffects.warnings.push(
+                this._parsingCtx.sideEffects.warnings.push(
                     new UnclosedDollarSignWarning(...tokenBuffer)
                 );
 

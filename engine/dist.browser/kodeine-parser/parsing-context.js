@@ -162,6 +162,7 @@ export class ParsingSideEffects {
     constructor() {
         /** A list of warnings produced during parsing. */
         this.warnings = [];
+        this.errors = [];
     }
 }
 /** A warning produced during parsing. */

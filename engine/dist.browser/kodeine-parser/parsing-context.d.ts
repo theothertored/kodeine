@@ -1,4 +1,5 @@
 import { IBinaryOperator, FormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
+import { KodeParsingError } from "../errors.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -100,6 +101,7 @@ export declare class ParsingContextBuilder {
 export declare class ParsingSideEffects {
     /** A list of warnings produced during parsing. */
     warnings: ParsingWarning[];
+    errors: KodeParsingError[];
 }
 /** A warning produced during parsing. */
 export declare class ParsingWarning {

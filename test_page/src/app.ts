@@ -34,8 +34,8 @@ function formulaInputEl_input(ev: InputEvent) {
     let formulaText = formulaInputEl.value;
     localStorage.setItem('formula', formulaText);
 
-    let parseCtx = ParsingContextBuilder.buildDefault();
-    let parser = new KodeineParser(parseCtx);
+    let parsingCtx = ParsingContextBuilder.buildDefault();
+    let parser = new KodeineParser(parsingCtx);
 
     try {
 

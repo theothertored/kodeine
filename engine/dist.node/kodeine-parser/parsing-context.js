@@ -164,6 +164,7 @@ class ParsingSideEffects {
     constructor() {
         /** A list of warnings produced during parsing. */
         this.warnings = [];
+        this.errors = [];
     }
 }
 exports.ParsingSideEffects = ParsingSideEffects;

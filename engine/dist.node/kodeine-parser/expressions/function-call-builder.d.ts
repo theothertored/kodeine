@@ -6,7 +6,7 @@ import { IExpressionBuilder } from "./i-expression-builder.js";
 /** Parsing helper class that can be fed tokens and then builds a {@link FunctionCall} evaluable. */
 export declare class FunctionCallBuilder extends IExpressionBuilder {
     /** The parsing context for this builder. */
-    private readonly _parseCtx;
+    private readonly _parsingCtx;
     /** The function occurence that started this function call. */
     private readonly _functionOccurence;
     /** Tokens between the opening and closing parenthesis of this function call. */
@@ -17,10 +17,10 @@ export declare class FunctionCallBuilder extends IExpressionBuilder {
     private _args;
     /**
      * Constructs a {@link FunctionCallBuilder} with a given parsing context and a function occurence that started this function call.
-     * @param parseCtx The parsing context for this function call builder.
+     * @param parsingCtx The parsing context for this function call builder.
      * @param functionOccurence The function occurrence that started this function call.
      */
-    constructor(parseCtx: ParsingContext, functionOccurence: FunctionOccurence);
+    constructor(parsingCtx: ParsingContext, functionOccurence: FunctionOccurence);
     addEvaluable(evaluable: Evaluable): void;
     addValue(token: (QuotedValueToken | UnquotedValueToken)): void;
     addOperator(token: OperatorToken): void;

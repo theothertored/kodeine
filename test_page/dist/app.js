@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function formulaInputEl_input(ev) {
     let formulaText = formulaInputEl.value;
     localStorage.setItem('formula', formulaText);
-    let parseCtx = ParsingContextBuilder.buildDefault();
-    let parser = new KodeineParser(parseCtx);
+    let parsingCtx = ParsingContextBuilder.buildDefault();
+    let parser = new KodeineParser(parsingCtx);
     try {
         let formula = parser.parse(formulaText);
         console.log('input text: ', formulaText);
