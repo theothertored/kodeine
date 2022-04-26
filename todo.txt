@@ -1,5 +1,7 @@
 - syntax highlight unquoted strings
 - implement tc()
+- implement mu()
+- implement fl()
 - on parse error try to find closing dollar sign, if found, continue parsing instead of completely throwing
 
 DONE:
