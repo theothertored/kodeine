@@ -1,0 +1,3 @@
+- catch evaluation errors in formula, append empty string, report errors via evalCtx
+- implement tc()
+- syntax highlight unquoted strings
