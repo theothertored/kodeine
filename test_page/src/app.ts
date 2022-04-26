@@ -1,5 +1,5 @@
 ﻿import { EvaluationContext } from "../../engine/dist.browser/evaluables/evaluation-context.js";
-import { EvaluationError, KodeParseError } from "../../engine/dist.browser/errors.js";
+import { EvaluationError, KodeParsingError } from "../../engine/dist.browser/errors.js";
 import { KodeineParser } from "../../engine/dist.browser/kodeine-parser/kodeine-parser.js";
 import { ParsingContextBuilder } from "../../engine/dist.browser/kodeine-parser/parsing-context.js";
 
@@ -50,7 +50,7 @@ function formulaInputEl_input(ev: InputEvent) {
 
     } catch (error) {
 
-        if (error instanceof KodeParseError || error instanceof EvaluationError) {
+        if (error instanceof KodeParsingError || error instanceof EvaluationError) {
             formulaErrorEl.innerText = error.message;
         } else {
             formulaErrorEl.innerText = 'kodeine crashed: ' + error.message;

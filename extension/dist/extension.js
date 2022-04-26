@@ -16,42 +16,34 @@ function activate(context) {
     let evaluateToOutput = (document) => {
         // create a list of diagnostics (warnings, errors etc.)
         let diags = [];
+        let formulaText = document.getText();
         try {
-            let formulaText = document.getText();
             let formula = parser.parse(formulaText);
             let result = formula.evaluate(evalCtx);
-            outChannel.replace(result.text);
-        }
-        catch (err) {
-            if (err instanceof errors_js_1.KodeError) {
-                outChannel.replace(err.message);
-                if (err instanceof errors_js_1.KodeParseError) {
-                    diags.push({
-                        severity: vscode.DiagnosticSeverity.Error,
-                        range: new vscode.Range(document.positionAt(err.token.getStartIndex()), document.positionAt(err.token.getEndIndex())),
-                        message: err.message,
-                        code: '',
-                        source: ''
-                    });
-                }
-                else if (err instanceof errors_js_1.EvaluationError) {
-                    diags.push({
-                        severity: vscode.DiagnosticSeverity.Error,
-                        range: new vscode.Range(document.positionAt(err.evaluable.source.getStartIndex()), document.positionAt(err.evaluable.source.getEndIndex())),
-                        message: err.message,
-                        code: '',
-                        source: ''
-                    });
+            let warnCount = parseCtx.sideEffects.warnings.length + evalCtx.sideEffects.warnings.length;
+            let errCount = evalCtx.sideEffects.errors.length;
+            if (warnCount + errCount > 0) {
+                if (result.text) {
+                    outChannel.replace(`${result.text}\n\n${evalCtx.sideEffects.errors.map(e => e.message).join('\n')}`);
                 }
                 else {
-                    diags.push({
-                        severity: vscode.DiagnosticSeverity.Error,
-                        range: new vscode.Range(document.positionAt(0), document.positionAt(Number.MAX_VALUE)),
-                        message: err.message,
-                        code: '',
-                        source: ''
-                    });
+                    outChannel.replace(evalCtx.sideEffects.errors.map(e => e.message).join('\n'));
                 }
+            }
+            else {
+                outChannel.replace(result.text);
+            }
+        }
+        catch (err) {
+            if (err instanceof errors_js_1.KodeParsingError) {
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Error,
+                    range: new vscode.Range(document.positionAt(err.token.getStartIndex()), document.positionAt(err.token.getEndIndex())),
+                    message: err.message,
+                    code: '',
+                    source: ''
+                });
+                outChannel.replace(err.message);
             }
             else {
                 outChannel.replace('kodeine crashed: ' + err?.toString());
@@ -76,6 +68,18 @@ function activate(context) {
                     severity: vscode.DiagnosticSeverity.Warning,
                     range: new vscode.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
                     message: warning.message,
+                    code: '',
+                    source: ''
+                });
+            });
+        }
+        if (evalCtx.sideEffects.errors.length > 0) {
+            // got some errors, convert to diags
+            evalCtx.sideEffects.errors.forEach(error => {
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Error,
+                    range: new vscode.Range(document.positionAt(error.evaluable.source.getStartIndex()), document.positionAt(error.evaluable.source.getEndIndex())),
+                    message: error.message,
                     code: '',
                     source: ''
                 });

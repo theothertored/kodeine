@@ -11,6 +11,7 @@ export class EvaluationContext {
 export class EvaluationSideEffects {
     constructor() {
         this.warnings = [];
+        this.errors = [];
     }
 }
 /** A warning produced during evaluation. */

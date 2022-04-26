@@ -15,6 +15,7 @@ exports.EvaluationContext = EvaluationContext;
 class EvaluationSideEffects {
     constructor() {
         this.warnings = [];
+        this.errors = [];
     }
 }
 exports.EvaluationSideEffects = EvaluationSideEffects;

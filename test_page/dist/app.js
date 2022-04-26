@@ -1,5 +1,5 @@
 import { EvaluationContext } from "../../engine/dist.browser/evaluables/evaluation-context.js";
-import { EvaluationError, KodeParseError } from "../../engine/dist.browser/errors.js";
+import { EvaluationError, KodeParsingError } from "../../engine/dist.browser/errors.js";
 import { KodeineParser } from "../../engine/dist.browser/kodeine-parser/kodeine-parser.js";
 import { ParsingContextBuilder } from "../../engine/dist.browser/kodeine-parser/parsing-context.js";
 const initialFormula = '$2 + 2$';
@@ -33,7 +33,7 @@ function formulaInputEl_input(ev) {
         formulaErrorEl.innerText = '';
     }
     catch (error) {
-        if (error instanceof KodeParseError || error instanceof EvaluationError) {
+        if (error instanceof KodeParsingError || error instanceof EvaluationError) {
             formulaErrorEl.innerText = error.message;
         }
         else {

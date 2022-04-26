@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParseError = exports.KodeError = void 0;
+exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 class KodeError {
     constructor(message) {
@@ -9,16 +9,16 @@ class KodeError {
 }
 exports.KodeError = KodeError;
 /** An error thrown by the parser. */
-class KodeParseError extends KodeError {
-    /** Constructs a {@link KodeParseError} with a source token and a prefixed message. */
+class KodeParsingError extends KodeError {
+    /** Constructs a {@link KodeParsingError} with a source token and a prefixed message. */
     constructor(prefix, token, message) {
         super(`${prefix} around index ${token.getStartIndex()}: ${message}`);
         this.token = token;
     }
 }
-exports.KodeParseError = KodeParseError;
+exports.KodeParsingError = KodeParsingError;
 /** A generic syntax error. */
-class KodeSyntaxError extends KodeParseError {
+class KodeSyntaxError extends KodeParsingError {
     /**
      * Constructs a {@link KodeSyntaxError} with a source token and a message.
      * @param token The token the error is related to.
@@ -30,7 +30,7 @@ class KodeSyntaxError extends KodeParseError {
 }
 exports.KodeSyntaxError = KodeSyntaxError;
 /** Thrown when a function call was parsed, but the function implementation was not found in the parsing environment. */
-class KodeFunctionNotFoundError extends KodeParseError {
+class KodeFunctionNotFoundError extends KodeParsingError {
     /**
      * Constructs a {@link KodeFunctionNotFoundError} with an unquoted value token representing the function name.
      * @param token The unquoted value token representing the function name.
@@ -41,7 +41,7 @@ class KodeFunctionNotFoundError extends KodeParseError {
 }
 exports.KodeFunctionNotFoundError = KodeFunctionNotFoundError;
 /** Thrown when the lexer produced a token that the parser did not recognize. */
-class UnrecognizedTokenError extends KodeParseError {
+class UnrecognizedTokenError extends KodeParsingError {
     /**
      * Constructs a {@link UnrecognizedTokenError} with the token that was not recognized.
      * @param token The token that was not recognized.

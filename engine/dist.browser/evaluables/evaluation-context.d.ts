@@ -1,4 +1,5 @@
 import { Evaluable } from "../base.js";
+import { EvaluationError } from "../errors.js";
 import { UnaryOperation } from "./unary-operation.js";
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export declare class EvaluationContext {
@@ -9,6 +10,7 @@ export declare class EvaluationContext {
 /** Holds all side effects produced during evaluation. */
 export declare class EvaluationSideEffects {
     warnings: EvaluationWarning[];
+    errors: EvaluationError[];
 }
 /** A warning produced during evaluation. */
 export declare class EvaluationWarning {

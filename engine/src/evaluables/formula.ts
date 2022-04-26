@@ -1,4 +1,5 @@
 import { Evaluable, EvaluableSource, KodeValue } from "../base.js";
+import { EvaluationError } from "../errors.js";
 import { EvaluationContext } from "./evaluation-context.js";
 
 /**
@@ -24,19 +25,55 @@ export class Formula extends Evaluable {
 
         } else if (this.evaluables.length === 1) {
 
-            // there is only one evaluable, evaluate it and return the result.
-            return this.evaluables[0].evaluate(evalCtx);
+            try {
+
+                // there is only one evaluable, evaluate it and return the result.
+                return this.evaluables[0].evaluate(evalCtx);
+
+            } catch (err) {
+
+                if (err instanceof EvaluationError) {
+
+                    // add evaluation errors to context
+                    evalCtx.sideEffects.errors.push(err);
+                    return new KodeValue('', this.evaluables[0].source);
+
+                } else {
+
+                    // rethrow all other errors (crashes)
+                    throw err;
+
+                }
+
+            }
 
         } else {
 
             // mulitple evaluables, evaluate each one and concatenate the results.
-            
+
             let output = '';
 
             for (var evaluable of this.evaluables) {
 
-                // TODO: try catch this, if an exception is thrown, append empty string and add error to the evaluation context
-                output += evaluable.evaluate(evalCtx).text;
+                try {
+
+                    output += evaluable.evaluate(evalCtx).text;
+
+                } catch (err) {
+
+                    if (err instanceof EvaluationError) {
+
+                        // add evaluation errors to context
+                        evalCtx.sideEffects.errors.push(err);
+
+                    } else {
+
+                        // rethrow all other errors (crashes)
+                        throw err;
+
+                    }
+
+                }
 
             }
 

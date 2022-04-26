@@ -15,12 +15,12 @@ export class KodeError {
 }
 
 /** An error thrown by the parser. */
-export class KodeParseError extends KodeError {
+export class KodeParsingError extends KodeError {
 
     /** The token this error is related to. */
     public token: FormulaToken;
 
-    /** Constructs a {@link KodeParseError} with a source token and a prefixed message. */
+    /** Constructs a {@link KodeParsingError} with a source token and a prefixed message. */
     constructor(prefix: string, token: FormulaToken, message: string) {
         super(`${prefix} around index ${token.getStartIndex()}: ${message}`);
         this.token = token;
@@ -28,7 +28,7 @@ export class KodeParseError extends KodeError {
 }
 
 /** A generic syntax error. */
-export class KodeSyntaxError extends KodeParseError {
+export class KodeSyntaxError extends KodeParsingError {
 
     /** 
      * Constructs a {@link KodeSyntaxError} with a source token and a message. 
@@ -42,7 +42,7 @@ export class KodeSyntaxError extends KodeParseError {
 }
 
 /** Thrown when a function call was parsed, but the function implementation was not found in the parsing environment. */
-export class KodeFunctionNotFoundError extends KodeParseError {
+export class KodeFunctionNotFoundError extends KodeParsingError {
 
     /** 
      * Constructs a {@link KodeFunctionNotFoundError} with an unquoted value token representing the function name. 
@@ -55,7 +55,7 @@ export class KodeFunctionNotFoundError extends KodeParseError {
 }
 
 /** Thrown when the lexer produced a token that the parser did not recognize. */
-export class UnrecognizedTokenError extends KodeParseError {
+export class UnrecognizedTokenError extends KodeParsingError {
 
     /**
      * Constructs a {@link UnrecognizedTokenError} with the token that was not recognized. 

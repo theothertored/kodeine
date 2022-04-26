@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { ParsingContextBuilder } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
 import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
 import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
-import { KodeParseError, EvaluationError, KodeError } from '../../engine/dist.node/errors.js';
+import { KodeParsingError } from '../../engine/dist.node/errors.js';
+import { KodeValue } from 'engine/src/base.js';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -20,62 +21,50 @@ export function activate(context: vscode.ExtensionContext) {
         // create a list of diagnostics (warnings, errors etc.)
         let diags: vscode.Diagnostic[] = [];
 
+        let formulaText = document.getText();
+
         try {
 
-            let formulaText = document.getText();
             let formula = parser.parse(formulaText);
-
             let result = formula.evaluate(evalCtx);
 
-            outChannel.replace(result.text);
+            let warnCount = parseCtx.sideEffects.warnings.length + evalCtx.sideEffects.warnings.length;
+            let errCount = evalCtx.sideEffects.errors.length;
 
-        } catch (err: any) {
+            if (warnCount + errCount > 0) {
 
-            if (err instanceof KodeError) {
+                if (result.text) {
 
-                outChannel.replace(err.message);
-
-                if (err instanceof KodeParseError) {
-
-                    diags.push({
-                        severity: vscode.DiagnosticSeverity.Error,
-                        range: new vscode.Range(
-                            document.positionAt(err.token.getStartIndex()),
-                            document.positionAt(err.token.getEndIndex())
-                        ),
-                        message: err.message,
-                        code: '',
-                        source: ''
-                    });
-
-                } else if (err instanceof EvaluationError) {
-
-                    diags.push({
-                        severity: vscode.DiagnosticSeverity.Error,
-                        range: new vscode.Range(
-                            document.positionAt(err.evaluable.source!.getStartIndex()),
-                            document.positionAt(err.evaluable.source!.getEndIndex())
-                        ),
-                        message: err.message,
-                        code: '',
-                        source: ''
-                    });
+                    outChannel.replace(`${result.text}\n\n${evalCtx.sideEffects.errors.map(e => e.message).join('\n')}`);
 
                 } else {
 
-                    diags.push({
-                        severity: vscode.DiagnosticSeverity.Error,
-                        range: new vscode.Range(
-                            document.positionAt(0),
-                            document.positionAt(Number.MAX_VALUE)
-                        ),
-                        message: err.message,
-                        code: '',
-                        source: ''
-                    });
+                    outChannel.replace(evalCtx.sideEffects.errors.map(e => e.message).join('\n'))
 
                 }
 
+            } else {
+
+                outChannel.replace(result.text);
+
+            }
+
+        } catch (err: any) {
+
+            if (err instanceof KodeParsingError) {
+
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Error,
+                    range: new vscode.Range(
+                        document.positionAt(err.token.getStartIndex()),
+                        document.positionAt(err.token.getEndIndex())
+                    ),
+                    message: err.message,
+                    code: '',
+                    source: ''
+                });
+
+                outChannel.replace(err.message);
 
             } else {
 
@@ -105,7 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         if (evalCtx.sideEffects.warnings.length > 0) {
-            
+
             // got some warnings, convert to diags
             evalCtx.sideEffects.warnings.forEach(warning => {
 
@@ -123,7 +112,27 @@ export function activate(context: vscode.ExtensionContext) {
             });
 
         }
-        
+
+        if (evalCtx.sideEffects.errors.length > 0) {
+
+            // got some errors, convert to diags
+            evalCtx.sideEffects.errors.forEach(error => {
+
+                diags.push({
+                    severity: vscode.DiagnosticSeverity.Error,
+                    range: new vscode.Range(
+                        document.positionAt(error.evaluable.source!.getStartIndex()),
+                        document.positionAt(error.evaluable.source!.getEndIndex())
+                    ),
+                    message: error.message,
+                    code: '',
+                    source: ''
+                });
+
+            });
+
+        }
+
         // apply the created list to the problems panel
         diagColl.set(vscode.window.activeTextEditor!.document.uri, diags);
 
