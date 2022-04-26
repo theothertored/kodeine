@@ -1,7 +1,7 @@
-import { IBinaryOperator, KodeValue } from "../base.js";
-import { RegexEvaluationError } from "../errors.js";
-import { BinaryOperation } from "../evaluables/binary-operation.js";
-import { EvaluationContext } from "../evaluables/evaluation-context.js";
+import { IBinaryOperator, KodeValue } from "../../base.js";
+import { RegexEvaluationError } from "../../errors.js";
+import { BinaryOperation } from "../../evaluables/binary-operation.js";
+import { EvaluationContext } from "../../evaluables/evaluation-context.js";
 import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
 
 // this module contains implementations of all binary operators available in Kustom.

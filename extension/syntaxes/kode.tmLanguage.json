@@ -37,6 +37,10 @@
 					"name": "string.quoted.double",
 					"begin": "\"",
 					"end": "\""
+				},
+				{
+					"name": "constant.numeric",
+					"match": "(\\d+\\.?\\d*|\\d*\\.?\\d+)"
 				}
 			]
 		},

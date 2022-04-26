@@ -62,10 +62,26 @@ export class InvalidArgumentCountError extends EvaluationError {
      * @param funcCall The function call with an invalid number of arguments.
      * @param message A message explaining the error.
      */
-    constructor(funcCall, message) {
-        super(funcCall, `Not enough arguments given for ${funcCall.func.getName()}(): ${message}`);
+    constructor(funcCall, message, funcDescription) {
+        super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + '()'}: ${message}`);
     }
 }
+/** An error thrown when a function was called with an invalid argument. */
+export class InvalidArgumentError extends EvaluationError {
+    /**
+     * Constructs a {@link InvalidArgumentError} with a function call with the invalid argument and a message.
+     * @param funcDescription A description of the function that was called with an invalid argument (ex. fl(), tc(reg) etc.).
+     * @param argumentName The name of the argument.
+     * @param argumentIndex The index of the argument.
+     * @param argumentSource The evaluable that returned the invalid argument value.
+     * @param invalidValue The value that was invalid.
+     * @param message A message explaining the error.
+     */
+    constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
+        super(argumentSource, `Value ${invalidValue.text} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
+    }
+}
+/** An error thrown when a regex expression passed to a function or operator throws an exception. */
 export class RegexEvaluationError extends EvaluationError {
     /**
      * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.

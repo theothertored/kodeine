@@ -1,4 +1,4 @@
-import { Evaluable, FormulaToken, IKodeFunction } from "./base.js";
+import { Evaluable, FormulaToken, IKodeFunction, KodeValue } from "./base.js";
 import { BinaryOperation } from "./evaluables/binary-operation.js";
 import { FunctionCall } from "./evaluables/function-call.js";
 import { UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
@@ -94,12 +94,31 @@ export class InvalidArgumentCountError extends EvaluationError {
      * @param funcCall The function call with an invalid number of arguments.
      * @param message A message explaining the error.
      */
-    constructor(funcCall: FunctionCall, message: string) {
-        super(funcCall, `Not enough arguments given for ${funcCall.func.getName()}(): ${message}`)
+    constructor(funcCall: FunctionCall, message: string, funcDescription?: string) {
+        super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + '()'}: ${message}`)
     }
 
 }
 
+/** An error thrown when a function was called with an invalid argument. */
+export class InvalidArgumentError extends EvaluationError {
+
+    /** 
+     * Constructs a {@link InvalidArgumentError} with a function call with the invalid argument and a message. 
+     * @param funcDescription A description of the function that was called with an invalid argument (ex. fl(), tc(reg) etc.).
+     * @param argumentName The name of the argument.
+     * @param argumentIndex The index of the argument.
+     * @param argumentSource The evaluable that returned the invalid argument value.
+     * @param invalidValue The value that was invalid.
+     * @param message A message explaining the error.
+     */
+    constructor(funcDescription: string, argumentName: string, argumentIndex: number, argumentSource: Evaluable, invalidValue: KodeValue, message: string) {
+        super(argumentSource, `Value ${invalidValue.text} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`)
+    }
+
+}
+
+/** An error thrown when a regex expression passed to a function or operator throws an exception. */
 export class RegexEvaluationError extends EvaluationError {
     /** 
      * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message. 

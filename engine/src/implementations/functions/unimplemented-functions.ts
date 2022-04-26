@@ -1,7 +1,7 @@
-import { IKodeFunction, KodeValue } from "../base.js";
-import { EvaluationError } from "../errors.js";
-import { EvaluationContext } from "../evaluables/evaluation-context.js";
-import { FunctionCall } from "../evaluables/function-call.js";
+import { IKodeFunction, KodeValue } from "../../base.js";
+import { EvaluationError } from "../../errors.js";
+import { EvaluationContext } from "../../evaluables/evaluation-context.js";
+import { FunctionCall } from "../../evaluables/function-call.js";
 
 // this file contains classes for functions that have not been implemented yet.
 // they should be moved to separate files after they are implemented.

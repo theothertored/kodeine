@@ -1,8 +1,9 @@
-import { IBinaryOperator, FormulaToken, IKodeFunction, IOperator, IUnaryOperator } from "../base.js";
-import { IfFunction } from "../implementations/if-function.js";
-import * as UnimplementedFunctions from "../implementations/unimplemented-functions.js";
-import * as UnaryOperators from "../implementations/unary-operators.js";
-import * as BinaryOperators from "../implementations/binary-operators.js";
+import { IBinaryOperator, FormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
+import { IfFunction } from "../implementations/functions/if-function.js";
+import * as UnimplementedFunctions from "../implementations/functions/unimplemented-functions.js";
+import * as UnaryOperators from "../implementations/operators/unary-operators.js";
+import * as BinaryOperators from "../implementations/operators/binary-operators.js";
+import { TcFunction } from "../implementations/functions/tc-function.js";
 
 /** 
  * Exposes function and operator implementations. 
@@ -183,6 +184,7 @@ export class ParsingContextBuilder {
     addDefaults(): ParsingContextBuilder {
 
         this.add(IfFunction)
+            .add(TcFunction)
             .addFromModule(UnimplementedFunctions)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);

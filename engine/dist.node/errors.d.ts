@@ -1,4 +1,4 @@
-import { Evaluable, FormulaToken } from "./base.js";
+import { Evaluable, FormulaToken, KodeValue } from "./base.js";
 import { FunctionCall } from "./evaluables/function-call.js";
 import { UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
@@ -56,8 +56,22 @@ export declare class InvalidArgumentCountError extends EvaluationError {
      * @param funcCall The function call with an invalid number of arguments.
      * @param message A message explaining the error.
      */
-    constructor(funcCall: FunctionCall, message: string);
+    constructor(funcCall: FunctionCall, message: string, funcDescription?: string);
 }
+/** An error thrown when a function was called with an invalid argument. */
+export declare class InvalidArgumentError extends EvaluationError {
+    /**
+     * Constructs a {@link InvalidArgumentError} with a function call with the invalid argument and a message.
+     * @param funcDescription A description of the function that was called with an invalid argument (ex. fl(), tc(reg) etc.).
+     * @param argumentName The name of the argument.
+     * @param argumentIndex The index of the argument.
+     * @param argumentSource The evaluable that returned the invalid argument value.
+     * @param invalidValue The value that was invalid.
+     * @param message A message explaining the error.
+     */
+    constructor(funcDescription: string, argumentName: string, argumentIndex: number, argumentSource: Evaluable, invalidValue: KodeValue, message: string);
+}
+/** An error thrown when a regex expression passed to a function or operator throws an exception. */
 export declare class RegexEvaluationError extends EvaluationError {
     /**
      * Constructs a {@link InvalidArgumentCountError} with a function call with an invalid number of arguments and a message.

@@ -2,10 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnclosedQuotedValueWarning = exports.UnclosedDollarSignWarning = exports.ParsingWarning = exports.ParsingSideEffects = exports.ParsingContextBuilder = exports.ParsingContext = void 0;
 const base_js_1 = require("../base.js");
-const if_function_js_1 = require("../implementations/if-function.js");
-const UnimplementedFunctions = require("../implementations/unimplemented-functions.js");
-const UnaryOperators = require("../implementations/unary-operators.js");
-const BinaryOperators = require("../implementations/binary-operators.js");
+const if_function_js_1 = require("../implementations/functions/if-function.js");
+const UnimplementedFunctions = require("../implementations/functions/unimplemented-functions.js");
+const UnaryOperators = require("../implementations/operators/unary-operators.js");
+const BinaryOperators = require("../implementations/operators/binary-operators.js");
+const tc_function_js_1 = require("../implementations/functions/tc-function.js");
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -137,6 +138,7 @@ class ParsingContextBuilder {
      */
     addDefaults() {
         this.add(if_function_js_1.IfFunction)
+            .add(tc_function_js_1.TcFunction)
             .addFromModule(UnimplementedFunctions)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);

@@ -1,7 +1,7 @@
-import { IKodeFunction, KodeValue } from "../base.js";
-import { EvaluationContext } from "../evaluables/evaluation-context.js";
-import { InvalidArgumentCountError } from "../errors.js";
-import { FunctionCall } from "../evaluables/function-call.js";
+import { IKodeFunction, KodeValue } from "../../base.js";
+import { EvaluationContext } from "../../evaluables/evaluation-context.js";
+import { InvalidArgumentCountError } from "../../errors.js";
+import { FunctionCall } from "../../evaluables/function-call.js";
 
 /** Implementation of kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
