@@ -2,8 +2,6 @@ import * as vscode from 'vscode';
 import { ParsingContextBuilder } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
 import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
 import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
-import { KodeParsingError } from '../../engine/dist.node/errors.js';
-import { KodeValue } from 'engine/src/base.js';
 
 export function activate(context: vscode.ExtensionContext) {
 
