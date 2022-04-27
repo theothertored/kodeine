@@ -173,8 +173,7 @@ export class TcFunction extends KodeFunctionWithModes {
                         // but not only will this output A LOT of characters,
                         // it will also straight up crash the app at like 7 or 8 digits
                         throw new InvalidArgumentError('tc(roman)', 'text', 1, this.call.args[1], match, `Number ${match} is greater than the maximum for tc(roman) (${NumberToTextConverter.max}). `
-                            + 'The Romans didn\'t know about 32 bit integers yet when they invented their numerals, and so the highest "digit" they had was M (for 1000). '
-                            + 'Each decimal digit you add to your number increases the number of Ms in the output exponentially. '
+                            + 'Each decimal digit you add to your number increases the number of Ms (roman numeral for 1,000) in the output exponentially. '
                             + 'To illustrate, 1,000,000 results in 1,000 Ms, 10,000,000 results in 10,000 Ms and 100,000,000 results in 100,000 Ms. '
                             + 'TL;DR: Kustom will crash.');
                     }
@@ -182,6 +181,34 @@ export class TcFunction extends KodeFunctionWithModes {
                     return (num < 0 ? '-' : '') + NumberToRomanConverter.convert(Math.abs(num));
                 }
             });
+        });
+        this.mode('lpad', ['txt text', 'num targetLength', 'txt padWith?'], function (text, targetLength, padWith) {
+            if (text.length >= targetLength) {
+                // text is already long enough
+                return text;
+            }
+            else {
+                padWith !== null && padWith !== void 0 ? padWith : (padWith = '0');
+                let fullRepeatCount = Math.floor((targetLength - text.length) / padWith.length);
+                let additionalCharCount = targetLength - text.length - fullRepeatCount * padWith.length;
+                return padWith.repeat(fullRepeatCount) // full repeats
+                    + padWith.substring(0, additionalCharCount) // partial repeat
+                    + text; // source text
+            }
+        });
+        this.mode('rpad', ['txt text', 'num targetLength', 'txt padWith?'], function (text, targetLength, padWith) {
+            if (text.length >= targetLength) {
+                // text is already long enough
+                return text;
+            }
+            else {
+                padWith !== null && padWith !== void 0 ? padWith : (padWith = '0');
+                let fullRepeatCount = Math.floor((targetLength - text.length) / padWith.length);
+                let additionalCharCount = targetLength - text.length - fullRepeatCount * padWith.length;
+                return text // source text
+                    + padWith.repeat(fullRepeatCount) // full repeats
+                    + padWith.substring(0, additionalCharCount); // partial repeat
+            }
         });
     }
 }
