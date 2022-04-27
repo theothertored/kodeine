@@ -9,7 +9,12 @@ class NegationOperator extends base_js_1.IUnaryOperator {
     operation(evalCtx, operation, a) {
         if (a.isNumeric) {
             // the arugment is numeric, everything works as expected
-            return new base_js_1.KodeValue(-a.numericValue);
+            let value = -a.numericValue;
+            if (Number.isInteger(value))
+                // replicate the weird behaviour .0 being added to integers after negation
+                return new base_js_1.KodeValue(value + '.0');
+            else
+                return new base_js_1.KodeValue(value);
         }
         else {
             evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.UnaryMinusStringModeWarning(operation));

@@ -6,7 +6,12 @@ export class NegationOperator extends IUnaryOperator {
     operation(evalCtx, operation, a) {
         if (a.isNumeric) {
             // the arugment is numeric, everything works as expected
-            return new KodeValue(-a.numericValue);
+            let value = -a.numericValue;
+            if (Number.isInteger(value))
+                // replicate the weird behaviour .0 being added to integers after negation
+                return new KodeValue(value + '.0');
+            else
+                return new KodeValue(value);
         }
         else {
             evalCtx.sideEffects.warnings.push(new UnaryMinusStringModeWarning(operation));

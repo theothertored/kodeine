@@ -3,6 +3,7 @@
 - implement fl()
 
 DONE:
+- simple negation -1 => -1.0 behaviour implementation (needs more work)
 - fix syntax highlighting for numeric constants
 - special highlighting for problematic chars (! ~)
 - syntax highlight unquoted strings
