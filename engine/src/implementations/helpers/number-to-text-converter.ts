@@ -1,8 +1,10 @@
 
+/** A helper converting a number to its textual representation. */
 export const NumberToTextConverter = (() => {
 
     const maxConvertible = 2 ** 31 - 1;
 
+    // consts for more readable code
     const million = 1_000_000;
     const billion = 1_000_000_000;
 
@@ -118,9 +120,13 @@ export const NumberToTextConverter = (() => {
 
     };
 
-    // converts numbers between 0 and 2,147,483,647
+    // converts numbers between 0 and 2,147,483,647 (max)
     return {
+
+        /** The absolute maximum value that this converter can handle. */
         max: maxConvertible,
+
+        /** Converts the given number to its text representation. */
         convert: (n: number) => {
 
             if (n < 0)

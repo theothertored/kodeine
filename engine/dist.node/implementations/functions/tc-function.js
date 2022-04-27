@@ -6,6 +6,8 @@ const errors_js_1 = require("../../errors.js");
 const number_to_text_converter_js_1 = require("../helpers/number-to-text-converter.js");
 const text_capitalizer_js_1 = require("../helpers/text-capitalizer.js");
 const kode_function_with_modes_js_1 = require("./kode-function-with-modes.js");
+const ordinal_suffix_helper_js_1 = require("../helpers/ordinal-suffix-helper.js");
+const number_to_roman_converter_js_1 = require("../helpers/number-to-roman-converter.js");
 /** Implementation of Kustom's tc() (text converter) function. */
 class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
     getName() { return 'tc'; }
@@ -129,12 +131,59 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             // capture numbers with -, because negative numbers throw when their absolute value is over maximum
             // positive numbers over the maximum return the maximum, but in words
             let expr = /-?\d+/g;
+            // replace each number occurence
             return text.replace(expr, match => {
+                // parse as number (should never be an invalid number if it matches the pattern)
                 let num = Number(match);
-                if (-num > number_to_text_converter_js_1.NumberToTextConverter.max) {
-                    throw new errors_js_1.InvalidArgumentError('tc(n2w)', 'text', 1, this.call.args[1], match, `Negative numbers throw an error when their absolute value is over the max value for a signed 32 bit int (${number_to_text_converter_js_1.NumberToTextConverter.max}).`);
+                if (isNaN(num)) {
+                    // if the number somehow is invalid, add a warning and don't replace
+                    this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+                    return match;
                 }
-                return (num < 0 ? '-' : '') + number_to_text_converter_js_1.NumberToTextConverter.convert(Math.min(Math.abs(num), number_to_text_converter_js_1.NumberToTextConverter.max));
+                else {
+                    if (-num > number_to_text_converter_js_1.NumberToTextConverter.max) {
+                        // special case for negative numbers that have an absolute value over the maximum
+                        // this does not happen for positive numbers, instead, the max as words is returned
+                        throw new errors_js_1.InvalidArgumentError('tc(n2w)', 'text', 1, this.call.args[1], match, `Negative numbers throw an error when their absolute value is greater than the max value for a signed 32 bit integer (${number_to_text_converter_js_1.NumberToTextConverter.max}).`);
+                    }
+                    // convert and prepend a - if the input was negative
+                    return (num < 0 ? '-' : '') + number_to_text_converter_js_1.NumberToTextConverter.convert(Math.min(Math.abs(num), number_to_text_converter_js_1.NumberToTextConverter.max));
+                }
+            });
+        });
+        this.mode('ord', ['num number'], function (number) {
+            // this function breaks in kustom when the number is in input format "1.0"
+            // most commonly happens when the negation operator is used
+            // for now not replicating this (I assume) bug
+            return ordinal_suffix_helper_js_1.OrdinalSuffixHelper.getSuffix(number);
+        });
+        this.mode('roman', ['txt text'], function (text) {
+            // capture copy pasted from tc(n2w), which I assume kustom also does under the hood
+            // the problem is using large numbers with this crashes KLWP, so I can't really test it
+            let expr = /-?\d+/g;
+            // replace each number occurence
+            return text.replace(expr, match => {
+                // parse as number (should never be an invalid number if it matches the pattern)
+                let num = Number(match);
+                if (isNaN(num)) {
+                    // if the number somehow is invalid, add a warning and don't replace
+                    this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+                    return match;
+                }
+                else {
+                    if (Math.abs(num) > number_to_roman_converter_js_1.NumberToRomanConverter.max) {
+                        // we probably could allow the user to go further,
+                        // but not only will this output A LOT of characters,
+                        // it will also straight up crash the app at like 7 or 8 digits
+                        throw new errors_js_1.InvalidArgumentError('tc(roman)', 'text', 1, this.call.args[1], match, `Number ${match} is greater than the maximum for tc(roman) (${number_to_text_converter_js_1.NumberToTextConverter.max}). `
+                            + 'The Romans didn\'t know about 32 bit integers yet when they invented their numerals, and so the highest "digit" they had was M (for 1000). '
+                            + 'Each decimal digit you add to your number increases the number of Ms in the output exponentially. '
+                            + 'To illustrate, 1,000,000 results in 1,000 Ms, 10,000,000 results in 10,000 Ms and 100,000,000 results in 100,000 Ms. '
+                            + 'TL;DR: Kustom will crash.');
+                    }
+                    // convert and prepend a - if the input was negative
+                    return (num < 0 ? '-' : '') + number_to_roman_converter_js_1.NumberToRomanConverter.convert(Math.abs(num));
+                }
             });
         });
     }
