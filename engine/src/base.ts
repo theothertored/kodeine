@@ -101,6 +101,9 @@ export abstract class Evaluable {
 
 }
 
+/** Describes a JS type that can be converted to a KodeValue. */
+export type ConvertibleToKodeValue = string | number | boolean | KodeValue;
+
 /** A concrete kode value. */
 export class KodeValue extends Evaluable {
 
@@ -120,7 +123,7 @@ export class KodeValue extends Evaluable {
      * @param value The value to create the kode value from.
      * @param source Optionally, the source of this value.
      */
-    constructor(value: (string | number | boolean | KodeValue), source?: EvaluableSource) {
+    constructor(value: ConvertibleToKodeValue, source?: EvaluableSource) {
 
         // pass the source to the Evaluable constructor
         super(source);
@@ -136,7 +139,7 @@ export class KodeValue extends Evaluable {
 
             // the value is a string, try to parse as number
             this.text = value;
-            this.numericValue = Number(value);
+            this.numericValue = value ? Number(value) : NaN; // Number('') = 0, so an additional check is needed
             this.isNumeric = !isNaN(this.numericValue);
 
         } else if (typeof value === 'number') {

@@ -1,12 +1,15 @@
-import { KodeValue } from "../../base.js";
+import { EvaluationWarning } from "../../evaluables/evaluation-context.js";
 import { InvalidArgumentError } from "../../errors.js";
-import { FunctionWithModes as KodeFunctionWithModes, ModeImplementationFunctionContext } from "./kode-function-with-modes.js";
+import { NumberToTextConverter } from "../helpers/number-to-text-converter.js";
+import { TextCapitalizer } from "../helpers/text-capitalizer.js";
+import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with-modes.js";
 
 /** Implementation of Kustom's tc() (text converter) function. */
 export class TcFunction extends KodeFunctionWithModes {
 
     getName() { return 'tc'; }
 
+    /** Shared part of implementation for tc(cut) and tc(ell). */
     private _cut(text: string, startOrLength: number, length?: number): string {
 
         if (length) {
@@ -108,8 +111,21 @@ export class TcFunction extends KodeFunctionWithModes {
         this.mode('cap',
             ['txt text'],
             function (text: string): string {
-                // Kustom doesn't capitalize letters after a new line, only after spaces and at the start of the string.
-                return text.replace(/(?<=^| )./g, match => match.toUpperCase());
+
+                if (text === '') {
+
+                    this.evalCtx.sideEffects.warnings.push(
+                        new EvaluationWarning(
+                            this.call,
+                            'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'
+                        )
+                    );
+
+                }
+
+                // kustom only capitalizes letters at the start of the string and after spaces
+                // more about this in TextCapitalizer
+                return TextCapitalizer.capitalize(text);
             }
         );
 
@@ -199,162 +215,24 @@ export class TcFunction extends KodeFunctionWithModes {
             ['txt text'],
             function (text: string): string {
 
-                const million = 1_000_000;
-                const billion = 1_000_000_000;
-                const zeroToNineteen = [
-                    'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
-                    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
-                ];
-                const tens = ['zero', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-
-                // converts numbers between 0 and 19
-                const convertUnder20 = (n: number) => {
-                    return zeroToNineteen[n];
-                };
-
-                // converts numbers between 0 and 100
-                const convertUnderHundred = (n: number) => {
-
-                    if (n < 20) {
-
-                        return convertUnder20(n);
-
-                    } else {
-
-                        let tenCount = Math.floor(n / 10);
-                        let output = tens[tenCount];
-
-                        let rest = n % 10;
-
-                        if (rest > 0) {
-
-                            return `${output} ${convertUnder20(rest)}`;
-
-                        } else {
-
-                            return output;
-
-                        }
-
-                    }
-
-                };
-
-                // converts numbers between 0 and 999
-                const convertUnderThousand = (n: number) => {
-
-                    if (n < 100) {
-
-                        return convertUnderHundred(n);
-
-                    } else {
-
-                        let hundredCount = Math.floor(n / 100);
-                        let output = convertUnder20(hundredCount);
-
-                        let rest = n % 100;
-
-                        if (rest > 0)
-                            return `${output} hundred ${convertUnderHundred(rest)}`;
-
-                        else
-                            return output;
-
-                    }
-
-                };
-
-                // converts numbers between 0 and 999,999
-                const convertUnderMillion = (n: number) => {
-
-                    if (n < 1000) {
-
-                        return convertUnderThousand(n);
-
-                    } else {
-
-                        let thousandCount = Math.floor(n / 1000);
-                        let output = convertUnderThousand(thousandCount);
-
-                        let rest = n % 1000;
-
-                        if (rest > 0)
-                            return `${output} thousand ${convertUnderThousand(rest)}`;
-
-                        else
-                            return output;
-
-                    }
-
-                };
-
-                // converts numbers between 0 and 999,999,999
-                const convertUnderBillion = (n: number) => {
-
-                    if (n < million) {
-
-                        return convertUnderMillion(n);
-
-                    } else {
-
-                        let millionCount = Math.floor(n / million);
-                        let output = convertUnderThousand(millionCount);
-
-                        let rest = n % million;
-
-                        if (rest > 0)
-                            return `${output} million ${convertUnderMillion(rest)}`;
-
-                        else
-                            return `${output} million`;
-
-                    }
-
-                };
-
-                // converts numbers between 0 and 2,147,483,647
-                const convert = (n: number) => {
-
-                    if (n < billion) {
-
-                        return convertUnderBillion(n);
-
-                    } else {
-
-                        let billionCount = Math.floor(n / billion);
-
-                        // billion count can be at most 2
-                        let output = convertUnder20(billionCount);
-
-                        let rest = n % billion;
-
-                        if (rest > 0)
-                            return `${output} billion ${convertUnderBillion(rest)}`;
-
-                        else
-                            return `${output} billion`;
-
-                    }
-
-                }
-
+                // capture numbers with -, because negative numbers throw when their absolute value is over maximum
+                // positive numbers over the maximum return the maximum, but in words
                 let expr = /-?\d+/g;
 
                 return text.replace(expr, match => {
 
-                    const max = 2 ** 31 - 1;
                     let num = Number(match)
 
-                    if (-num > max) {
+                    if (-num > NumberToTextConverter.max) {
 
                         throw new InvalidArgumentError(
                             'tc(n2w)', 'text', 1,
-                            this.call.args[1], match, `Negative numbers throw an error when their absolute value is over the max value for a signed 32 bit int (${max}).`
+                            this.call.args[1], match, `Negative numbers throw an error when their absolute value is over the max value for a signed 32 bit int (${NumberToTextConverter.max}).`
                         );
 
                     }
 
-                    return convert(Math.min(Math.abs(num), max));
+                    return (num < 0 ? '-' : '') + NumberToTextConverter.convert(Math.min(Math.abs(num), NumberToTextConverter.max));
 
                 });
 

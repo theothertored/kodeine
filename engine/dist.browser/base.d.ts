@@ -69,6 +69,8 @@ export declare abstract class Evaluable {
      */
     abstract evaluate(evalCtx: EvaluationContext): KodeValue;
 }
+/** Describes a JS type that can be converted to a KodeValue. */
+export declare type ConvertibleToKodeValue = string | number | boolean | KodeValue;
 /** A concrete kode value. */
 export declare class KodeValue extends Evaluable {
     /** Value as text. */
@@ -84,7 +86,7 @@ export declare class KodeValue extends Evaluable {
      * @param value The value to create the kode value from.
      * @param source Optionally, the source of this value.
      */
-    constructor(value: (string | number | boolean | KodeValue), source?: EvaluableSource);
+    constructor(value: ConvertibleToKodeValue, source?: EvaluableSource);
     evaluate(evalCtx: EvaluationContext): KodeValue;
     static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue;
 }

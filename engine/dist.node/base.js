@@ -54,7 +54,7 @@ class KodeValue extends Evaluable {
         else if (typeof value === 'string') {
             // the value is a string, try to parse as number
             this.text = value;
-            this.numericValue = Number(value);
+            this.numericValue = value ? Number(value) : NaN; // Number('') = 0, so an additional check is needed
             this.isNumeric = !isNaN(this.numericValue);
         }
         else if (typeof value === 'number') {
