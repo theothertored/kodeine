@@ -72,7 +72,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         });
         this.mode('cap', ['txt text'], function (text) {
             if (text === '') {
-                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call, 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'));
+                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'));
             }
             // kustom only capitalizes letters at the start of the string and after spaces
             // more about this in TextCapitalizer
@@ -191,7 +191,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 return text;
             }
             else {
-                padWith ?? (padWith = '0');
+                padWith ?? (padWith = '0'); // pad with 0 by default
                 let fullRepeatCount = Math.floor((targetLength - text.length) / padWith.length);
                 let additionalCharCount = targetLength - text.length - fullRepeatCount * padWith.length;
                 return padWith.repeat(fullRepeatCount) // full repeats
@@ -205,13 +205,21 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 return text;
             }
             else {
-                padWith ?? (padWith = '0');
+                padWith ?? (padWith = '0'); // pad with 0 by default
                 let fullRepeatCount = Math.floor((targetLength - text.length) / padWith.length);
                 let additionalCharCount = targetLength - text.length - fullRepeatCount * padWith.length;
                 return text // source text
                     + padWith.repeat(fullRepeatCount) // full repeats
                     + padWith.substring(0, additionalCharCount); // partial repeat
             }
+        });
+        this.mode('split', ['txt text', 'txt splitBy', 'num index'], function (text, splitBy, index) {
+            if (index < 0) {
+                // kustom throws an error for indices less than 0 but not for indices greater than array length
+                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[3], 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
+                    + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'));
+            }
+            return text.split(splitBy).filter(s => s !== '')[index] ?? '';
         });
     }
 }

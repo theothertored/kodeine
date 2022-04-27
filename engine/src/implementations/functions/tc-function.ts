@@ -116,7 +116,7 @@ export class TcFunction extends KodeFunctionWithModes {
 
                     this.evalCtx.sideEffects.warnings.push(
                         new EvaluationWarning(
-                            this.call,
+                            this.call.args[1],
                             'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'
                         )
                     );
@@ -390,6 +390,28 @@ export class TcFunction extends KodeFunctionWithModes {
                         + padWith.substring(0, additionalCharCount);    // partial repeat
 
                 }
+
+            }
+        );
+
+        this.mode('split',
+            ['txt text', 'txt splitBy', 'num index'],
+            function (text: string, splitBy: string, index: number): string {
+
+                if (index < 0) {
+
+                    // kustom throws an error for indices less than 0 but not for indices greater than array length
+                    this.evalCtx.sideEffects.warnings.push(
+                        new EvaluationWarning(
+                            this.call.args[3],
+                            'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
+                            + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'
+                        )
+                    );
+
+                }
+
+                return text.split(splitBy).filter(s => s !== '')[index] ?? '';
 
             }
         );

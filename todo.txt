@@ -1,6 +1,7 @@
 - implement tc()
 - implement mu()
 - implement fl()
+- fix syntax highlighting for unquoted string arguments after a quoted string argument
 
 DONE:
 - simple negation -1 => -1.0 behaviour implementation (needs more work)
