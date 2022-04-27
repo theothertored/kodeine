@@ -3,6 +3,7 @@
 - implement fl()
 
 DONE:
+- fix syntax highlighting for numeric constants
 - special highlighting for problematic chars (! ~)
 - syntax highlight unquoted strings
 - on parse error try to find closing dollar sign, if found, continue parsing instead of completely throwing

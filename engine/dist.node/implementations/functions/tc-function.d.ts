@@ -2,5 +2,6 @@ import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with
 /** Implementation of Kustom's tc() (text converter) function. */
 export declare class TcFunction extends KodeFunctionWithModes {
     getName(): string;
+    private _cut;
     constructor();
 }

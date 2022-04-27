@@ -69,7 +69,7 @@ export declare class InvalidArgumentError extends EvaluationError {
      * @param invalidValue The value that was invalid.
      * @param message A message explaining the error.
      */
-    constructor(funcDescription: string, argumentName: string, argumentIndex: number, argumentSource: Evaluable, invalidValue: KodeValue, message: string);
+    constructor(funcDescription: string, argumentName: string, argumentIndex: number, argumentSource: Evaluable, invalidValue: string | number | KodeValue, message: string);
 }
 /** An error thrown when a regex expression passed to a function or operator throws an exception. */
 export declare class RegexEvaluationError extends EvaluationError {

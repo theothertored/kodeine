@@ -1,3 +1,4 @@
+import { KodeValue } from "./base.js";
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 export class KodeError {
     constructor(message) {
@@ -78,7 +79,7 @@ export class InvalidArgumentError extends EvaluationError {
      * @param message A message explaining the error.
      */
     constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
-        super(argumentSource, `Value ${invalidValue.text} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
+        super(argumentSource, `Value ${invalidValue instanceof KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
     }
 }
 /** An error thrown when a regex expression passed to a function or operator throws an exception. */
