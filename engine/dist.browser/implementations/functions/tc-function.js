@@ -7,7 +7,7 @@ import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with
 export class TcFunction extends KodeFunctionWithModes {
     getName() { return 'tc'; }
     /** Shared part of implementation for tc(cut) and tc(ell). */
-    _cut(text, startOrLength, length) {
+    static _cut(text, startOrLength, length) {
         if (length) {
             // two numeric arguments passed
             if (length === 0)
@@ -59,7 +59,6 @@ export class TcFunction extends KodeFunctionWithModes {
     }
     constructor() {
         super();
-        let self = this;
         this.mode('low', ['txt text'], function (text) {
             return text.toLowerCase();
         });
@@ -74,36 +73,49 @@ export class TcFunction extends KodeFunctionWithModes {
             // more about this in TextCapitalizer
             return TextCapitalizer.capitalize(text);
         });
-        this.mode('cut', ['txt text', 'num startOrLength', 'num length?'], self._cut);
+        this.mode('cut', ['txt text', 'num startOrLength', 'num length?'], function (text, startOrLength, length) {
+            // call shared implementation
+            return TcFunction._cut(text, startOrLength, length);
+        });
         this.mode('ell', ['txt text', 'num startOrLength', 'num length?'], function (text, startOrLength, length) {
-            let output = self._cut(text, startOrLength, length);
+            // call shared implementation
+            let output = TcFunction._cut(text, startOrLength, length);
             if (output != '' && output.length < text.length)
+                // the output was shortened and it isn't an empty string, add ellipsis
                 return output + '...';
             else
+                // otherwise, return the output untouched
                 return output;
         });
         this.mode('count', ['txt text', 'txt searchFor'], function (text, searchFor) {
             let count = 0;
-            for (let i = 0; i < text.length; i++) {
+            // go through every character (there is probably a way to optimize this)
+            for (let i = 0; i < text.length - searchFor.length + 1; i++) {
+                // check if first character matches before checking entire substring, small optimization
                 if (text[i] == searchFor[0] && text.substring(i, i + searchFor.length) == searchFor) {
                     count++;
+                    // move to after the current match:
+                    // tc(count, aaaa, aa) returns 2, not 3
                     i += searchFor.length - 1;
                 }
             }
             return count;
         });
         this.mode('utf', ['txt hexCode'], function (hexCode) {
+            // parse the code as a hex number
             let parsedCode = Number('0x' + hexCode);
             if (isNaN(parsedCode)) {
+                // given code is not a hex number
                 throw new InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value could not be parsed as a hexadecimal number.');
             }
             else {
                 try {
-                    let b = String.fromCodePoint(parsedCode);
-                    return b;
+                    // try to get a character using the code
+                    return String.fromCodePoint(parsedCode);
                 }
                 catch (err) {
-                    throw new InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value is not a valid character code.');
+                    // couldn't get character using code, throw
+                    throw new InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value is not a valid character code: ' + err.message);
                 }
             }
         });

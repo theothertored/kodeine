@@ -3,6 +3,6 @@ import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with
 export declare class TcFunction extends KodeFunctionWithModes {
     getName(): string;
     /** Shared part of implementation for tc(cut) and tc(ell). */
-    private _cut;
+    private static _cut;
     constructor();
 }

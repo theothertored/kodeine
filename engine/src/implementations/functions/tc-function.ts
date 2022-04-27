@@ -10,7 +10,7 @@ export class TcFunction extends KodeFunctionWithModes {
     getName() { return 'tc'; }
 
     /** Shared part of implementation for tc(cut) and tc(ell). */
-    private _cut(text: string, startOrLength: number, length?: number): string {
+    private static _cut(text: string, startOrLength: number, length?: number): string {
 
         if (length) {
 
@@ -92,8 +92,6 @@ export class TcFunction extends KodeFunctionWithModes {
     constructor() {
         super();
 
-        let self = this;
-
         this.mode('low',
             ['txt text'],
             function (text: string): string {
@@ -131,18 +129,27 @@ export class TcFunction extends KodeFunctionWithModes {
 
         this.mode('cut',
             ['txt text', 'num startOrLength', 'num length?'],
-            self._cut
+            function (text: string, startOrLength: number, length?: number): string {
+
+                // call shared implementation
+                return TcFunction._cut(text, startOrLength, length);
+
+            }
         );
 
         this.mode('ell',
             ['txt text', 'num startOrLength', 'num length?'],
             function (text: string, startOrLength: number, length?: number): string {
 
-                let output = self._cut(text, startOrLength, length);
+                // call shared implementation
+                let output = TcFunction._cut(text, startOrLength, length);
 
                 if (output != '' && output.length < text.length)
+                    // the output was shortened and it isn't an empty string, add ellipsis
                     return output + '...';
+
                 else
+                    // otherwise, return the output untouched
                     return output;
 
             }
@@ -154,11 +161,18 @@ export class TcFunction extends KodeFunctionWithModes {
 
                 let count = 0;
 
-                for (let i = 0; i < text.length; i++) {
+                // go through every character (there is probably a way to optimize this)
+                for (let i = 0; i < text.length - searchFor.length + 1; i++) {
 
+                    // check if first character matches before checking entire substring, small optimization
                     if (text[i] == searchFor[0] && text.substring(i, i + searchFor.length) == searchFor) {
+
                         count++;
+
+                        // move to after the current match:
+                        // tc(count, aaaa, aa) returns 2, not 3
                         i += searchFor.length - 1;
+
                     }
 
                 }
@@ -172,10 +186,12 @@ export class TcFunction extends KodeFunctionWithModes {
             ['txt hexCode'],
             function (hexCode: string): string {
 
+                // parse the code as a hex number
                 let parsedCode = Number('0x' + hexCode);
 
                 if (isNaN(parsedCode)) {
 
+                    // given code is not a hex number
                     throw new InvalidArgumentError(
                         `tc(utf)`, 'hexCode', 1,
                         this.call.args[1], hexCode,
@@ -186,15 +202,16 @@ export class TcFunction extends KodeFunctionWithModes {
 
                     try {
 
-                        let b = String.fromCodePoint(parsedCode);
-                        return b;
+                        // try to get a character using the code
+                        return String.fromCodePoint(parsedCode);
 
-                    } catch (err) {
+                    } catch (err: any) {
 
+                        // couldn't get character using code, throw
                         throw new InvalidArgumentError(
                             `tc(utf)`, 'hexCode', 1,
                             this.call.args[1], hexCode,
-                            'Value is not a valid character code.'
+                            'Value is not a valid character code: ' + err.message
                         );
 
                     }
@@ -219,20 +236,41 @@ export class TcFunction extends KodeFunctionWithModes {
                 // positive numbers over the maximum return the maximum, but in words
                 let expr = /-?\d+/g;
 
+                // replace each number occurence
                 return text.replace(expr, match => {
 
+                    // parse as number (should never be an invalid number if it matches the pattern)
                     let num = Number(match)
 
-                    if (-num > NumberToTextConverter.max) {
+                    if (isNaN(num)) {
 
-                        throw new InvalidArgumentError(
-                            'tc(n2w)', 'text', 1,
-                            this.call.args[1], match, `Negative numbers throw an error when their absolute value is over the max value for a signed 32 bit int (${NumberToTextConverter.max}).`
+                        // if the number somehow is invalid, add a warning and don't replace
+
+                        this.evalCtx.sideEffects.warnings.push(
+                            new EvaluationWarning(
+                                this.call.args[1],
+                                `Number ${match} could not be parsed.`
+                            )
                         );
 
-                    }
+                        return match;
 
-                    return (num < 0 ? '-' : '') + NumberToTextConverter.convert(Math.min(Math.abs(num), NumberToTextConverter.max));
+                    } else {
+
+                        if (-num > NumberToTextConverter.max) {
+
+                            // special case for negative numbers that have an absolute value over the maximum
+                            // this does not happen for positive numbers, instead, the max as words is returned
+                            throw new InvalidArgumentError(
+                                'tc(n2w)', 'text', 1,
+                                this.call.args[1], match, `Negative numbers throw an error when their absolute value is greater than the max value for a signed 32 bit integer (${NumberToTextConverter.max}).`
+                            );
+
+                        }
+
+                        // convert and prepend a - if the input was negative
+                        return (num < 0 ? '-' : '') + NumberToTextConverter.convert(Math.min(Math.abs(num), NumberToTextConverter.max));
+                    }
 
                 });
 
