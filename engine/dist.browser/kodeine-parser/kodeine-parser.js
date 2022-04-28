@@ -185,7 +185,7 @@ export class KodeineParser {
                     }
                     else if (token instanceof OpeningParenthesisToken) {
                         // found an opening parenthesis - it's either a subexpression or a function call
-                        // TODO: kustom has some funky behaviour around parentheses:
+                        // TODO: Kustom has some funky behaviour around parentheses:
                         // empty parentheses don't throw even when the function name is invalid
                         // asdf() -> asdf
                         // non-empty parentheses arguments throw
@@ -362,7 +362,7 @@ export class KodeineParser {
             }
             else {
                 // we read an opening dollar sign, but not a closing one
-                // in this case, kustom prints all tokens except the opening dollar sign as plain text
+                // in this case, Kustom prints all tokens except the opening dollar sign as plain text
                 this._parsingCtx.sideEffects.warnings.push(new UnclosedDollarSignWarning(...tokenBuffer));
                 formulaEvaluables.push(new KodeValue(tokenBuffer.slice(1).map(t => t.getSourceText()).join(''), new EvaluableSource(...tokenBuffer)));
             }

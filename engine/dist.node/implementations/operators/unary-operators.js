@@ -19,7 +19,7 @@ class NegationOperator extends base_js_1.IUnaryOperator {
         else {
             evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.UnaryMinusStringModeWarning(operation));
             // the argument is not numeric, panic
-            // ...no, really, this is what kustom does
+            // ...no, really, this is what Kustom does
             // -abc => abc-null
             return new base_js_1.KodeValue(a.text + '-null', operation.source);
         }

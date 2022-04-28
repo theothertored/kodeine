@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.IfFunction = void 0;
 const base_js_1 = require("../../base.js");
 const errors_js_1 = require("../../errors.js");
-/** Implementation of kustom's `if()` function. */
+/** Implementation of Kustom's `if()` function. */
 class IfFunction extends base_js_1.IKodeFunction {
     getName() { return 'if'; }
     call(evalCtx, call, args) {

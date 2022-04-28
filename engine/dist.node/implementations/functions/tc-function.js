@@ -75,7 +75,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             if (text === '') {
                 this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'));
             }
-            // kustom only capitalizes letters at the start of the string and after spaces
+            // Kustom only capitalizes letters at the start of the string and after spaces
             // more about this in TextCapitalizer
             return text_capitalizer_js_1.TextCapitalizer.capitalize(text);
         });
@@ -153,13 +153,13 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             });
         });
         this.mode('ord', ['num number'], function (number) {
-            // this function breaks in kustom when the number is in input format "1.0"
+            // this function breaks in Kustom when the number is in input format "1.0"
             // most commonly happens when the negation operator is used
             // for now not replicating this (I assume) bug
             return ordinal_suffix_helper_js_1.OrdinalSuffixHelper.getSuffix(number);
         });
         this.mode('roman', ['txt text'], function (text) {
-            // capture copy pasted from tc(n2w), which I assume kustom also does under the hood
+            // capture copy pasted from tc(n2w), which I assume Kustom also does under the hood
             // the problem is using large numbers with this crashes KLWP, so I can't really test it
             let expr = /-?\d+/g;
             // replace each number occurence
@@ -216,11 +216,11 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         });
         this.mode('split', ['txt text', 'txt splitBy', 'num index'], function (text, splitBy, index) {
             if (index < 0) {
-                // kustom throws an error for indices less than 0 but not for indices greater than array length
+                // Kustom throws an error for indices less than 0 but not for indices greater than array length
                 this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[3], 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
                     + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'));
             }
-            // kustom skips over empty elements
+            // Kustom skips over empty elements
             // tc(split, aXXb, X, 1) => b instead of ""
             // also normalize undefined to ""
             return text.split(splitBy).filter(s => s !== '')[index] ?? '';
@@ -229,18 +229,18 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             try {
                 // create a global (multi-match) pattern from the given string
                 let expr = new RegExp(pattern, 'g');
-                // the replacement in kustom is far less powerful than in JS
+                // the replacement in Kustom is far less powerful than in JS
                 // pretty much the only thing that works is $0 to insert entire match and $1, $2 etc. to insert matched groups
                 // you can escape those $0, $1 etc. tokens with a backslash: \\
                 // backslashes are removed from the replacement, unless they are double backslashes
                 // \n, \r, \t do not work, the backslash gets removed and the letter gets printed
                 // same with $` and $' (before match and after match)
-                // JS has $& for inserting entire match, kustom uses $0 instead
+                // JS has $& for inserting entire match, Kustom uses $0 instead
                 // because of that I decided to manually handle replacing tokens in the replacement string
                 let hadErrors = false;
                 let result = text.replace(expr, (...sourceMatchArgs) => {
                     let sourceMatchGroupCount = sourceMatchArgs.length - 3;
-                    // kustom only supports one digit capture group backreferences
+                    // Kustom only supports one digit capture group backreferences
                     // $0, $1 etc. work, $10 is just $1 and character 0
                     // this pattern should probably have \d+ instead of \d
                     return replacement.replace(/(\\*)\$(\d)|(\\+)/g, (groupMatch, backslashes, digit) => {
@@ -296,6 +296,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 throw new errors_js_1.RegexEvaluationError(this.call.args[2], err.message);
             }
         });
+        // TODO: implement accurately at some point
         this.mode('html', ['txt text'], function (text) {
             this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call, 'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'));
             // simple implementation that does the basic job
@@ -304,6 +305,13 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 .replace(/<[^>]+?>/g, '')
                 // convert &entities; to string
                 .replace(/&.*?;/g, match => html_entitity_converter_js_1.HtmlEntityConverter.convert(match));
+        });
+        // TODO: implement accurately at some point
+        this.mode('url', ['txt text', 'txt encoding?'], function (text, encoding) {
+            if (encoding) {
+                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[2], 'This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error.'));
+            }
+            return encodeURIComponent(text);
         });
     }
 }

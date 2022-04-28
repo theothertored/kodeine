@@ -1,6 +1,6 @@
 import { IKodeFunction, KodeValue } from "../../base.js";
 import { InvalidArgumentCountError } from "../../errors.js";
-/** Implementation of kustom's `if()` function. */
+/** Implementation of Kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
     getName() { return 'if'; }
     call(evalCtx, call, args) {

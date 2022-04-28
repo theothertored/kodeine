@@ -569,7 +569,9 @@ export class TcFunction extends KodeFunctionWithModes {
                     );
                 }
 
-                return encodeURI(text);
+                // tc(url) isn't actually suitable to encoding entire urls, only params
+                // this should probably be encodeURI instead
+                return encodeURIComponent(text);
 
             }
         );
