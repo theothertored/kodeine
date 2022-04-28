@@ -1,10 +1,10 @@
 - implement tc()
 - implement mu()
 - implement fl()
-- add a \" snippet for inserting tc(utf, 22)
-- add a \n snippet for inserting tc(utf, 0a)
 
 DONE:
+- add a \" snippet for inserting tc(utf, 22)
+- add a \n snippet for inserting tc(utf, 0a)
 - fix syntax highlighting for unquoted string arguments after a quoted string argument
 - simple negation -1 => -1.0 behaviour implementation (needs more work)
 - fix syntax highlighting for numeric constants

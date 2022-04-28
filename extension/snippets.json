@@ -1,7 +1,29 @@
 {
     "For loop": {
-        "prefix": ["fl"],
-        "body": ["fl(${1:0}, ${2:10}, ${3:\"i + 1\"}, $0)"],
+        "prefix": [
+            "fl"
+        ],
+        "body": [
+            "fl(${1:0}, ${2:10}, ${3:\"i + 1\"}, $0)"
+        ],
         "description": "A for loop"
+    },
+    "tc(utf, 0a) - new line": {
+        "prefix": [
+            "\\n"
+        ],
+        "body": [
+            "tc(utf, 0a)"
+        ],
+        "description": "A tc(utf) call returning a new line."
+    },
+    "tc(utf, 22) - quotation mark": {
+        "prefix": [
+            "\\\""
+        ],
+        "body": [
+            "tc(utf, 22)"
+        ],
+        "description": "A tc(utf) call returning a quotation mark (\")."
     }
 }
