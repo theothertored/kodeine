@@ -26,7 +26,7 @@ export class NegationOperator extends IUnaryOperator {
             evalCtx.sideEffects.warnings.push(new UnaryMinusStringModeWarning(operation));
 
             // the argument is not numeric, panic
-            // ...no, really, this is what kustom does
+            // ...no, really, this is what Kustom does
             // -abc => abc-null
             return new KodeValue(a.text + '-null', operation.source);
 

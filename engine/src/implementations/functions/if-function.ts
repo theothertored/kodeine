@@ -3,7 +3,7 @@ import { EvaluationContext } from "../../evaluables/evaluation-context.js";
 import { InvalidArgumentCountError } from "../../errors.js";
 import { FunctionCall } from "../../evaluables/function-call.js";
 
-/** Implementation of kustom's `if()` function. */
+/** Implementation of Kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
     getName() { return 'if'; }
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {

@@ -265,7 +265,7 @@ export class KodeineLexer implements FormulaTokenLexer {
                 if (initiallyMatchingOperatorSymbols.length > 0) {
 
                     // found at least one operator with first char matching
-                    // with kustom's default set of operators, there are no two multi-char operators with the same first character
+                    // with Kustom's default set of operators, there are no two multi-char operators with the same first character
                     // so there's always going to be one matching operator at most
                     // but since I made this pretty extensible, it should work regardless of how many operators match
 
@@ -296,7 +296,7 @@ export class KodeineLexer implements FormulaTokenLexer {
                     } else {
 
                         // matched first character of operator, but not the entire operator
-                        // with kustom's default set of operators that means ~ or ! (problematic characters)
+                        // with Kustom's default set of operators that means ~ or ! (problematic characters)
                         // those chars are treated like value tokens all by themselves, 
                         // by which I mean that they throw err: literal cannot follow another literal
                         // when next to a quoted or unquoted value.
