@@ -1,5 +1,5 @@
 import { EvaluationWarning } from "../../evaluables/evaluation-context.js";
-import { InvalidArgumentError } from "../../errors.js";
+import { InvalidArgumentError, RegexEvaluationError } from "../../errors.js";
 import { NumberToTextConverter } from "../helpers/number-to-text-converter.js";
 import { TextCapitalizer } from "../helpers/text-capitalizer.js";
 import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with-modes.js";
@@ -218,6 +218,77 @@ export class TcFunction extends KodeFunctionWithModes {
                     + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'));
             }
             return (_a = text.split(splitBy).filter(s => s !== '')[index]) !== null && _a !== void 0 ? _a : '';
+        });
+        this.mode('reg', ['txt text', 'txt pattern', 'txt replacement'], function (text, pattern, replacement) {
+            try {
+                // create a global (multi-match) pattern from the given string
+                let expr = new RegExp(pattern, 'g');
+                // the replacement in kustom is far less powerful than in JS
+                // pretty much the only thing that works is $0 to insert entire match and $1, $2 etc. to insert matched groups
+                // you can escape those $0, $1 etc. tokens with a backslash: \\
+                // backslashes are removed from the replacement, unless they are double backslashes
+                // \n, \r, \t do not work, the backslash gets removed and the letter gets printed
+                // same with $` and $' (before match and after match)
+                // JS has $& for inserting entire match, kustom uses $0 instead
+                // because of that I decided to manually handle replacing tokens in the replacement string
+                let hadErrors = false;
+                let result = text.replace(expr, (...sourceMatchArgs) => {
+                    let sourceMatchGroupCount = sourceMatchArgs.length - 3;
+                    // kustom only supports one digit capture group backreferences
+                    // $0, $1 etc. work, $10 is just $1 and character 0
+                    // this pattern should probably have \d+ instead of \d
+                    return replacement.replace(/(\\*)\$(\d)|(\\+)/g, (groupMatch, backslashes, digit) => {
+                        // start by escaping backslashes
+                        // if backslashes is undefined, the part after | matched, meaning just backslashes are matched and we can use groupMatch
+                        // alternatively, we could accept another argument, but this is more convenient
+                        backslashes !== null && backslashes !== void 0 ? backslashes : (backslashes = groupMatch);
+                        let outBackslashes = '\\'.repeat(Math.floor((backslashes !== null && backslashes !== void 0 ? backslashes : groupMatch).length / 2));
+                        if (backslashes.length % 2 === 0) {
+                            // even number of backslashes means they cancel each other out
+                            // the $0, $1 etc. token is not escaped and should be replaced
+                            // with the contents of its corresponding captured group
+                            if (digit) {
+                                // captured an unescaped $0, $1 etc. after the backslashes
+                                // replace with appropriate capture group contents
+                                let groupNumber = Number(digit);
+                                if (groupNumber > sourceMatchGroupCount) {
+                                    this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call.args[3], 'Replacement contains a reference to a group index that wasn\'t captured '
+                                        + `(captured ${sourceMatchGroupCount} group${sourceMatchGroupCount === 1 ? '' : 's'}, `
+                                        + `referenced group $${digit}). tc(reg) will return an empty string.`));
+                                    hadErrors = true;
+                                    return outBackslashes + `$${digit}`;
+                                }
+                                else {
+                                    // argument 0 is conveniently the whole match, so this should simply work
+                                    return outBackslashes + sourceMatchArgs[groupNumber];
+                                }
+                            }
+                            else {
+                                // did not capture a $0, $1 etc. after the backslashes
+                                return outBackslashes;
+                            }
+                        }
+                        else {
+                            // odd number of backslashes means they don't cancel each other out
+                            if (digit)
+                                // the last backslash escapes a $0, $1 etc. token
+                                // return backslashes plus the escaped token
+                                return outBackslashes + `$${digit}`;
+                            else
+                                // the last backslash escapes something else, ignore it
+                                return outBackslashes;
+                        }
+                    });
+                });
+                // if result had errors, return empty string
+                // this could be done using throw and catch to cut evaluation short,
+                // but it's done using a flag, so that if there are multiple errors,
+                // they will all show up as warnings immediately, instead of one after another
+                return hadErrors ? '' : result;
+            }
+            catch (err) {
+                throw new RegexEvaluationError(this.call.args[2], err.message);
+            }
         });
     }
 }
