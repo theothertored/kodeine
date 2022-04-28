@@ -5,6 +5,7 @@ import { TextCapitalizer } from "../helpers/text-capitalizer.js";
 import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with-modes.js";
 import { OrdinalSuffixHelper } from "../helpers/ordinal-suffix-helper.js";
 import { NumberToRomanConverter } from "../helpers/number-to-roman-converter.js";
+import { HtmlEntityConverter } from "../helpers/html-entitity-converter.js";
 
 /** Implementation of Kustom's tc() (text converter) function. */
 export class TcFunction extends KodeFunctionWithModes {
@@ -346,7 +347,7 @@ export class TcFunction extends KodeFunctionWithModes {
 
         this.mode('lpad',
             ['txt text', 'num targetLength', 'txt padWith?'],
-            function (text: string, targetLength: number, padWith?: string) {
+            function (text: string, targetLength: number, padWith?: string): string {
 
                 if (text.length >= targetLength) {
 
@@ -371,7 +372,7 @@ export class TcFunction extends KodeFunctionWithModes {
 
         this.mode('rpad',
             ['txt text', 'num targetLength', 'txt padWith?'],
-            function (text: string, targetLength: number, padWith?: string) {
+            function (text: string, targetLength: number, padWith?: string): string {
 
                 if (text.length >= targetLength) {
 
@@ -421,7 +422,7 @@ export class TcFunction extends KodeFunctionWithModes {
 
         this.mode('reg',
             ['txt text', 'txt pattern', 'txt replacement'],
-            function (text: string, pattern: string, replacement: string) {
+            function (text: string, pattern: string, replacement: string): string {
 
                 try {
 
@@ -528,6 +529,27 @@ export class TcFunction extends KodeFunctionWithModes {
                     throw new RegexEvaluationError(this.call.args[2], err.message);
 
                 }
+
+            }
+        );
+
+        this.mode('html',
+            ['txt text'],
+            function(text: string): string {
+                
+                this.evalCtx.sideEffects.warnings.push(
+                    new EvaluationWarning(
+                        this.call,
+                        'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'
+                    )
+                );
+                
+                // simple implementation that does the basic job
+                return text
+                    // remove <anything> in html brackets
+                    .replace(/<[^>]+?>/g, '')
+                    // convert &entities; to string
+                    .replace(/&.*?;/g, match => HtmlEntityConverter.convert(match));
 
             }
         );

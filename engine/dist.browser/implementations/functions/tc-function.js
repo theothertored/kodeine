@@ -5,6 +5,7 @@ import { TextCapitalizer } from "../helpers/text-capitalizer.js";
 import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with-modes.js";
 import { OrdinalSuffixHelper } from "../helpers/ordinal-suffix-helper.js";
 import { NumberToRomanConverter } from "../helpers/number-to-roman-converter.js";
+import { HtmlEntityConverter } from "../helpers/html-entitity-converter.js";
 /** Implementation of Kustom's tc() (text converter) function. */
 export class TcFunction extends KodeFunctionWithModes {
     getName() { return 'tc'; }
@@ -217,6 +218,9 @@ export class TcFunction extends KodeFunctionWithModes {
                 this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call.args[3], 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
                     + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'));
             }
+            // kustom skips over empty elements
+            // tc(split, aXXb, X, 1) => b instead of ""
+            // also normalize undefined to ""
             return (_a = text.split(splitBy).filter(s => s !== '')[index]) !== null && _a !== void 0 ? _a : '';
         });
         this.mode('reg', ['txt text', 'txt pattern', 'txt replacement'], function (text, pattern, replacement) {
@@ -289,6 +293,15 @@ export class TcFunction extends KodeFunctionWithModes {
             catch (err) {
                 throw new RegexEvaluationError(this.call.args[2], err.message);
             }
+        });
+        this.mode('html', ['txt text'], function (text) {
+            this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call, 'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'));
+            // simple implementation that does the basic job
+            return text
+                // remove <anything> in html brackets
+                .replace(/<[^>]+?>/g, '')
+                // convert &entities; to string
+                .replace(/&.*?;/g, match => HtmlEntityConverter.convert(match));
         });
     }
 }

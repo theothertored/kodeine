@@ -8,6 +8,7 @@ const text_capitalizer_js_1 = require("../helpers/text-capitalizer.js");
 const kode_function_with_modes_js_1 = require("./kode-function-with-modes.js");
 const ordinal_suffix_helper_js_1 = require("../helpers/ordinal-suffix-helper.js");
 const number_to_roman_converter_js_1 = require("../helpers/number-to-roman-converter.js");
+const html_entitity_converter_js_1 = require("../helpers/html-entitity-converter.js");
 /** Implementation of Kustom's tc() (text converter) function. */
 class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
     getName() { return 'tc'; }
@@ -219,6 +220,9 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[3], 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
                     + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'));
             }
+            // kustom skips over empty elements
+            // tc(split, aXXb, X, 1) => b instead of ""
+            // also normalize undefined to ""
             return text.split(splitBy).filter(s => s !== '')[index] ?? '';
         });
         this.mode('reg', ['txt text', 'txt pattern', 'txt replacement'], function (text, pattern, replacement) {
@@ -291,6 +295,15 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             catch (err) {
                 throw new errors_js_1.RegexEvaluationError(this.call.args[2], err.message);
             }
+        });
+        this.mode('html', ['txt text'], function (text) {
+            this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call, 'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'));
+            // simple implementation that does the basic job
+            return text
+                // remove <anything> in html brackets
+                .replace(/<[^>]+?>/g, '')
+                // convert &entities; to string
+                .replace(/&.*?;/g, match => html_entitity_converter_js_1.HtmlEntityConverter.convert(match));
         });
     }
 }
