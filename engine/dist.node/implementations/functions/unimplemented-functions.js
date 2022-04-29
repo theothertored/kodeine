@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TimerUtilsFunction = exports.DateParserFunction = exports.MathUtilsFunction = exports.FitnessDataFunction = exports.AstronomicalInfoFunction = exports.CalendarEventFunction = exports.UnreadCounterFunction = exports.TimeSpanFunction = exports.WeatherForecastFunction = exports.MusicInfoFunction = exports.DateFormatFunction = exports.ForLoopFunction = exports.BroadcastReceiverFunction = exports.ColorMakerFunction = exports.BitmapPaletteFunction = exports.TrafficStatsFunction = exports.MusicQueueFunction = exports.SystemInfoFunction = exports.BatteryInfoFunction = exports.CurrentWeatherFunction = exports.ShellCommandFunction = exports.GlobalVariableFunction = exports.ColorEditorFunction = exports.ResourceMonitorFunction = exports.WebGetFunction = exports.SystemNotificationsFunction = exports.NetworkConnectivityFunction = exports.AirQualityFunction = exports.LocationInfoFunction = void 0;
+exports.TimerUtilsFunction = exports.DateParserFunction = exports.FitnessDataFunction = exports.AstronomicalInfoFunction = exports.CalendarEventFunction = exports.UnreadCounterFunction = exports.TimeSpanFunction = exports.WeatherForecastFunction = exports.MusicInfoFunction = exports.DateFormatFunction = exports.ForLoopFunction = exports.BroadcastReceiverFunction = exports.ColorMakerFunction = exports.BitmapPaletteFunction = exports.TrafficStatsFunction = exports.MusicQueueFunction = exports.SystemInfoFunction = exports.BatteryInfoFunction = exports.CurrentWeatherFunction = exports.ShellCommandFunction = exports.GlobalVariableFunction = exports.ColorEditorFunction = exports.ResourceMonitorFunction = exports.WebGetFunction = exports.SystemNotificationsFunction = exports.NetworkConnectivityFunction = exports.AirQualityFunction = exports.LocationInfoFunction = void 0;
 const base_js_1 = require("../../base.js");
 const errors_js_1 = require("../../errors.js");
 // this file contains classes for functions that have not been implemented yet.
@@ -187,13 +187,6 @@ class FitnessDataFunction extends base_js_1.IKodeFunction {
     }
 }
 exports.FitnessDataFunction = FitnessDataFunction;
-class MathUtilsFunction extends base_js_1.IKodeFunction {
-    getName() { return 'mu'; }
-    call(evalCtx, call, args) {
-        throw new errors_js_1.EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-exports.MathUtilsFunction = MathUtilsFunction;
 class DateParserFunction extends base_js_1.IKodeFunction {
     getName() { return 'dp'; }
     call(evalCtx, call, args) {

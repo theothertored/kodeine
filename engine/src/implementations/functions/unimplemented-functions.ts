@@ -188,13 +188,6 @@ export class FitnessDataFunction extends IKodeFunction {
     }
 }
 
-export class MathUtilsFunction extends IKodeFunction {
-    getName() { return 'mu'; }
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-
 export class DateParserFunction extends IKodeFunction {
     getName() { return 'dp'; }
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {

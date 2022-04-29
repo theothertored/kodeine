@@ -7,6 +7,7 @@ const UnimplementedFunctions = require("../implementations/functions/unimplement
 const UnaryOperators = require("../implementations/operators/unary-operators.js");
 const BinaryOperators = require("../implementations/operators/binary-operators.js");
 const tc_function_js_1 = require("../implementations/functions/tc-function.js");
+const mu_function_js_1 = require("../implementations/functions/mu-function.js");
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -139,6 +140,7 @@ class ParsingContextBuilder {
     addDefaults() {
         this.add(if_function_js_1.IfFunction)
             .add(tc_function_js_1.TcFunction)
+            .add(mu_function_js_1.MuFunction)
             .addFromModule(UnimplementedFunctions)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);

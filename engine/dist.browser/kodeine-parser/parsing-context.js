@@ -4,6 +4,7 @@ import * as UnimplementedFunctions from "../implementations/functions/unimplemen
 import * as UnaryOperators from "../implementations/operators/unary-operators.js";
 import * as BinaryOperators from "../implementations/operators/binary-operators.js";
 import { TcFunction } from "../implementations/functions/tc-function.js";
+import { MuFunction } from "../implementations/functions/mu-function.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -138,6 +139,7 @@ export class ParsingContextBuilder {
     addDefaults() {
         this.add(IfFunction)
             .add(TcFunction)
+            .add(MuFunction)
             .addFromModule(UnimplementedFunctions)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);

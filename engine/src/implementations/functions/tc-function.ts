@@ -9,8 +9,8 @@ import { HtmlEntityConverter } from "../helpers/html-entitity-converter.js";
 
 /** Implementation of Kustom's tc() (text converter) function. */
 export class TcFunction extends KodeFunctionWithModes {
-
     getName() { return 'tc'; }
+
 
     /** Shared part of implementation for tc(cut) and tc(ell). */
     private static _cut(text: string, startOrLength: number, length?: number): string {

@@ -5,7 +5,9 @@ import { FunctionCall } from "../../evaluables/function-call.js";
 
 /** Implementation of Kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
+    
     getName() { return 'if'; }
+
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
 
         // require at least two arguments (one condition and one value)

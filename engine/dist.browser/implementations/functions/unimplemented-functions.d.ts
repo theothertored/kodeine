@@ -105,10 +105,6 @@ export declare class FitnessDataFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 }
-export declare class MathUtilsFunction extends IKodeFunction {
-    getName(): string;
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
-}
 export declare class DateParserFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
