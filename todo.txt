@@ -1,8 +1,8 @@
-- implement tc()
 - implement mu()
 - implement fl()
 
 DONE:
+- implement tc()
 - add a \" snippet for inserting tc(utf, 22)
 - add a \n snippet for inserting tc(utf, 0a)
 - fix syntax highlighting for unquoted string arguments after a quoted string argument

@@ -139,7 +139,7 @@ export class KodeValue extends Evaluable {
 
             // the value is a string, try to parse as number
             this.text = value;
-            this.numericValue = value ? Number(value) : NaN; // Number('') = 0, so an additional check is needed
+            this.numericValue = value?.trim() ? Number(value) : NaN; // Number('[empty or whitespace]') = 0, so an additional check is needed
             this.isNumeric = !isNaN(this.numericValue);
 
         } else if (typeof value === 'number') {

@@ -294,7 +294,7 @@ export class TcFunction extends KodeFunctionWithModes {
                 throw new RegexEvaluationError(this.call.args[2], err.message);
             }
         });
-        // TODO: implement accurately at some point
+        // TODO: maybe implement accurately at some point
         this.mode('html', ['txt text'], function (text) {
             this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call, 'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'));
             // simple implementation that does the basic job
@@ -304,12 +304,91 @@ export class TcFunction extends KodeFunctionWithModes {
                 // convert &entities; to string
                 .replace(/&.*?;/g, match => HtmlEntityConverter.convert(match));
         });
-        // TODO: implement accurately at some point
+        // TODO: maybe implement accurately at some point
         this.mode('url', ['txt text', 'txt encoding?'], function (text, encoding) {
             if (encoding) {
                 this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call.args[2], 'This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error.'));
             }
+            // tc(url) isn't actually suitable to encoding entire urls, only params
+            // this should probably be encodeURI instead
             return encodeURIComponent(text);
+        });
+        this.mode('nfmt', ['txt text'], function (text) {
+            if (/\.\.+/.test(text)) {
+                // check for multiple points because kustom does for some reason
+                this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call.args[1], 'Kustom will throw "multiple points" when there are two or more consecutive points (.) anywhere in the input string. This does not seem to affect further evaluation.'));
+                return '';
+            }
+            // capture numbers
+            let expr = /-?(\d+\.?\d*|\d*\.?\d+)/g;
+            // replace each number occurence
+            return text.replace(expr, match => {
+                // parse as number (should never be an invalid number if it matches the pattern)
+                let num = Number(match);
+                if (isNaN(num)) {
+                    // if the number somehow is invalid, add a warning and don't replace
+                    this.evalCtx.sideEffects.warnings.push(new EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+                    return match;
+                }
+                else {
+                    return num.toLocaleString();
+                }
+            });
+        });
+        this.mode('lines', ['txt text'], function (text) {
+            // even empty string counts as one line
+            let count = 1;
+            // hold the index to start searching from
+            let currentPos = 0;
+            while (currentPos != -1) {
+                // look for the next newline character
+                currentPos = text.indexOf('\n', currentPos);
+                if (currentPos >= 0) {
+                    // newline found, increase count and start next search after it
+                    count++;
+                    currentPos++;
+                }
+            }
+            return count;
+        });
+        this.mode('type', ['txt text'], function (text) {
+            if (!text || !text.trim()) {
+                // as a start, make sure the text isn't empty or whitespace
+                return 'LATIN';
+            }
+            else {
+                let num = Number(text);
+                if (!isNaN(num)) {
+                    return 'NUMBER';
+                }
+                // https://stackoverflow.com/questions/4446244/how-to-check-if-any-arabic-character-exists-in-the-string-javascript
+                else if (/[\u0600-\u06FF]/.test(text)) {
+                    return 'ARABIC';
+                }
+                // https://stackoverflow.com/questions/26846663/detect-russian-cyrillic-in-javascript-string
+                else if (/[\u0400-\u04FF]/.test(text)) {
+                    return 'CYRILLIC';
+                }
+                // https://stackoverflow.com/questions/50320061/how-can-i-validate-greek-characters-in-javascript
+                else if (/[\u0370-\u03FF\u1F00-\u1FFF]/.test(text)) {
+                    return 'GREEK';
+                }
+                // japanese stuff:
+                // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
+                else if (/[\u3040-\u309f]/.test(text)) {
+                    return 'HIRAGANA';
+                }
+                else if (/[\u30a0-\u30ff\uff00-\uff9f]/.test(text)) {
+                    return 'KATAKANA';
+                }
+                else if (/[\u4e00-\u9faf\u3400-\u4dbf]/.test(text)) {
+                    return 'CJK';
+                }
+                else {
+                    // consider everything else latin by default
+                    return 'LATIN';
+                }
+            }
         });
     }
 }
