@@ -3,14 +3,14 @@
 	"name": "Kode (Kustom formula)",
 	"patterns": [
 		{
-			"include": "#evaluated-parts"
+			"include": "#evaluated-part"
 		},
 		{
 			"include": "#escaped-dollar"
 		}
 	],
 	"repository": {
-		"evaluated-parts": {
+		"evaluated-part": {
 			"name": "meta.evaluated.kode",
 			"begin": "\\$(?!\\$)",
 			"beginCaptures": {
@@ -26,29 +26,116 @@
 			},
 			"patterns": [
 				{
-					"name": "string.quoted.double.kode",
-					"begin": "\"",
-					"end": "\""
+					"include": "#expression"
+				}
+			]
+		},
+		"quoted-string": {
+			"name": "string.quoted.double.kode",
+			"begin": "\"",
+			"beginCaptures": {
+				"0": {
+					"name": "punctuation.definition.string.begin.kode"
+				}
+			},
+			"end": "\"",
+			"endCaptures": {
+				"0": {
+					"name": "punctuation.definition.string.end.kode"
+				}
+			}
+		},
+		"unquoted-string": {
+			"name": "string.unquoted.kode",
+			"match": "(?<=[\\^*/%+\\-=!<>~|&$(),]\\s*)[^\"\\s]+?(\\s+\\S+)*?(?=\\s*[\\^*/%+\\-=!<>~|&$(),\"]|\\s*\\S+\\s*\\()"
+		},
+		"problematic-char": {
+			"name": "constant.character.kode",
+			"match": "[!~](?!=)"
+		},
+		"numeric-literal": {
+			"name": "constant.numeric.kode",
+			"match": "(?<=[\\^*/%+\\-=!<>~|&$(),]\\s*)(\\d+\\.?\\d*|\\.\\d+)(?=\\s*[\\^*/%+\\-=!<>~|&$(),\"]|\\s*\\S+\\s*\\()"
+		},
+		"operator": {
+			"name": "keyword.operator.kode",
+			"match": "(\\+|\\*|%|-|/|\\^|[!~<>]?=|<|>)"
+		},
+		"function-call": {
+			"name": "meta.function.call.kode",
+			"begin": "([a-z]{2})\\s*?(\\()",
+			"beginCaptures": {
+				"1": {
+					"name": "entity.name.function.kode"
+				},
+				"2": {
+					"name": "meta.braces.round.kode"
+				}
+			},
+			"end": "\\)",
+			"endCaptures": {
+				"0": {
+					"name": "meta.braces.round.kode"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#argument"
 				},
 				{
-					"name": "entity.name.function.kode",
-					"match": "[a-z]{2}\\s*(?=\\()"
+					"name": "punctuation.separator.comma.kode",
+					"match": ","
+				}
+			]
+		},
+		"subexpression": {
+			"name": "meta.subexpression.kode",
+			"begin": "\\(",
+			"end": "\\)",
+			"captures": {
+				"0": {
+					"name": "meta.braces.round.kode"
+				}
+			},
+			"patterns": [
+				{
+					"include": "#expression"
+				}
+			]
+		},
+		"argument": {
+			"name": "meta.function.argument",
+			"begin": "(?<=\\(\\s*|,\\s*)",
+			"end": "(?=,\\s*|\\s*\\))",
+			"patterns": [
+				{
+					"include": "#expression"
+				}
+			]
+		},
+		"expression": {
+			"name": "meta.expression.kode",
+			"patterns": [
+				{
+					"include": "#quoted-string"
 				},
 				{
-					"name": "keyword.operator.kode",
-					"match": "(\\+|\\*|%|-|/|\\^|[!~<>]?=|<|>)"
+					"include": "#function-call"
 				},
 				{
-					"name": "constant.character.kode",
-					"match": "[!~](?!=)"
+					"include": "#subexpresion"
 				},
 				{
-					"name": "constant.numeric.kode",
-					"match": "(?<=[\\^\\*\\/%\\+\\-=!<>~\\|&\\$(),])\\s*(\\d+\\.?\\d*|\\d*\\.?\\d+)\\s*(?=[\\^\\*\\/%\\+\\-=!<>~\\|&\\$(),])"
+					"include": "#operator"
 				},
 				{
-					"name": "string.unquoted.kode",
-					"match": "(?<=[\\^\\*\\/%\\+\\-=!<>~\\|&\\$(),])\\s*[^\"]*?\\s*(?=[\\^\\*\\/%\\+\\-=!<>~\\|&\\$(),])"
+					"include": "#problematic-char"
+				},
+				{
+					"include": "#numeric-literal"
+				},
+				{
+					"include": "#unquoted-string"
 				}
 			]
 		},

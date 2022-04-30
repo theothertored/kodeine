@@ -1,6 +1,7 @@
-- fix syntax highlighting (again)
+- step by step?
 
 DONE:
+- fix syntax highlighting (again) (turned into a complete grammar overhaul)
 - implement fl()
 - implement mu(min) and mu(max) (support an array of remaining arguments)
 - make evaluation errors return empty string and continue instead of throwing completely
