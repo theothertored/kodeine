@@ -25,5 +25,23 @@
             "tc(utf, 22)"
         ],
         "description": "A tc(utf) call returning a quotation mark (\")."
+    },
+    "tc(utf, 20) - space": {
+        "prefix": [
+            "\\ "
+        ],
+        "body": [
+            "tc(utf, 20)"
+        ],
+        "description": "A tc(utf) call returning a space."
+    },
+    "tc(utf, 2c) - comma": {
+        "prefix": [
+            "\\,"
+        ],
+        "body": [
+            "tc(utf, 2c)"
+        ],
+        "description": "A tc(utf) call returning a comma."
     }
 }
