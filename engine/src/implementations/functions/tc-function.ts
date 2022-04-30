@@ -1,5 +1,5 @@
 import { EvaluationWarning } from "../../evaluables/evaluation-context.js";
-import { InvalidArgumentError, RegexEvaluationError } from "../../errors.js";
+import { EvaluationError, InvalidArgumentError, RegexEvaluationError } from "../../errors.js";
 import { NumberToTextConverter } from "../helpers/number-to-text-converter.js";
 import { TextCapitalizer } from "../helpers/text-capitalizer.js";
 import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with-modes.js";
@@ -115,11 +115,9 @@ export class TcFunction extends KodeFunctionWithModes {
 
                 if (text === '') {
 
-                    this.evalCtx.sideEffects.warnings.push(
-                        new EvaluationWarning(
-                            this.call.args[1],
-                            'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'
-                        )
+                    throw new InvalidArgumentError(
+                        'tc(cap)', 'text', 1, this.call.args[1], text,
+                        'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'
                     );
 
                 }
@@ -402,14 +400,12 @@ export class TcFunction extends KodeFunctionWithModes {
                 if (index < 0) {
 
                     // Kustom throws an error for indices less than 0 but not for indices greater than array length
-                    this.evalCtx.sideEffects.warnings.push(
-                        new EvaluationWarning(
-                            this.call.args[3],
-                            'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
-                            + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'
-                        )
+                    throw new InvalidArgumentError(
+                        'tc(split)', 'index', 3, this.call.args[3], index,
+                        'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). '
+                        + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'
                     );
-
+                    
                 }
 
                 // Kustom skips over empty elements
@@ -472,8 +468,11 @@ export class TcFunction extends KodeFunctionWithModes {
 
                                     if (groupNumber > sourceMatchGroupCount) {
 
-                                        this.evalCtx.sideEffects.warnings.push(
-                                            new EvaluationWarning(
+                                        // this could throw, but that would only show one error at a time
+                                        // instead we collect all errors, set a flag and return empty string
+                                        // at the end if the flag was set
+                                        this.evalCtx.sideEffects.errors.push(
+                                            new EvaluationError(
                                                 this.call.args[3],
                                                 'Replacement contains a reference to a group index that wasn\'t captured '
                                                 + `(captured ${sourceMatchGroupCount} group${sourceMatchGroupCount === 1 ? '' : 's'}, `
@@ -561,12 +560,14 @@ export class TcFunction extends KodeFunctionWithModes {
             function (text: string, encoding?: string): string {
 
                 if (encoding) {
+
                     this.evalCtx.sideEffects.warnings.push(
                         new EvaluationWarning(
                             this.call.args[2],
                             'This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error.'
                         )
                     );
+                    
                 }
 
                 // tc(url) isn't actually suitable to encoding entire urls, only params
@@ -584,15 +585,11 @@ export class TcFunction extends KodeFunctionWithModes {
 
                     // check for multiple points because kustom does for some reason
 
-                    this.evalCtx.sideEffects.warnings.push(
-                        new EvaluationWarning(
-                            this.call.args[1],
-                            'Kustom will throw "multiple points" when there are two or more consecutive points (.) anywhere in the input string. This does not seem to affect further evaluation.'
-                        )
+                    throw new InvalidArgumentError(
+                        'tc(nmft)', 'text', 1, this.call.args[1], text,
+                        'Kustom throws "tc: multiple points" when there are two or more consecutive points (.) anywhere in the input string.'
                     );
-
-                    return '';
-
+                    
                 }
 
                 // capture numbers

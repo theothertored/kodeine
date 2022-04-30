@@ -73,7 +73,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         });
         this.mode('cap', ['txt text'], function (text) {
             if (text === '') {
-                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.'));
+                throw new errors_js_1.InvalidArgumentError('tc(cap)', 'text', 1, this.call.args[1], text, 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.');
             }
             // Kustom only capitalizes letters at the start of the string and after spaces
             // more about this in TextCapitalizer
@@ -217,8 +217,8 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         this.mode('split', ['txt text', 'txt splitBy', 'num index'], function (text, splitBy, index) {
             if (index < 0) {
                 // Kustom throws an error for indices less than 0 but not for indices greater than array length
-                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[3], 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). This does not seem to affect further evaluation. '
-                    + 'Note that this does not happen when the passed index is greater than or equal to [split element count].'));
+                throw new errors_js_1.InvalidArgumentError('tc(split)', 'index', 3, this.call.args[3], index, 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). '
+                    + 'Note that this does not happen when the passed index is greater than or equal to [split element count].');
             }
             // Kustom skips over empty elements
             // tc(split, aXXb, X, 1) => b instead of ""
@@ -258,7 +258,10 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                                 // replace with appropriate capture group contents
                                 let groupNumber = Number(digit);
                                 if (groupNumber > sourceMatchGroupCount) {
-                                    this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[3], 'Replacement contains a reference to a group index that wasn\'t captured '
+                                    // this could throw, but that would only show one error at a time
+                                    // instead we collect all errors, set a flag and return empty string
+                                    // at the end if the flag was set
+                                    this.evalCtx.sideEffects.errors.push(new errors_js_1.EvaluationError(this.call.args[3], 'Replacement contains a reference to a group index that wasn\'t captured '
                                         + `(captured ${sourceMatchGroupCount} group${sourceMatchGroupCount === 1 ? '' : 's'}, `
                                         + `referenced group $${digit}). tc(reg) will return an empty string.`));
                                     hadErrors = true;
@@ -318,8 +321,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         this.mode('nfmt', ['txt text'], function (text) {
             if (/\.\.+/.test(text)) {
                 // check for multiple points because kustom does for some reason
-                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], 'Kustom will throw "multiple points" when there are two or more consecutive points (.) anywhere in the input string. This does not seem to affect further evaluation.'));
-                return '';
+                throw new errors_js_1.InvalidArgumentError('tc(nmft)', 'text', 1, this.call.args[1], text, 'Kustom throws "tc: multiple points" when there are two or more consecutive points (.) anywhere in the input string.');
             }
             // capture numbers
             let expr = /-?(\d+\.?\d*|\d*\.?\d+)/g;

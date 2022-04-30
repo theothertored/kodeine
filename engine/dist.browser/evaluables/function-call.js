@@ -1,4 +1,5 @@
-import { Evaluable } from "../base.js";
+import { Evaluable, KodeValue } from "../base.js";
+import { EvaluationError } from "../errors.js";
 /** A function call, consisting of a kode function being called and arguments for the call. */
 export class FunctionCall extends Evaluable {
     /**
@@ -13,8 +14,22 @@ export class FunctionCall extends Evaluable {
         this.args = args;
     }
     evaluate(evalCtx) {
-        // call the function with an array of values acquired by evaluating all arguments
-        return this.func.call(evalCtx, this, this.args.map(a => a.evaluate(evalCtx)));
+        try {
+            // call the function with an array of values acquired by evaluating all arguments
+            return this.func.call(evalCtx, this, this.args.map(a => a.evaluate(evalCtx)));
+        }
+        catch (err) {
+            if (err instanceof EvaluationError) {
+                // add error to evaluation side effects
+                evalCtx.sideEffects.errors.push(err);
+                // return empty string from the function call
+                return new KodeValue('', this.source);
+            }
+            else {
+                // rethrow other errors (crashes)
+                throw err;
+            }
+        }
     }
 }
 //# sourceMappingURL=function-call.js.map

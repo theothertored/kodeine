@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MuFunction = void 0;
 const errors_js_1 = require("../../errors.js");
 const kode_function_with_modes_js_1 = require("./kode-function-with-modes.js");
+/** Implementation of Kustom's mu() (math utilities) function. */
 class MuFunction extends kode_function_with_modes_js_1.FunctionWithModes {
     getName() { return 'mu'; }
     singleArgMode(name, func) {
