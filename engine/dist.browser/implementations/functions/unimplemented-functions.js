@@ -104,12 +104,6 @@ export class BroadcastReceiverFunction extends IKodeFunction {
         throw new EvaluationError(call, 'This function isn\'t implemented yet.');
     }
 }
-export class ForLoopFunction extends IKodeFunction {
-    getName() { return 'fl'; }
-    call(evalCtx, call, args) {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
 export class DateFormatFunction extends IKodeFunction {
     getName() { return 'df'; }
     call(evalCtx, call, args) {

@@ -4,10 +4,17 @@ exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.Evalua
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 class EvaluationContext {
     constructor() {
+        this.iReplacement = null;
         this.sideEffects = new EvaluationSideEffects();
     }
     clearSideEffects() {
         this.sideEffects = new EvaluationSideEffects();
+    }
+    clone() {
+        let newCtx = new EvaluationContext();
+        // copy properties to make a clone
+        newCtx.iReplacement = this.iReplacement;
+        return newCtx;
     }
 }
 exports.EvaluationContext = EvaluationContext;

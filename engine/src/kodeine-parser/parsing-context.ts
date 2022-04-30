@@ -6,6 +6,7 @@ import * as BinaryOperators from "../implementations/operators/binary-operators.
 import { TcFunction } from "../implementations/functions/tc-function.js";
 import { KodeParsingError } from "../errors.js";
 import { MuFunction } from "../implementations/functions/mu-function.js";
+import { FlFunction } from "../implementations/functions/fl-function.js";
 
 /** 
  * Exposes function and operator implementations. 
@@ -185,10 +186,11 @@ export class ParsingContextBuilder {
      */
     addDefaults(): ParsingContextBuilder {
 
-        this.add(IfFunction)
+        this.addFromModule(UnimplementedFunctions)
+            .add(IfFunction)
             .add(TcFunction)
             .add(MuFunction)
-            .addFromModule(UnimplementedFunctions)
+            .add(FlFunction)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);
 

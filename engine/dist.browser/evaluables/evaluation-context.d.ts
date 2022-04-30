@@ -1,11 +1,13 @@
-import { Evaluable } from "../base.js";
+import { Evaluable, KodeValue } from "../base.js";
 import { EvaluationError } from "../errors.js";
 import { UnaryOperation } from "./unary-operation.js";
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export declare class EvaluationContext {
     sideEffects: EvaluationSideEffects;
+    iReplacement: KodeValue | null;
     constructor();
     clearSideEffects(): void;
+    clone(): EvaluationContext;
 }
 /** Holds all side effects produced during evaluation. */
 export declare class EvaluationSideEffects {

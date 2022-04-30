@@ -79,12 +79,7 @@ class EqualityOperator extends base_js_1.IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
-        if (a.isNumeric && b.isNumeric)
-            return new base_js_1.KodeValue(a.numericValue == b.numericValue, operation.source);
-        else if (a.isNumeric || b.isNumeric)
-            return new base_js_1.KodeValue(0, operation.source);
-        else
-            return new base_js_1.KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase(), operation.source);
+        return new base_js_1.KodeValue(a.equals(b), operation.source);
     }
 }
 exports.EqualityOperator = EqualityOperator;

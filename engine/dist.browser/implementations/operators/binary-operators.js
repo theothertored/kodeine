@@ -70,12 +70,7 @@ export class EqualityOperator extends IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
-        if (a.isNumeric && b.isNumeric)
-            return new KodeValue(a.numericValue == b.numericValue, operation.source);
-        else if (a.isNumeric || b.isNumeric)
-            return new KodeValue(0, operation.source);
-        else
-            return new KodeValue(a.text.trim().toLowerCase() == b.text.trim().toLowerCase(), operation.source);
+        return new KodeValue(a.equals(b), operation.source);
     }
 }
 export class InequalityOperator extends IBinaryOperator {

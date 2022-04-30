@@ -77,6 +77,8 @@ export declare class KodeValue extends Evaluable {
     readonly text: string;
     /** Whether the value is numeric. */
     readonly isNumeric: boolean;
+    /** Whether the value is a string containing only i. Should only be set if true. */
+    readonly isI: boolean | undefined;
     /** Value as number. {@link NaN} if the value is not numeric. */
     readonly numericValue: number;
     /**
@@ -88,6 +90,8 @@ export declare class KodeValue extends Evaluable {
      */
     constructor(value: ConvertibleToKodeValue, source?: EvaluableSource);
     evaluate(evalCtx: EvaluationContext): KodeValue;
+    /** Checks whether this value is equal to another value. */
+    equals(other: KodeValue): boolean;
     static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue;
 }
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */

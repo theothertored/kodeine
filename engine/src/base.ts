@@ -113,6 +113,9 @@ export class KodeValue extends Evaluable {
     /** Whether the value is numeric. */
     public readonly isNumeric: boolean;
 
+    /** Whether the value is a string containing only i. Should only be set if true. */
+    public readonly isI: boolean | undefined;
+
     /** Value as number. {@link NaN} if the value is not numeric. */
     public readonly numericValue: number;
 
@@ -142,6 +145,10 @@ export class KodeValue extends Evaluable {
             this.numericValue = value?.trim() ? Number(value) : NaN; // Number('[empty or whitespace]') = 0, so an additional check is needed
             this.isNumeric = !isNaN(this.numericValue);
 
+            // only set isI if it's true
+            let isI = value.trim().toLowerCase() === 'i';
+            if (isI) this.isI = true;
+
         } else if (typeof value === 'number') {
 
             // the value is a number
@@ -151,16 +158,39 @@ export class KodeValue extends Evaluable {
 
         } else {
 
+            // the value is a KodeValue
             this.text = value.text;
             this.isNumeric = value.isNumeric;
             this.numericValue = value.numericValue;
 
         }
-        
+
     }
 
     evaluate(evalCtx: EvaluationContext): KodeValue {
-        return this;
+
+        if (evalCtx.iReplacement && this.isI)
+            // we are currently replacing i with a different value 
+            // and this value is i, return the replacement value
+            return evalCtx.iReplacement;
+
+        else
+            // return self by default
+            return this;
+
+    }
+
+    /** Checks whether this value is equal to another value. */
+    equals(other: KodeValue): boolean {
+
+        if (this.isNumeric && other.isNumeric)
+            return this.numericValue == other.numericValue;
+
+        else if (this.isNumeric || other.isNumeric)
+            return false;
+
+        else
+            return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
     }
 
     static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue {

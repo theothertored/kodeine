@@ -69,10 +69,6 @@ export declare class BroadcastReceiverFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 }
-export declare class ForLoopFunction extends IKodeFunction {
-    getName(): string;
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
-}
 export declare class DateFormatFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;

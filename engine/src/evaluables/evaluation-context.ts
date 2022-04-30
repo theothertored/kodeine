@@ -1,4 +1,4 @@
-import { Evaluable } from "../base.js";
+import { Evaluable, KodeValue } from "../base.js";
 import { EvaluationError } from "../errors.js";
 import { UnaryOperation } from "./unary-operation.js";
 
@@ -6,6 +6,7 @@ import { UnaryOperation } from "./unary-operation.js";
 export class EvaluationContext {
 
     public sideEffects: EvaluationSideEffects;
+    public iReplacement: KodeValue | null = null;
 
     constructor() {
         this.sideEffects = new EvaluationSideEffects();
@@ -15,6 +16,16 @@ export class EvaluationContext {
         this.sideEffects = new EvaluationSideEffects();
     }
 
+    clone(): EvaluationContext {
+
+        let newCtx = new EvaluationContext();
+
+        // copy properties to make a clone
+        newCtx.iReplacement = this.iReplacement;
+
+        return newCtx;
+
+    }
 }
 
 
