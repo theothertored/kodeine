@@ -84,7 +84,7 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
                 }
                 else {
                     // argument is not numeric, throw
-                    throw new errors_js_1.InvalidArgumentError(`${call.func.getName}(${modeName})`, argPatternElements.name, i, call.args[i], argValue, `Argument must be numeric.`);
+                    throw new errors_js_1.InvalidArgumentError(`${call.func.getName()}(${modeName})`, argPatternElements.name, i, call.args[i], argValue, `Argument must be numeric.`);
                 }
             default:
                 // some other type passed, crash
@@ -104,19 +104,20 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
             // we were given a mode that wasn't registered, throw
             throw new errors_js_1.InvalidArgumentError(`${call.func.getName()}()`, 'mode', 0, call.args[0], args[0], `Mode "${modeName}" not found.`);
         }
-        // check if we weren't given too many arguments according to the pattern
-        if (args.length - 1 > mode.argumentPatterns.length) {
-            throw new errors_js_1.InvalidArgumentCountError(call, `Too many arguments (expected ${mode.argumentPatterns.length} at most).`, `${call.func.getName()}(${modeName})`);
-        }
         /** A list of arguments that will be given to the mode implementation. */
         let implementationCallArgs = [];
         /**
-         * A flag holding whether there an optional argument was encountered, used to check pattern validity
+         * A flag holding whether an optional argument was encountered, used to check pattern validity
          * (all optional arguments must be at the end).
          */
         let optionalArgumentEncountered = false;
+        /**
+         * A flag holding whether a rest parameter was encountered, used to check pattern validity
+         * (if false, check if too many parameters were given)
+        */
+        let restParamEncountered = false;
         /** An expression describing a valid argument pattern, capturing useful parts into groups. */
-        const argPatternExpr = /^(\S+) ([\S]+?)(\??)$/;
+        const argPatternExpr = /^(\S+) ([\S]+?)(\?|\[(\d*)\])?$/;
         // Go through all argument patterns.
         for (let i = 0; i < mode.argumentPatterns.length; i++) {
             const argPattern = mode.argumentPatterns[i].trim();
@@ -133,27 +134,64 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
                     source: argPattern,
                     type: argPatternMatch[1],
                     name: argPatternMatch[2],
-                    isOptional: !!argPatternMatch[3] // convert to bool
+                    isOptional: argPatternMatch[3] === '?',
+                    isRest: !!argPatternMatch[3] && argPatternMatch[3] !== '?',
+                    restMinCount: Number(argPatternMatch[4])
                 };
+                // pattern validation
                 if (argPatternElements.isOptional) {
                     // mark that we found an optional argument
                     optionalArgumentEncountered = true;
+                }
+                else if (argPatternElements.isRest) {
+                    if (i < mode.argumentPatterns.length - 1) {
+                        // a rest argument has been provided as not the last argument
+                        throw new Error(`Invalid argument pattern "${argPattern}" for ${call.func.getName()}(${modeName}), argument #${i + 1} (${argPatternElements.name}): `
+                            + 'A rest parameter must be the last parameter on the list.');
+                    }
+                    restParamEncountered = true;
                 }
                 else {
                     // this is a required argument
                     if (optionalArgumentEncountered) {
                         // there was an optional argument before, crash
-                        throw new Error(`Invalid argument pattern "${argPattern}" for ${call.func.getName()}(${modeName}), argument #${i + 1}: Cannot have a required parameter after an optional parameter.`);
+                        throw new Error(`Invalid argument pattern "${argPattern}" for ${call.func.getName()}(${modeName}), argument #${i + 1} (${argPatternElements.name}): `
+                            + 'Cannot have a required parameter after an optional parameter.');
                     }
                     else if (i + 1 >= args.length) {
                         // this mode has a required argument but we ran out of given arguments, throw
-                        throw new errors_js_1.InvalidArgumentCountError(call, `Argument #${i + 1} "${argPattern}" missing.`, `${call.func.getName()}(${modeName})`);
+                        throw new errors_js_1.InvalidArgumentCountError(call, `Argument #${i + 1} (${argPatternElements.name}) missing.`, `${call.func.getName()}(${modeName})`);
                     }
                 }
-                // at this point we either have a required argument with a value, or an optional argument with or without a value
-                if (i + 1 < args.length) {
-                    // we got an argument, validate and convert it, then add to arguments for the mode implementation
-                    implementationCallArgs.push(this._validateAndConvertArg(evalCtx, call, modeName, i + 1, args[i + 1], argPatternElements));
+                // check if we weren't given too many arguments according to the pattern,
+                // only if a rest parameter wasn't encountered (if it was, we can take any number of arguments)
+                if (!restParamEncountered && args.length - 1 > mode.argumentPatterns.length) {
+                    throw new errors_js_1.InvalidArgumentCountError(call, `Too many arguments (expected ${mode.argumentPatterns.length} at most).`, `${call.func.getName()}(${modeName})`);
+                }
+                // if we got this far, the pattern was validated, convert parameters
+                if (argPatternElements.isRest) {
+                    // check how many arguments are remaining to be passed as the rest parameter
+                    let remainingParamCount = args.length - i - 1;
+                    if (argPatternElements.restMinCount && remainingParamCount < argPatternElements.restMinCount) {
+                        // not enough arguments given for the rest parameter
+                        throw new errors_js_1.InvalidArgumentCountError(call, `At least ${argPatternElements.restMinCount} argument${argPatternElements.restMinCount === 1 ? '' : 's'} required.`, `${call.func.getName()}(${modeName})`);
+                    }
+                    else {
+                        // the remaining parameters should be added to an array and passed as a rest parameter
+                        let restParam = [];
+                        // validate and add rest arguments
+                        for (let j = i + 1; j < args.length; j++) {
+                            restParam.push(this._validateAndConvertArg(evalCtx, call, modeName, j, args[j], argPatternElements));
+                        }
+                        implementationCallArgs.push(restParam);
+                    }
+                }
+                else {
+                    // at this point, we either have a required argument with a value, or an optional argument with or without a value
+                    if (i + 1 < args.length) {
+                        // we got an argument, validate and convert it, then add to arguments for the mode implementation
+                        implementationCallArgs.push(this._validateAndConvertArg(evalCtx, call, modeName, i + 1, args[i + 1], argPatternElements));
+                    }
                 }
             }
         }

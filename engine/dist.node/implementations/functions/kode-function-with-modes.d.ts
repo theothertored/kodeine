@@ -7,9 +7,11 @@ declare type ArgPatternElements = {
     type: string;
     name: string;
     isOptional: boolean;
+    isRest: boolean;
+    restMinCount: number;
 };
-/** An internal type describing the types of arguments that a mode implementation function can take. */
-declare type ModeImplementationFunctionArg = (string | number | KodeValue);
+/** An internal type describing a primitive that can be validated and passed to a mode implementation function. */
+declare type ModeImplementationFunctionArgPrimitive = string | number | KodeValue;
 /**
  * An internal type describing a mode implementation function that has {@link ModeImplementationFunctionContext} as its `this`
  * and returns something that can be converted to a {@link KodeValue}.
@@ -63,7 +65,7 @@ export declare abstract class FunctionWithModes extends IKodeFunction {
      * @param argValue The input {@link KodeValue} resulting from evaluating the argument.
      * @param argPatternElements The argument pattern, split into useful parts.
      */
-    protected _validateAndConvertArg(evalCtx: EvaluationContext, call: FunctionCall, modeName: string, i: number, argValue: KodeValue, argPatternElements: ArgPatternElements): ModeImplementationFunctionArg;
+    protected _validateAndConvertArg(evalCtx: EvaluationContext, call: FunctionCall, modeName: string, i: number, argValue: KodeValue, argPatternElements: ArgPatternElements): ModeImplementationFunctionArgPrimitive;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 }
 export {};

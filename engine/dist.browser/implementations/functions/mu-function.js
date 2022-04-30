@@ -25,27 +25,19 @@ export class MuFunction extends FunctionWithModes {
                 }
             }
         });
-        // TODO
-        // this.mode('min',
-        //     ['num values...'],
-        //     function (number: number, decimals?: number) {
-        //         return 0;
-        //     }
-        // );
-        // TODO
-        // this.mode('max',
-        //     ['num values...'],
-        //     function (number: number, decimals?: number) {
-        //         return 0;
-        //     }
-        // );
+        this.mode('min', ['num values[2]'], function (values) {
+            return Math.min(...values);
+        });
+        this.mode('max', ['num values[2]'], function (values) {
+            return Math.max(...values);
+        });
         this.singleArgMode('abs', Math.abs);
-        this.singleArgMode('cos', (number) => Math.cos(number / 180 * Math.PI));
-        this.singleArgMode('sin', (number) => Math.sin(number / 180 * Math.PI));
-        this.singleArgMode('tan', (number) => Math.tan(number / 180 * Math.PI));
-        this.singleArgMode('acos', (number) => Math.acos(number) / Math.PI * 180);
-        this.singleArgMode('asin', (number) => Math.asin(number) / Math.PI * 180);
-        this.singleArgMode('atan', (number) => Math.atan(number) / Math.PI * 180);
+        this.singleArgMode('cos', n => Math.cos(n / 180 * Math.PI));
+        this.singleArgMode('sin', n => Math.sin(n / 180 * Math.PI));
+        this.singleArgMode('tan', n => Math.tan(n / 180 * Math.PI));
+        this.singleArgMode('acos', n => Math.acos(n) / Math.PI * 180);
+        this.singleArgMode('asin', n => Math.asin(n) / Math.PI * 180);
+        this.singleArgMode('atan', n => Math.atan(n) / Math.PI * 180);
         this.singleArgMode('log', Math.log10);
         this.mode('pow', ['num number', 'num exponent'], function (number, exponent) {
             return Math.pow(number, exponent);

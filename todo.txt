@@ -1,8 +1,8 @@
-- implement mu(min) and mu(max) (support an array of remaining arguments)
 - implement fl()
-- make evaluation errors return empty string and continue instead of throwing completely
 
 DONE:
+- implement mu(min) and mu(max) (support an array of remaining arguments)
+- make evaluation errors return empty string and continue instead of throwing completely
 - implement mu()
 - implement tc()
 - add a \" snippet for inserting tc(utf, 22)
