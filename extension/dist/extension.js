@@ -42,6 +42,10 @@ function activate(extCtx) {
         if (ev?.document?.languageId === 'kode')
             evaluateToOutput(ev.document);
     }));
+    // listen to the command for opening the formula result window
+    extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.formulaResult', () => {
+        outChannel.show(true);
+    }));
 }
 exports.activate = activate;
 function evaluateToOutput(document) {

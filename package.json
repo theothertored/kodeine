@@ -44,7 +44,7 @@
         "commands": [
             {
                 "command": "kodeine.formulaResult",
-                "title": "Open formula result window"
+                "title": "Show formula result window"
             }
         ],
         "menus": {

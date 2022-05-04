@@ -62,6 +62,13 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
     }));
 
+    // listen to the command for opening the formula result window
+    extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.formulaResult', () => {
+
+        outChannel.show(true);
+
+    }));
+
 }
 
 function evaluateToOutput(document: vscode.TextDocument) {
