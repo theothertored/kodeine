@@ -1,0 +1,11 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "./dist.node",
+    },
+    "references": [
+        {
+            "path": "../engine/tsconfig.node.json"
+        }
+    ]
+}

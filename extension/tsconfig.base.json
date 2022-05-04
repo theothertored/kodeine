@@ -7,15 +7,9 @@
             "es2020"
         ],
         "strict": true,
-        "outDir": "./dist",
         "rootDir": "./src"
     },
     "include": [
         "src/**/*.ts"
-    ],
-    "references": [
-        {
-            "path": "../engine/tsconfig.node.json"
-        }
     ]
 }

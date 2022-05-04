@@ -10,7 +10,10 @@
             "path": "./engine/tsconfig.node.json"
         },
         {
-            "path": "./extension"
+            "path": "./extension/tsconfig.browser.json"
+        },
+        {
+            "path": "./extension/tsconfig.node.json"
         },
         {
             "path": "./test_page"

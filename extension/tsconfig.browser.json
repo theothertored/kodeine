@@ -1,0 +1,11 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "outDir": "./dist.browser"
+    },
+    "references": [
+        {
+            "path": "../engine/tsconfig.browser.json"
+        }
+    ]
+}

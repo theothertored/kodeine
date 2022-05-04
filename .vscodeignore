@@ -1,0 +1,12 @@
+# ignore the design folder (also excluded from github)
+/design
+
+# ignore entire test page folder
+/test_page
+
+# ignore typescript and tsconfig files
+**/*.ts
+**/tsconfig.json
+
+# ignore todo
+todo.txt

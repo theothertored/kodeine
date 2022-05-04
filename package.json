@@ -13,7 +13,8 @@
     "activationEvents": [
         "onLanguage:kode"
     ],
-    "main": "./extension/dist/extension.js",
+    "main": "./extension/dist.node/extension.js",
+    "browser": "./extension/dist.browser/extension.js",
     "contributes": {
         "languages": [
             {

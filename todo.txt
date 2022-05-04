@@ -1,4 +1,13 @@
-- step by step evaluation?
+TODO:
+- make the extension work in browser
+- implement globals
+- publish repo to github
+- add github link to package.json
+- create readme for github and the vscode marketplace
+- publish as alpha
+
+MAYBE:
+- step by step evaluation
 
 DONE:
 - write the formula being evaluated into a treeview
