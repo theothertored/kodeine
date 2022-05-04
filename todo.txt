@@ -1,4 +1,5 @@
 - step by step?
+- make sure fl() doesn't print a $ when given an empty string as eval formula
 
 DONE:
 - fix syntax highlighting (again) (turned into a complete grammar overhaul)

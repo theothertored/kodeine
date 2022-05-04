@@ -56,6 +56,10 @@ class FlFunction extends base_js_1.IKodeFunction {
         let i = args[0];
         // 2nd arg - loop exit value
         let endI = args[1];
+        // if increment is empty, fl() should return nothing for some reason
+        if (!args[2].text) {
+            return new base_js_1.KodeValue('', call.source);
+        }
         // 3rd arg - increment (ex. "i + 1")
         let incrFormulaText = `$${args[2].text}$`;
         // 4th arg - formula (ex. "tc(cut, text, i, 1)")
@@ -97,7 +101,8 @@ class FlFunction extends base_js_1.IKodeFunction {
         parsingCtx.clearSideEffects();
         try {
             // try to parse the eval formula
-            evalFormula = parser.parse(evalFormulaText);
+            // make sure to not print $ when the eval formula is empty
+            evalFormula = evalFormulaText === '$$' ? null : parser.parse(evalFormulaText);
         }
         catch (err) {
             if (err instanceof errors_js_1.KodeParsingError) {

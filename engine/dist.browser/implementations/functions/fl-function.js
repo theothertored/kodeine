@@ -49,6 +49,10 @@ export class FlFunction extends IKodeFunction {
         let i = args[0];
         // 2nd arg - loop exit value
         let endI = args[1];
+        // if increment is empty, fl() should return nothing for some reason
+        if (!args[2].text) {
+            return new KodeValue('', call.source);
+        }
         // 3rd arg - increment (ex. "i + 1")
         let incrFormulaText = `$${args[2].text}$`;
         // 4th arg - formula (ex. "tc(cut, text, i, 1)")
@@ -90,7 +94,8 @@ export class FlFunction extends IKodeFunction {
         parsingCtx.clearSideEffects();
         try {
             // try to parse the eval formula
-            evalFormula = parser.parse(evalFormulaText);
+            // make sure to not print $ when the eval formula is empty
+            evalFormula = evalFormulaText === '$$' ? null : parser.parse(evalFormulaText);
         }
         catch (err) {
             if (err instanceof KodeParsingError) {
