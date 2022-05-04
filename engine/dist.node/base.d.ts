@@ -68,6 +68,7 @@ export declare abstract class Evaluable {
      * @param evalCtx The context in which this evaluation is taking place.
      */
     abstract evaluate(evalCtx: EvaluationContext): KodeValue;
+    getSourceText(): string | undefined;
 }
 /** Describes a JS type that can be converted to a KodeValue. */
 export declare type ConvertibleToKodeValue = string | number | boolean | KodeValue;

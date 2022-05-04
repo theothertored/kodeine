@@ -1,7 +1,8 @@
-- step by step?
-- make sure fl() doesn't print a $ when given an empty string as eval formula
+- step by step evaluation?
 
 DONE:
+- write the formula being evaluated into a treeview
+- make sure fl() doesn't print a $ when given an empty string as eval formula
 - fix syntax highlighting (again) (turned into a complete grammar overhaul)
 - implement fl()
 - implement mu(min) and mu(max) (support an array of remaining arguments)

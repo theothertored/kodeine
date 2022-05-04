@@ -99,6 +99,10 @@ export abstract class Evaluable {
      */
     abstract evaluate(evalCtx: EvaluationContext): KodeValue;
 
+    getSourceText() {
+        return this.source?.tokens.map(t => t.getSourceText()).toString();
+    }
+
 }
 
 /** Describes a JS type that can be converted to a KodeValue. */

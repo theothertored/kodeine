@@ -31,6 +31,9 @@ class Evaluable {
     constructor(source) {
         this.source = source;
     }
+    getSourceText() {
+        return this.source?.tokens.map(t => t.getSourceText()).toString();
+    }
 }
 exports.Evaluable = Evaluable;
 /** A concrete kode value. */

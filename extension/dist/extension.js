@@ -5,11 +5,14 @@ const vscode = require("vscode");
 const parsing_context_js_1 = require("../../engine/dist.node/kodeine-parser/parsing-context.js");
 const kodeine_parser_js_1 = require("../../engine/dist.node/kodeine-parser/kodeine-parser.js");
 const evaluation_context_js_1 = require("../../engine/dist.node/evaluables/evaluation-context.js");
+const formula_tree_data_provider_js_1 = require("./formula-tree-data-provider.js");
 let outChannel;
 let diagColl;
 let parsingCtx;
 let parser;
 let evalCtx;
+let lastFormula;
+let treeDataProvider;
 function activate(extCtx) {
     // create an output channel for formula results
     outChannel = vscode.window.createOutputChannel('Formula Result');
@@ -19,6 +22,9 @@ function activate(extCtx) {
     // create a diagnostic collection for errors and warnings
     diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     extCtx.subscriptions.push(diagColl); // register it as disposable
+    // create and register the tree view data provider
+    treeDataProvider = new formula_tree_data_provider_js_1.FormulaTreeDataProvider();
+    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', treeDataProvider));
     // prepare kodeine engine
     parsingCtx = parsing_context_js_1.ParsingContextBuilder.buildDefault();
     parser = new kodeine_parser_js_1.KodeineParser(parsingCtx);
@@ -55,9 +61,9 @@ function evaluateToOutput(document) {
     let formulaText = document.getText();
     try {
         // parse the formula text into an evaluable formula
-        let formula = parser.parse(formulaText);
+        lastFormula = parser.parse(formulaText);
         // evaluate the parsed formula
-        let result = formula.evaluate(evalCtx);
+        let result = lastFormula.evaluate(evalCtx);
         // count how many parsing and evaluation errors popped up
         let errCount = parsingCtx.sideEffects.errors.length + evalCtx.sideEffects.errors.length;
         if (errCount > 0) {
@@ -97,6 +103,8 @@ function evaluateToOutput(document) {
     catch (err) {
         // unexpected error, print to output
         outChannel.replace('kodeine crashed: ' + err?.toString());
+        // since we crashed, there is no formula to show in the tree view
+        lastFormula = null;
     }
     if (parsingCtx.sideEffects.warnings.length > 0) {
         // got some warnings, convert to diags
@@ -144,5 +152,7 @@ function evaluateToOutput(document) {
     }
     // apply the created list to the problems panel
     diagColl.set(vscode.window.activeTextEditor.document.uri, diags);
+    // refresh formula tree view
+    treeDataProvider.setFormula(lastFormula);
 }
 //# sourceMappingURL=extension.js.map

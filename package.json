@@ -54,6 +54,14 @@
                     "when": "editorLangId == kode"
                 }
             ]
+        },
+        "views": {
+            "debug": [
+                {
+                    "id": "formulaEvaluationTree",
+                    "name": "Formula Evaluation Tree"
+                }
+            ]
         }
     }
 }

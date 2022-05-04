@@ -23,6 +23,10 @@ export class Evaluable {
     constructor(source) {
         this.source = source;
     }
+    getSourceText() {
+        var _a;
+        return (_a = this.source) === null || _a === void 0 ? void 0 : _a.tokens.map(t => t.getSourceText()).toString();
+    }
 }
 /** A concrete kode value. */
 export class KodeValue extends Evaluable {

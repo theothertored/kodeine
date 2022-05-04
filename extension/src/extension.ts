@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { ParsingContext, ParsingContextBuilder, ParsingWarning } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
+import { ParsingContext, ParsingContextBuilder } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
 import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
 import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
-import { KodeParsingError } from 'engine/src/errors.js';
+import { Formula } from '../../engine/dist.node/evaluables/formula.js';
+import { FormulaTreeDataProvider } from './formula-tree-data-provider.js';
 
 let outChannel: vscode.OutputChannel;
 let diagColl: vscode.DiagnosticCollection;
@@ -10,6 +11,9 @@ let diagColl: vscode.DiagnosticCollection;
 let parsingCtx: ParsingContext;
 let parser: KodeineParser;
 let evalCtx: EvaluationContext;
+let lastFormula: Formula | null;
+
+let treeDataProvider: FormulaTreeDataProvider;
 
 export function activate(extCtx: vscode.ExtensionContext) {
 
@@ -24,6 +28,11 @@ export function activate(extCtx: vscode.ExtensionContext) {
     // create a diagnostic collection for errors and warnings
     diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     extCtx.subscriptions.push(diagColl); // register it as disposable
+
+
+    // create and register the tree view data provider
+    treeDataProvider = new FormulaTreeDataProvider();
+    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', treeDataProvider));
 
 
     // prepare kodeine engine
@@ -82,10 +91,10 @@ function evaluateToOutput(document: vscode.TextDocument) {
     try {
 
         // parse the formula text into an evaluable formula
-        let formula = parser.parse(formulaText);
+        lastFormula = parser.parse(formulaText);
 
         // evaluate the parsed formula
-        let result = formula.evaluate(evalCtx);
+        let result = lastFormula.evaluate(evalCtx);
 
         // count how many parsing and evaluation errors popped up
         let errCount = parsingCtx.sideEffects.errors.length + evalCtx.sideEffects.errors.length;
@@ -145,6 +154,9 @@ function evaluateToOutput(document: vscode.TextDocument) {
 
         // unexpected error, print to output
         outChannel.replace('kodeine crashed: ' + err?.toString());
+
+        // since we crashed, there is no formula to show in the tree view
+        lastFormula = null;
 
     }
 
@@ -227,4 +239,8 @@ function evaluateToOutput(document: vscode.TextDocument) {
     // apply the created list to the problems panel
     diagColl.set(vscode.window.activeTextEditor!.document.uri, diags);
 
+    // refresh formula tree view
+    treeDataProvider.setFormula(lastFormula);
 }
+
+
