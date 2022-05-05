@@ -1,15 +1,18 @@
 TODO:
-- make the extension work in browser
 - implement globals
+- package and install the extension
 - publish repo to github
 - add github link to package.json
 - create readme for github and the vscode marketplace
-- publish as alpha
+- publish to the vcode marketplace as alpha
+- check if it really works in the browser
+- write instructions on how to install in the browser
 
 MAYBE:
 - step by step evaluation
 
 DONE:
+- make the extension work in browser
 - write the formula being evaluated into a treeview
 - make sure fl() doesn't print a $ when given an empty string as eval formula
 - fix syntax highlighting (again) (turned into a complete grammar overhaul)
