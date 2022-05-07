@@ -6,15 +6,17 @@ import { BinaryOperation } from '../../engine/dist.node/evaluables/binary-operat
 import { UnaryOperation } from '../../engine/dist.node/evaluables/unary-operation.js';
 import { Expression } from '../../engine/dist.node/evaluables/expression.js';
 
-export class FormulaTreeDataProvider implements vscode.TreeDataProvider<any> {
+type FormulaTreeElement = Evaluable | Formula | FunctionCall | BinaryOperation | UnaryOperation | Expression;
+
+export class FormulaTreeDataProvider implements vscode.TreeDataProvider<FormulaTreeElement> {
 
     private _formula: Formula | null = null;
     private _sourceDocument: vscode.TextDocument | null = null;
 
-    private _onDidChangeTreeData: vscode.EventEmitter<any | undefined | void> = new vscode.EventEmitter<any | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<any | undefined | void> = this._onDidChangeTreeData.event;
+    private _onDidChangeTreeData: vscode.EventEmitter<FormulaTreeElement | undefined | void> = new vscode.EventEmitter<FormulaTreeElement | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<FormulaTreeElement | undefined | void> = this._onDidChangeTreeData.event;
 
-    getChildren(element?: any): vscode.ProviderResult<any[]> {
+    getChildren(element?: FormulaTreeElement): vscode.ProviderResult<FormulaTreeElement[]> {
 
         if (!element) {
 
@@ -38,7 +40,7 @@ export class FormulaTreeDataProvider implements vscode.TreeDataProvider<any> {
 
         } else if (element instanceof Expression) {
 
-            return this.getChildren(element.evaluable);
+            return [element.evaluable];
 
         } else {
 
@@ -48,12 +50,12 @@ export class FormulaTreeDataProvider implements vscode.TreeDataProvider<any> {
 
     }
 
-    getTreeItem(element: any): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: FormulaTreeElement): vscode.TreeItem | Thenable<vscode.TreeItem> {
 
         if (element instanceof Formula) {
 
             return new vscode.TreeItem(
-                `Formula (${element.evaluables.length} part${element.evaluables.length === 1 ? '' : 's'}`,
+                `Formula (${element.evaluables.length} part${element.evaluables.length === 1 ? '' : 's'})`,
                 element.evaluables.length > 0
                     ? vscode.TreeItemCollapsibleState.Expanded
                     : vscode.TreeItemCollapsibleState.None
@@ -107,11 +109,8 @@ export class FormulaTreeDataProvider implements vscode.TreeDataProvider<any> {
 
         } else {
 
-            return new vscode.TreeItem(
-                `Unimplemented item (${element.constructor.name})`,
-                vscode.TreeItemCollapsibleState.Expanded
-            );
-
+            throw new Error('Invalid formula tree item.');
+            
         }
 
     }

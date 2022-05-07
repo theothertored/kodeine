@@ -1,10 +1,12 @@
 import { Evaluable, KodeValue } from "../base.js";
 import { EvaluationError } from "../errors.js";
+import { Formula } from "./formula.js";
 import { UnaryOperation } from "./unary-operation.js";
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export declare class EvaluationContext {
     sideEffects: EvaluationSideEffects;
     iReplacement: KodeValue | null;
+    globals: Map<string, Formula>;
     constructor();
     clearSideEffects(): void;
     clone(): EvaluationContext;
@@ -13,6 +15,7 @@ export declare class EvaluationContext {
 export declare class EvaluationSideEffects {
     warnings: EvaluationWarning[];
     errors: EvaluationError[];
+    globalNameStack: string[];
 }
 /** A warning produced during evaluation. */
 export declare class EvaluationWarning {

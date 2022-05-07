@@ -2,6 +2,7 @@
 export class EvaluationContext {
     constructor() {
         this.iReplacement = null;
+        this.globals = new Map();
         this.sideEffects = new EvaluationSideEffects();
     }
     clearSideEffects() {
@@ -9,8 +10,10 @@ export class EvaluationContext {
     }
     clone() {
         let newCtx = new EvaluationContext();
-        // copy properties to make a clone
+        // copy i replacement directly
         newCtx.iReplacement = this.iReplacement;
+        // clone globals map
+        newCtx.globals = new Map(this.globals);
         return newCtx;
     }
 }
@@ -19,6 +22,7 @@ export class EvaluationSideEffects {
     constructor() {
         this.warnings = [];
         this.errors = [];
+        this.globalNameStack = [];
     }
 }
 /** A warning produced during evaluation. */

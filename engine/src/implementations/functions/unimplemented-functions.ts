@@ -55,13 +55,6 @@ export class ColorEditorFunction extends IKodeFunction {
     }
 }
 
-export class GlobalVariableFunction extends IKodeFunction {
-    getName() { return 'gv'; }
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-
 export class ShellCommandFunction extends IKodeFunction {
     getName() { return 'sh'; }
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {

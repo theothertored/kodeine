@@ -46,6 +46,21 @@
             {
                 "command": "kodeine.formulaResult",
                 "title": "Show formula result window"
+            },
+            {
+                "command": "kodeine.addGlobal",
+                "title": "Add a text global from active document",
+                "icon": "$(plus)"
+            },
+            {
+                "command": "kodeine.removeGlobal",
+                "title": "Remove a global",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "kodeine.clearGlobals",
+                "title": "Clear all globals",
+                "icon": "$(clear-all)"
             }
         ],
         "menus": {
@@ -53,16 +68,57 @@
                 {
                     "command": "kodeine.formulaResult",
                     "when": "editorLangId == kode"
+                },
+                {
+                    "command": "kodeine.addGlobal",
+                    "when": "editorLangId == kode"
+                },
+                {
+                    "command": "kodeine.removeGlobal",
+                    "when": "editorLangId == kode"
+                },
+                {
+                    "command": "kodeine.clearGlobals"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "kodeine.clearGlobals",
+                    "when": "view == globalList",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "kodeine.removeGlobal",
+                    "when": "view == globalList",
+                    "group": "inline"
                 }
             ]
         },
         "views": {
+            "explorer": [
+                {
+                    "id": "globalList",
+                    "name": "Global List"
+                }
+            ],
             "debug": [
                 {
                     "id": "formulaEvaluationTree",
                     "name": "Formula Evaluation Tree"
                 }
             ]
-        }
+        },
+        "viewsWelcome": [
+            {
+                "view": "globalList",
+                "contents": "No globals. Use the Command Palette (Ctrl + Shift + P) when editing a kode document to add one."
+            },
+            {
+                "view": "formulaEvaluationTree",
+                "contents": "No formula was parsed yet. Open a kode document to automatically parse it."
+            }
+        ]
     }
 }

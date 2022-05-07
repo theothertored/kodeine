@@ -6,6 +6,7 @@ import * as BinaryOperators from "../implementations/operators/binary-operators.
 import { TcFunction } from "../implementations/functions/tc-function.js";
 import { MuFunction } from "../implementations/functions/mu-function.js";
 import { FlFunction } from "../implementations/functions/fl-function.js";
+import { GvFunction } from "../implementations/functions/gv-function.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -143,6 +144,7 @@ export class ParsingContextBuilder {
             .add(TcFunction)
             .add(MuFunction)
             .add(FlFunction)
+            .add(GvFunction)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);
         return this;

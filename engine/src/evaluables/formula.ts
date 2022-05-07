@@ -16,8 +16,6 @@ export class Formula extends Evaluable {
 
     evaluate(evalCtx: EvaluationContext): KodeValue {
 
-        evalCtx.clearSideEffects();
-
         if (this.evaluables.length === 0) {
 
             // no evaluables in this formula, return empty string.

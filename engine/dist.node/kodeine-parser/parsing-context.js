@@ -9,6 +9,7 @@ const BinaryOperators = require("../implementations/operators/binary-operators.j
 const tc_function_js_1 = require("../implementations/functions/tc-function.js");
 const mu_function_js_1 = require("../implementations/functions/mu-function.js");
 const fl_function_js_1 = require("../implementations/functions/fl-function.js");
+const gv_function_js_1 = require("../implementations/functions/gv-function.js");
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -144,6 +145,7 @@ class ParsingContextBuilder {
             .add(tc_function_js_1.TcFunction)
             .add(mu_function_js_1.MuFunction)
             .add(fl_function_js_1.FlFunction)
+            .add(gv_function_js_1.GvFunction)
             .addFromModule(UnaryOperators)
             .addFromModule(BinaryOperators);
         return this;

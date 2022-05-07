@@ -29,10 +29,6 @@ export declare class ColorEditorFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 }
-export declare class GlobalVariableFunction extends IKodeFunction {
-    getName(): string;
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
-}
 export declare class ShellCommandFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;

@@ -4,6 +4,7 @@ import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-par
 import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
 import { Formula } from '../../engine/dist.node/evaluables/formula.js';
 import { FormulaTreeDataProvider } from './formula-tree-data-provider.js';
+import { GlobalTreeDataProvider, TextDocumentGlobal } from './global-tree-data-provider.js';
 
 let outChannel: vscode.OutputChannel;
 let diagColl: vscode.DiagnosticCollection;
@@ -13,8 +14,14 @@ let parser: KodeineParser;
 let evalCtx: EvaluationContext;
 let lastFormula: Formula | null;
 
-let treeDataProvider: FormulaTreeDataProvider;
+var docToGlobalNameMap: Map<vscode.TextDocument, string>;
+const globalChangeNotifTimeout: number = 5000;
 
+let formulaTreeDataProvider: FormulaTreeDataProvider;
+let globalTreeDataProvider: GlobalTreeDataProvider;
+
+
+/** Activates the extension. */
 export function activate(extCtx: vscode.ExtensionContext) {
 
     // create an output channel for formula results
@@ -30,10 +37,17 @@ export function activate(extCtx: vscode.ExtensionContext) {
     extCtx.subscriptions.push(diagColl); // register it as disposable
 
 
-    // create and register the tree view data provider
-    treeDataProvider = new FormulaTreeDataProvider();
-    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', treeDataProvider));
+    // create and register the formula tree view data provider
+    formulaTreeDataProvider = new FormulaTreeDataProvider();
+    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', formulaTreeDataProvider));
 
+    // create and register the global tree view data provider
+    // TODO: load previous set of globals before this point
+    globalTreeDataProvider = new GlobalTreeDataProvider([]);
+    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('globalList', globalTreeDataProvider));
+
+    // prepare map to keep track of global documents
+    docToGlobalNameMap = new Map<vscode.TextDocument, string>();
 
     // prepare kodeine engine
     parsingCtx = ParsingContextBuilder.buildDefault();
@@ -71,15 +85,31 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
     }));
 
-    // listen to the command for opening the formula result window
-    extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.formulaResult', () => {
+    extCtx.subscriptions.push(vscode.workspace.onDidOpenTextDocument(doc => {
 
-        outChannel.show(true);
+        if (doc.languageId === 'kode')
+            evaluateToOutput(doc);
 
     }));
 
+
+    // listen to the command for opening the formula result window
+    extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.formulaResult', () => {
+        outChannel.show(true);
+    }));
+
+
+    // global handling commands
+    extCtx.subscriptions.push(
+        vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal),
+        vscode.commands.registerCommand('kodeine.removeGlobal', command_removeGlobal),
+        vscode.commands.registerCommand('kodeine.clearGlobals', command_clearGlobals),
+        vscode.commands.registerCommand('kodeine.openGlobalDocument', command_openGlobalDocument),
+    );
+
 }
 
+/** Evaluates a given kode document to the formula result output channel. */
 function evaluateToOutput(document: vscode.TextDocument) {
 
     // create a list of diagnostics (warnings, errors etc.) that will replace the current list for the evaluated document
@@ -92,6 +122,24 @@ function evaluateToOutput(document: vscode.TextDocument) {
 
         // parse the formula text into an evaluable formula
         lastFormula = parser.parse(formulaText);
+
+        // clear eval side effects first
+        evalCtx.clearSideEffects();
+
+        // try to get a global for the current document
+        let globalName = docToGlobalNameMap.get(document);
+
+        if (globalName) {
+
+            // we are evaluating a document that is a global
+            // add this global's name to the global name chain
+            // the chain is there to prevent infinite reference loops
+            evalCtx.sideEffects.globalNameStack.push(globalName);
+
+            // store the parsed formula in the global
+            evalCtx.globals.set(globalName, lastFormula);
+
+        }
 
         // evaluate the parsed formula
         let result = lastFormula.evaluate(evalCtx);
@@ -240,7 +288,138 @@ function evaluateToOutput(document: vscode.TextDocument) {
     diagColl.set(vscode.window.activeTextEditor!.document.uri, diags);
 
     // refresh formula tree view
-    treeDataProvider.setFormula(lastFormula);
+    formulaTreeDataProvider.setFormula(lastFormula);
 }
 
 
+// #region global handling
+
+
+function command_addGlobal() {
+
+    vscode.window.showInputBox({
+
+        title: 'Name the global',
+        prompt: 'Remember that Kustom limits this name to 8 characters.',
+
+        validateInput: text => {
+            if (!text) {
+                return 'Global name cannot be empty.'
+            } else if (text.length === 2) {
+                return 'Kustom doesn\'t really like two letter global names because it confuses them with function names.';
+            } else {
+                return null;
+            }
+        }
+
+    }).then(globalName => {
+
+        if (globalName) {
+
+            // normalize global name
+            globalName = globalName.trim().toLowerCase();
+
+            // find any globals with this name and remove them
+            Array.from(docToGlobalNameMap.entries())
+                .filter(e => e[1] === globalName)
+                .forEach(e => docToGlobalNameMap.delete(e[0]));
+
+            // associate the document with the global name
+            docToGlobalNameMap.set(vscode.window.activeTextEditor!.document, globalName);
+
+            // update the global in the evaluation context
+            evalCtx.globals.set(globalName, lastFormula!);
+
+            // notify the user in the way vscode wants us to (notifications can't auto-dismiss)
+            vscode.window.setStatusBarMessage(`gv(${globalName}) has been added.`, globalChangeNotifTimeout);
+
+            // refresh UI showing the current list of globals
+            refreshGlobalList();
+
+        }
+
+    });
+
+}
+
+
+function command_removeGlobal(global?: TextDocumentGlobal) {
+
+    if (global) {
+
+        // a global to remove was given (global list icon click)
+        removeGlobal(global.name, global.document);
+
+    } else {
+
+        // a global to remove was not given, let the user pick from a list
+        vscode.window.showQuickPick(
+
+            Array.from(docToGlobalNameMap)
+                .map(e => ({
+                    label: e[1],
+                    description: e[0].uri.toString(),
+                    globalName: e[1],
+                    document: e[0]
+                }))
+
+        ).then(pickedItem => {
+
+            if (pickedItem) {
+                removeGlobal(pickedItem.globalName, pickedItem.document)
+            }
+
+        });
+
+    }
+
+}
+
+function removeGlobal(globalName: string, document: vscode.TextDocument) {
+
+    // remove association
+    docToGlobalNameMap.delete(document);
+
+    // remove global from the evaluation context
+    evalCtx.globals.delete(globalName);
+
+    // notify the user in the way vscode wants us to (notifications can't auto-dismiss)
+    vscode.window.setStatusBarMessage(`gv(${globalName}) has been removed.`, globalChangeNotifTimeout);
+
+    // refresh UI showing the current list of globals
+    refreshGlobalList();
+
+}
+
+
+function command_clearGlobals() {
+
+    // clear associations
+    docToGlobalNameMap.clear();
+
+    // clear globals
+    evalCtx.globals.clear();
+
+    vscode.window.setStatusBarMessage(`All globals have been removed.`, globalChangeNotifTimeout);
+
+    // refresh UI
+    refreshGlobalList();
+
+}
+
+
+function command_openGlobalDocument(document: vscode.TextDocument) {
+    vscode.window.showTextDocument(document);
+}
+
+
+function refreshGlobalList() {
+
+    globalTreeDataProvider.notifyGlobalsChanged(Array.from(docToGlobalNameMap).map(e => ({
+        name: e[1],
+        document: e[0]
+    })));
+
+}
+
+//#endregion

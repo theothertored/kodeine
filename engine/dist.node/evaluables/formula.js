@@ -13,7 +13,6 @@ class Formula extends base_js_1.Evaluable {
         this.evaluables = evaluables;
     }
     evaluate(evalCtx) {
-        evalCtx.clearSideEffects();
         if (this.evaluables.length === 0) {
             // no evaluables in this formula, return empty string.
             return new base_js_1.KodeValue("");

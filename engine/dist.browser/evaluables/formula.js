@@ -10,7 +10,6 @@ export class Formula extends Evaluable {
         this.evaluables = evaluables;
     }
     evaluate(evalCtx) {
-        evalCtx.clearSideEffects();
         if (this.evaluables.length === 0) {
             // no evaluables in this formula, return empty string.
             return new KodeValue("");

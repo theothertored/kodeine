@@ -1,5 +1,5 @@
 TODO:
-- implement globals
+- design an icon
 - package and install the extension
 - publish repo to github
 - add github link to package.json
@@ -8,10 +8,11 @@ TODO:
 - check if it really works in the browser
 - write instructions on how to install in the browser
 
-MAYBE:
+MAYBE IN THE FUTURE:
 - step by step evaluation
 
 DONE:
+- implement globals
 - make the extension work in browser
 - write the formula being evaluated into a treeview
 - make sure fl() doesn't print a $ when given an empty string as eval formula

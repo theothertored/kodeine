@@ -1,5 +1,6 @@
 import { Evaluable, KodeValue } from "../base.js";
 import { EvaluationError } from "../errors.js";
+import { Formula } from "./formula.js";
 import { UnaryOperation } from "./unary-operation.js";
 
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
@@ -7,6 +8,8 @@ export class EvaluationContext {
 
     public sideEffects: EvaluationSideEffects;
     public iReplacement: KodeValue | null = null;
+
+    public globals: Map<string, Formula> = new Map<string, Formula>();
 
     constructor() {
         this.sideEffects = new EvaluationSideEffects();
@@ -20,8 +23,11 @@ export class EvaluationContext {
 
         let newCtx = new EvaluationContext();
 
-        // copy properties to make a clone
+        // copy i replacement directly
         newCtx.iReplacement = this.iReplacement;
+
+        // clone globals map
+        newCtx.globals = new Map(this.globals);
 
         return newCtx;
 
@@ -34,6 +40,8 @@ export class EvaluationSideEffects {
 
     public warnings: EvaluationWarning[] = [];
     public errors: EvaluationError[] = [];
+
+    public globalNameStack: string[] = [];
 
 }
 

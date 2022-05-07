@@ -32,7 +32,7 @@ class FormulaTreeDataProvider {
             return [element.arg];
         }
         else if (element instanceof expression_js_1.Expression) {
-            return this.getChildren(element.evaluable);
+            return [element.evaluable];
         }
         else {
             return undefined;
@@ -40,7 +40,7 @@ class FormulaTreeDataProvider {
     }
     getTreeItem(element) {
         if (element instanceof formula_js_1.Formula) {
-            return new vscode.TreeItem(`Formula (${element.evaluables.length} part${element.evaluables.length === 1 ? '' : 's'}`, element.evaluables.length > 0
+            return new vscode.TreeItem(`Formula (${element.evaluables.length} part${element.evaluables.length === 1 ? '' : 's'})`, element.evaluables.length > 0
                 ? vscode.TreeItemCollapsibleState.Expanded
                 : vscode.TreeItemCollapsibleState.None);
         }
@@ -67,7 +67,7 @@ class FormulaTreeDataProvider {
                 : vscode.TreeItemCollapsibleState.Expanded);
         }
         else {
-            return new vscode.TreeItem(`Unimplemented item (${element.constructor.name})`, vscode.TreeItemCollapsibleState.Expanded);
+            throw new Error('Invalid formula tree item.');
         }
     }
     setFormula(formula) {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TimerUtilsFunction = exports.DateParserFunction = exports.FitnessDataFunction = exports.AstronomicalInfoFunction = exports.CalendarEventFunction = exports.UnreadCounterFunction = exports.TimeSpanFunction = exports.WeatherForecastFunction = exports.MusicInfoFunction = exports.DateFormatFunction = exports.BroadcastReceiverFunction = exports.ColorMakerFunction = exports.BitmapPaletteFunction = exports.TrafficStatsFunction = exports.MusicQueueFunction = exports.SystemInfoFunction = exports.BatteryInfoFunction = exports.CurrentWeatherFunction = exports.ShellCommandFunction = exports.GlobalVariableFunction = exports.ColorEditorFunction = exports.ResourceMonitorFunction = exports.WebGetFunction = exports.SystemNotificationsFunction = exports.NetworkConnectivityFunction = exports.AirQualityFunction = exports.LocationInfoFunction = void 0;
+exports.TimerUtilsFunction = exports.DateParserFunction = exports.FitnessDataFunction = exports.AstronomicalInfoFunction = exports.CalendarEventFunction = exports.UnreadCounterFunction = exports.TimeSpanFunction = exports.WeatherForecastFunction = exports.MusicInfoFunction = exports.DateFormatFunction = exports.BroadcastReceiverFunction = exports.ColorMakerFunction = exports.BitmapPaletteFunction = exports.TrafficStatsFunction = exports.MusicQueueFunction = exports.SystemInfoFunction = exports.BatteryInfoFunction = exports.CurrentWeatherFunction = exports.ShellCommandFunction = exports.ColorEditorFunction = exports.ResourceMonitorFunction = exports.WebGetFunction = exports.SystemNotificationsFunction = exports.NetworkConnectivityFunction = exports.AirQualityFunction = exports.LocationInfoFunction = void 0;
 const base_js_1 = require("../../base.js");
 const errors_js_1 = require("../../errors.js");
 // this file contains classes for functions that have not been implemented yet.
@@ -54,13 +54,6 @@ class ColorEditorFunction extends base_js_1.IKodeFunction {
     }
 }
 exports.ColorEditorFunction = ColorEditorFunction;
-class GlobalVariableFunction extends base_js_1.IKodeFunction {
-    getName() { return 'gv'; }
-    call(evalCtx, call, args) {
-        throw new errors_js_1.EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-exports.GlobalVariableFunction = GlobalVariableFunction;
 class ShellCommandFunction extends base_js_1.IKodeFunction {
     getName() { return 'sh'; }
     call(evalCtx, call, args) {
