@@ -2,7 +2,8 @@
     "name": "kodeine",
     "displayName": "kodeine",
     "publisher": "tored",
-    "description": "write Kustom formulas in vscode!",
+    "description": "Write Kustom formulas in vscode!",
+    "icon": "icons/kodeine_icon_256.png",
     "version": "0.0.1",
     "engines": {
         "vscode": "^1.66.0"

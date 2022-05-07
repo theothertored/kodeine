@@ -1,6 +1,5 @@
 TODO:
-- design an icon
-- package and install the extension
+- bundle the extension into one file
 - publish repo to github
 - add github link to package.json
 - create readme for github and the vscode marketplace
@@ -12,6 +11,8 @@ MAYBE IN THE FUTURE:
 - step by step evaluation
 
 DONE:
+- package and install the extension
+- design an icon
 - implement globals
 - make the extension work in browser
 - write the formula being evaluated into a treeview
