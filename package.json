@@ -14,8 +14,8 @@
     "activationEvents": [
         "onLanguage:kode"
     ],
-    "main": "./extension/dist.node/extension.js",
-    "browser": "./extension/dist.browser/extension.js",
+    "main": "./bundled/extension.js",
+    "browser": "./bundled/extension.js",
     "contributes": {
         "languages": [
             {
@@ -121,5 +121,13 @@
                 "contents": "No formula was parsed yet. Open a kode document to automatically parse it."
             }
         ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "esbuild-base": "esbuild ./extension/src/extension.ts --bundle --outfile=./bundled/extension.js --external:vscode --format=cjs --platform=node",
+        "esbuild": "npm run esbuild-base -- --sourcemap & tsc -b"
+    },
+    "devDependencies": {
+        "esbuild": "^0.14.38"
     }
 }

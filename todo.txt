@@ -1,8 +1,7 @@
 TODO:
-- bundle the extension into one file
+- create readme for github and the vscode marketplace
 - publish repo to github
 - add github link to package.json
-- create readme for github and the vscode marketplace
 - publish to the vcode marketplace as alpha
 - check if it really works in the browser
 - write instructions on how to install in the browser
@@ -11,6 +10,9 @@ MAYBE IN THE FUTURE:
 - step by step evaluation
 
 DONE:
+- get a different build task for dev and prod
+- use esbuild for building straight into a bundle
+- bundle the extension into one file
 - package and install the extension
 - design an icon
 - implement globals

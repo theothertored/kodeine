@@ -1,14 +1,41 @@
 # ignore the design folder (also excluded from github)
-/design
+design/
 
 # ignore entire test page folder
-/test_page
+test_page/
 
-# ignore typescript and tsconfig files
+# ignore engine (should be bundled)
+engine/
+
+# ignore extension source code
+extension/src/
+
+# ignore node_modules (no dependencies)
+node_modules/
+# ignore package.lock.json (not needed to run the extension)
+package.lock.json
+
+# ignore any and all typescript and tsconfig files
 **/*.ts
 **/tsconfig.json
+**/tsconfig.*.json
+**/*.tsbuildinfo
+
+# ignore sourcemaps
+**/*.js.map
 
 # ignore todo
 todo.txt
 
-/publish
+# ignore publish folder and .vsix files
+publish/
+**/*.vsix
+
+# ignore .gitarributes, .gitignore and .vscodeignore (last probably not needed)
+.gitarributes
+.gitignore
+.vscodeignore
+
+# ignore the .git and .vscode folders
+.vscode/
+.git/
