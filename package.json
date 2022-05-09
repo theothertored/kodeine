@@ -1,16 +1,34 @@
 {
     "name": "kodeine",
     "displayName": "kodeine",
+    "version": "0.0.1",
     "publisher": "tored",
+    "author": {
+        "name": "Tored"
+    },
     "description": "Write Kustom formulas in VS Code!",
     "icon": "icons/kodeine_icon_256.png",
-    "version": "0.0.1",
+    "license": "SEE LICENSE IN LICENSE.txt",
+    "homepage": "https://github.com/theothertored/kodeine",
+    "galleryBanner": {
+        "color": "#101010",
+        "theme": "dark"
+    },
+    "bugs": {
+        "url": "https://github.com/theothertored/kodeine/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/theothertored/kodeine.git"
+    },
+    "categories": [
+        "Programming Languages",
+        "Other",
+        "Snippets"
+    ],
     "engines": {
         "vscode": "^1.66.0"
     },
-    "categories": [
-        "Programming Languages"
-    ],
     "activationEvents": [
         "onLanguage:kode"
     ],
