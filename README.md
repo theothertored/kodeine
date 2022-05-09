@@ -1,8 +1,7 @@
 # kodeine for Visual Studio Code
 
 Write Kustom formulas in VS Code!  
-Get it from the [VS Code Marketplace](https://marketplace.visualstudio.com/vscode)
-*[TODO: replace with link to extension]*.
+Get it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=tored.kodeine).
 
 **DISCLAIMER:**  
 **THIS EXTENSION IS NOT AN OFFICIAL KUSTOM PRODUCT! DO NOT ASK THE KUSTOM DEVELOPER QUESTIONS ABOUT THIS EXTENSION!**
