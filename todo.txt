@@ -5,6 +5,7 @@ TODO:
 - publish to the vcode marketplace as alpha
 - check if it really works in the browser
 - write instructions on how to install in the browser
+- handle deleted files linked to globals
 
 MAYBE IN THE FUTURE:
 - step by step evaluation
