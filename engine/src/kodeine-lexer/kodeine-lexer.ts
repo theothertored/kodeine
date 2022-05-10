@@ -16,7 +16,7 @@ export class KodeineLexer implements FormulaTokenLexer {
     /** The source of characters for the lexer. */
     private readonly _charReader: ICharReader;
 
-    /** An array of all symbols to be considered operator symbols, ordered from longest to shrotest. */
+    /** An array of all symbols to be considered operator symbols, ordered from longest to shortest. */
     private readonly _operatorSymbols: string[];
 
     /** The current state of the lexer. The lexer will only interpret certain characters as tokens if its in the {@link KodeineLexerState.Kode} state. */
