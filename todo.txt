@@ -1,13 +1,18 @@
 TODO:
-- publish to the vcode marketplace as alpha
-- check if it really works in the browser
-- write instructions on how to install in the browser
-- handle deleted files linked to globals
+- display evaluation results for each object in the formula tree
+- persist text globals on vscode exit
+- handle clicking on globals with non-existent files
+- implement df()
+- implement tf()
+- design an eval ctx editor
 
 MAYBE IN THE FUTURE:
 - step by step evaluation
 
 DONE:
+- write instructions on how to install in the browser
+- check if it really works in the browser
+- publish to the vcode marketplace as alpha
 - add github link to package.json
 - publish repo to github
 - create readme for github and the vscode marketplace
