@@ -1,4 +1,4 @@
-import { FormulaToken, IKodeFunction } from "../../base.js";
+import { IKodeFunction, FormulaToken } from "../../kodeine.js";
 /**
  * An occurence of a function call in an evaluable part of a formula.
  * Consists of the function name token ({@link funcNameToken}), opening parenthesis token ({@link openingParenthesisToken})

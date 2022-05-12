@@ -1,5 +1,7 @@
-import { FormulaToken, IKodeFunction } from "../../base.js";
-import { OpeningParenthesisToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
+import { 
+    IKodeFunction,
+    FormulaToken
+} from "../../kodeine.js";
 
 /** 
  * An occurence of a function call in an evaluable part of a formula. 

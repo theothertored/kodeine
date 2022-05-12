@@ -1,6 +1,4 @@
-import { Evaluable, EvaluableSource, KodeValue } from "../base.js";
-import { EvaluationError } from "../errors.js";
-import { FormulaEvaluationTree } from "./evaluation-tree.js";
+import { EvaluationError, Evaluable, EvaluableSource, FormulaEvaluationTree, KodeValue } from "../kodeine.js";
 /**
  * A formula consists of several evaluables. The values of the evaluables are concatenated to form the formula result.
  */

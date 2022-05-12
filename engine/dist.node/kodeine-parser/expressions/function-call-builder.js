@@ -1,13 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FunctionCallBuilder = void 0;
-const base_js_1 = require("../../base.js");
-const errors_js_1 = require("../../errors.js");
-const function_call_js_1 = require("../../evaluables/function-call.js");
-const expression_builder_js_1 = require("./expression-builder.js");
-const i_expression_builder_js_1 = require("./i-expression-builder.js");
+const kodeine_js_1 = require("../../kodeine.js");
 /** Parsing helper class that can be fed tokens and then builds a {@link FunctionCall} evaluable. */
-class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
+class FunctionCallBuilder extends kodeine_js_1.IExpressionBuilder {
     /**
      * Constructs a {@link FunctionCallBuilder} with a given parsing context and a function occurence that started this function call.
      * @param parsingCtx The parsing context for this function call builder.
@@ -21,7 +17,7 @@ class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
         this._args = [];
         this._parsingCtx = parsingCtx;
         this._functionOccurence = functionOccurence;
-        this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(parsingCtx, false, ...functionOccurence.openingTokens);
+        this._currentArgumentBuilder = new kodeine_js_1.ExpressionBuilder(parsingCtx, false, ...functionOccurence.openingTokens);
     }
     addEvaluable(evaluable) {
         // TODO: make this not crash when the evaluable has no source
@@ -43,12 +39,12 @@ class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
      */
     nextArgument(comma) {
         if (this._currentArgumentBuilder.getIsEmpty()) {
-            throw new errors_js_1.KodeSyntaxError(comma, 'Argument missing.');
+            throw new kodeine_js_1.KodeSyntaxError(comma, 'Argument missing.');
         }
         else {
             this._innerTokens.push(comma);
             this._args.push(this._currentArgumentBuilder.build(comma));
-            this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(this._parsingCtx, false, comma);
+            this._currentArgumentBuilder = new kodeine_js_1.ExpressionBuilder(this._parsingCtx, false, comma);
         }
     }
     /**
@@ -59,13 +55,13 @@ class FunctionCallBuilder extends i_expression_builder_js_1.IExpressionBuilder {
     build(closingToken) {
         if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
             // allow for a function call with no arguments
-            return new function_call_js_1.FunctionCall(this._functionOccurence.func, this._args, new base_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
+            return new kodeine_js_1.FunctionCall(this._functionOccurence.func, this._args, new kodeine_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
         }
         else {
             // build the current argument
             this._args.push(this._currentArgumentBuilder.build(closingToken));
             // return a function call evaluable
-            return new function_call_js_1.FunctionCall(this._functionOccurence.func, this._args, new base_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
+            return new kodeine_js_1.FunctionCall(this._functionOccurence.func, this._args, new kodeine_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
         }
     }
 }

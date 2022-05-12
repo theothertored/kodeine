@@ -1,5 +1,4 @@
-import { Evaluable } from "../base.js";
-import { EvaluatedBinaryOperation } from "./evaluation-tree.js";
+import { Evaluable, EvaluatedBinaryOperation } from "../kodeine.js";
 /** An operation consisting of an binary operator and two evaluable arguments. */
 export class BinaryOperation extends Evaluable {
     /**

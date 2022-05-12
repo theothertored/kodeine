@@ -1,7 +1,10 @@
-import { Evaluable, FormulaToken, IKodeFunction, KodeValue } from "./base.js";
-import { BinaryOperation } from "./evaluables/binary-operation.js";
-import { FunctionCall } from "./evaluables/function-call.js";
-import { UnquotedValueToken } from "./kodeine-lexer/formula-tokens.js";
+import {
+    Evaluable,
+    FunctionCall,
+    KodeValue,
+    FormulaToken,
+    UnquotedValueToken
+} from "./kodeine.js";
 
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 export class KodeError {

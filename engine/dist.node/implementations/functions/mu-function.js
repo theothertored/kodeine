@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MuFunction = void 0;
-const errors_js_1 = require("../../errors.js");
-const kode_function_with_modes_js_1 = require("./kode-function-with-modes.js");
+const kodeine_js_1 = require("../../kodeine.js");
 /** Implementation of Kustom's mu() (math utilities) function. */
-class MuFunction extends kode_function_with_modes_js_1.FunctionWithModes {
+class MuFunction extends kodeine_js_1.KodeFunctionWithModes {
     getName() { return 'mu'; }
     singleArgMode(name, func) {
         this.mode(name, ['num number'], func);
@@ -20,7 +19,7 @@ class MuFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             }
             else {
                 if (decimals < 0) {
-                    throw new errors_js_1.InvalidArgumentError('mu(round)', 'decimals', 2, this.call.args[2], decimals, 'The number of decimal places cannot be negative. Kustom will throw "mu: 45".');
+                    throw new kodeine_js_1.InvalidArgumentError('mu(round)', 'decimals', 2, this.call.args[2], decimals, 'The number of decimal places cannot be negative. Kustom will throw "mu: 45".');
                 }
                 else {
                     let powerOf10 = 10 ** decimals;
@@ -52,7 +51,7 @@ class MuFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         this.mode('h2d', ['txt hex'], function (hex) {
             let output = Number('0x' + hex);
             if (isNaN(output)) {
-                throw new errors_js_1.InvalidArgumentError('mu(h2d)', 'hex', 1, this.call.args[1], hex, `Value "${hex}" could not be parsed as a hexadecimal number.`);
+                throw new kodeine_js_1.InvalidArgumentError('mu(h2d)', 'hex', 1, this.call.args[1], hex, `Value "${hex}" could not be parsed as a hexadecimal number.`);
             }
             else {
                 return output;

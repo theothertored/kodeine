@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StringCharReader = void 0;
-const base_js_1 = require("./base.js");
+const kodeine_js_1 = require("./kodeine.js");
 /** A forward only character reader using a string variable as its source of characters. */
-class StringCharReader extends base_js_1.ICharReader {
+class StringCharReader extends kodeine_js_1.ICharReader {
     /**
      * Constructs a {@link StringCharReader} with a given string as a source of characters.
      * @param text The source string.

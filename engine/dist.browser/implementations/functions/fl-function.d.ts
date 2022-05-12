@@ -1,8 +1,4 @@
-import { Evaluable, IKodeFunction, KodeValue } from "../../base.js";
-import { EvaluationContext, EvaluationWarning } from "../../evaluables/evaluation-context.js";
-import { EvaluationError, KodeParsingError } from "../../errors.js";
-import { FunctionCall } from "../../evaluables/function-call.js";
-import { ParsingWarning } from "../../kodeine-parser/parsing-context.js";
+import { IKodeFunction, EvaluationContext, FunctionCall, Evaluable, KodeValue, EvaluationWarning, EvaluationError, KodeParsingError, ParsingWarning } from "../../kodeine.js";
 /** Thrown when a parsing error was produced when parsing one of the formulas given as argument to fl(). */
 /** A parsing error that was produced when parsing one of the formulas given as argument to fl(). */
 export declare class FlParsingWarning extends EvaluationWarning {

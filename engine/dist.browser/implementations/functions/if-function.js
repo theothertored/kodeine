@@ -1,5 +1,4 @@
-import { IKodeFunction, KodeValue } from "../../base.js";
-import { InvalidArgumentCountError } from "../../errors.js";
+import { IKodeFunction, InvalidArgumentCountError, KodeValue } from "../../kodeine.js";
 /** Implementation of Kustom's `if()` function. */
 export class IfFunction extends IKodeFunction {
     getName() { return 'if'; }

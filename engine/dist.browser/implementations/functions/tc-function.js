@@ -1,11 +1,9 @@
-import { EvaluationWarning } from "../../evaluables/evaluation-context.js";
-import { EvaluationError, InvalidArgumentError, RegexEvaluationError } from "../../errors.js";
-import { NumberToTextConverter } from "../helpers/number-to-text-converter.js";
-import { TextCapitalizer } from "../helpers/text-capitalizer.js";
-import { FunctionWithModes as KodeFunctionWithModes } from "./kode-function-with-modes.js";
-import { OrdinalSuffixHelper } from "../helpers/ordinal-suffix-helper.js";
-import { NumberToRomanConverter } from "../helpers/number-to-roman-converter.js";
+import { EvaluationWarning, EvaluationError, KodeFunctionWithModes, InvalidArgumentError, RegexEvaluationError, } from "../../kodeine.js";
 import { HtmlEntityConverter } from "../helpers/html-entitity-converter.js";
+import { NumberToRomanConverter } from "../helpers/number-to-roman-converter.js";
+import { NumberToTextConverter } from "../helpers/number-to-text-converter.js";
+import { OrdinalSuffixHelper } from "../helpers/ordinal-suffix-helper.js";
+import { TextCapitalizer } from "../helpers/text-capitalizer.js";
 /** Implementation of Kustom's tc() (text converter) function. */
 export class TcFunction extends KodeFunctionWithModes {
     getName() { return 'tc'; }

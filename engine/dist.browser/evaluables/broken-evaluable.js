@@ -1,5 +1,4 @@
-import { Evaluable, KodeValue } from "../base";
-import { CouldNotBeEvaluated } from "./evaluation-tree";
+import { Evaluable, CouldNotBeEvaluated, KodeValue } from "../kodeine.js";
 export class BrokenEvaluable extends Evaluable {
     constructor(source) {
         super(source);

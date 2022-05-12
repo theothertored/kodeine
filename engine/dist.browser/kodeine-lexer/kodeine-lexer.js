@@ -1,4 +1,4 @@
-import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, PlainTextToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "./formula-tokens.js";
+import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, PlainTextToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine.js";
 /**
  * Values representing the current state of the lexer.
  * - {@link Default}: Not in an evaluable part of the formula (reading plain text)

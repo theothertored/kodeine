@@ -1,4 +1,4 @@
-import { KodeValue } from "./base.js";
+import { KodeValue } from "./kodeine.js";
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 export class KodeError {
     constructor(message) {

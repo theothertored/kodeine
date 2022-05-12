@@ -1,7 +1,6 @@
-import { InvalidArgumentError } from "../../errors.js";
-import { FunctionWithModes } from "./kode-function-with-modes.js";
+import { InvalidArgumentError, KodeFunctionWithModes } from "../../kodeine.js";
 /** Implementation of Kustom's mu() (math utilities) function. */
-export class MuFunction extends FunctionWithModes {
+export class MuFunction extends KodeFunctionWithModes {
     getName() { return 'mu'; }
     singleArgMode(name, func) {
         this.mode(name, ['num number'], func);

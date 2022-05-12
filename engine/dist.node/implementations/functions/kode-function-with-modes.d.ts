@@ -1,6 +1,4 @@
-import { KodeValue, IKodeFunction, ConvertibleToKodeValue } from "../../base.js";
-import { EvaluationContext } from "../../evaluables/evaluation-context.js";
-import { FunctionCall } from "../../evaluables/function-call.js";
+import { IKodeFunction, EvaluationContext, FunctionCall, ConvertibleToKodeValue, KodeValue } from "../../kodeine.js";
 /** An internal helper type holding elements extracted from an arugment pattern using regex. */
 declare type ArgPatternElements = {
     source: string;
@@ -24,7 +22,7 @@ declare class ModeImplementationFunctionContext {
     constructor(evalCtx: EvaluationContext, call: FunctionCall);
 }
 /** A base class for functions that have a mode as their first argument. */
-export declare abstract class FunctionWithModes extends IKodeFunction {
+export declare abstract class KodeFunctionWithModes extends IKodeFunction {
     /** An object containing all modes of this function. */
     private _modes;
     /**

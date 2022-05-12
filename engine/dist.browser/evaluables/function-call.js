@@ -1,6 +1,4 @@
-import { Evaluable, KodeValue } from "../base.js";
-import { EvaluationError } from "../errors.js";
-import { EvaluatedFunctionCall } from "./evaluation-tree.js";
+import { EvaluationError, Evaluable, EvaluatedFunctionCall, KodeValue } from "../kodeine.js";
 /** A function call, consisting of a kode function being called and arguments for the call. */
 export class FunctionCall extends Evaluable {
     /**

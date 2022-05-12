@@ -1,6 +1,4 @@
-import { IBinaryOperator, KodeValue } from "../../base.js";
-import { BinaryOperation } from "../../evaluables/binary-operation.js";
-import { EvaluationContext } from "../../evaluables/evaluation-context.js";
+import { KodeValue, IBinaryOperator, BinaryOperation, EvaluationContext } from "../../kodeine.js";
 /**
  * Base class for operators that work in one way if both arguments are numeric,
  * and otherwise concatenate with the operator symbol in the middle.

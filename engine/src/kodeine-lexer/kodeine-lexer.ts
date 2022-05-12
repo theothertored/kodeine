@@ -1,5 +1,8 @@
-import { ICharReader, FormulaToken, ILexer as FormulaTokenLexer } from "../base.js";
-import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, PlainTextToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "./formula-tokens.js";
+import { 
+    ICharReader, IFormulaTokenLexer,
+    FormulaToken,
+    ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, PlainTextToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken
+} from "../kodeine.js";
 
 /** 
  * Values representing the current state of the lexer. 
@@ -11,7 +14,7 @@ export enum KodeineLexerState {
 }
 
 /** The default Kodeine lexer. Reads characters from an {@link ICharReader} and combines them into {@link FormulaToken}s. */
-export class KodeineLexer implements FormulaTokenLexer {
+export class KodeineLexer implements IFormulaTokenLexer {
 
     /** The source of characters for the lexer. */
     private readonly _charReader: ICharReader;

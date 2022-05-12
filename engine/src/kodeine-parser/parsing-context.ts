@@ -1,13 +1,55 @@
-import { IBinaryOperator, FormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
-import { IfFunction } from "../implementations/functions/if-function.js";
-import * as UnimplementedFunctions from "../implementations/functions/unimplemented-functions.js";
-import * as UnaryOperators from "../implementations/operators/unary-operators.js";
-import * as BinaryOperators from "../implementations/operators/binary-operators.js";
-import { TcFunction } from "../implementations/functions/tc-function.js";
-import { KodeParsingError } from "../errors.js";
-import { MuFunction } from "../implementations/functions/mu-function.js";
-import { FlFunction } from "../implementations/functions/fl-function.js";
-import { GvFunction } from "../implementations/functions/gv-function.js";
+import {
+    IBinaryOperator, IKodeFunction, IUnaryOperator,
+    KodeParsingError,
+    FormulaToken,
+    NegationOperator,
+    ExponentiationOperator,
+    MultiplicationOperator,
+    DivisionOperator,
+    ModuloOperator,
+    AdditionOperator,
+    SubtractionOperator,
+    EqualityOperator,
+    InequalityOperator,
+    LesserThanOperator,
+    GreaterThanOperator,
+    LesserThanOrEqualToOperator,
+    GreaterThanOrEqualToOperator,
+    RegexMatchOperator,
+    LogicalOrOperator,
+    LogicalAndOperator,
+    IfFunction,
+    TcFunction,
+    MuFunction,
+    FlFunction,
+    GvFunction,
+    LiFunction,
+    AqFunction,
+    NcFunction,
+    NiFunction,
+    RmFunction,
+    CeFunction,
+    WgFunction,
+    WiFunction,
+    ShFunction,
+    BiFunction,
+    SiFunction,
+    MqFunction,
+    TfFunction,
+    BpFunction,
+    CmFunction,
+    BrFunction,
+    DfFunction,
+    MiFunction,
+    WfFunction,
+    UcFunction,
+    AiFunction,
+    FdFunction,
+    DpFunction,
+    TuFunction,
+    TsFunction,
+    CiFunction
+} from "../kodeine.js";
 
 /** 
  * Exposes function and operator implementations. 
@@ -131,6 +173,7 @@ export class ParsingContextBuilder {
 
     /** 
      * Adds an item to the parsing context. The item can be an instance or simply a class name.
+     * @param obj The item to add to the parsing context. Can be an instance or simply a class name.
      * @returns This builder instance for call chaining.
      * @example
      * // add an instance:
@@ -150,6 +193,27 @@ export class ParsingContextBuilder {
             this.add(new obj());
 
         return this;
+    }
+
+    /**
+     * Adds all items passed as arguments to the parsing context.
+     * @param objs The items to add.
+     * @returns This builder instance for call chaining.
+     * @see {@link add} for information about what objects can be added.
+     */
+    addAll(...objs: (new () => ParsingContextItem | ParsingContextItem)[]): ParsingContextBuilder {
+
+        objs.forEach(obj => {
+            try {
+                this.add(obj)
+            } catch (err) {
+                let a = obj;
+                throw err;
+            }
+        });
+
+        return this;
+
     }
 
     /**
@@ -187,16 +251,67 @@ export class ParsingContextBuilder {
      */
     addDefaults(): ParsingContextBuilder {
 
-        this.addFromModule(UnimplementedFunctions)
-            .add(IfFunction)
-            .add(TcFunction)
-            .add(MuFunction)
-            .add(FlFunction)
-            .add(GvFunction)
-            .addFromModule(UnaryOperators)
-            .addFromModule(BinaryOperators);
+        return this
 
-        return this;
+            // implemented operators
+            .addAll(
+                NegationOperator,
+                ExponentiationOperator,
+                MultiplicationOperator,
+                DivisionOperator,
+                ModuloOperator,
+                AdditionOperator,
+                SubtractionOperator,
+                EqualityOperator,
+                InequalityOperator,
+                LesserThanOperator,
+                GreaterThanOperator,
+                LesserThanOrEqualToOperator,
+                GreaterThanOrEqualToOperator,
+                RegexMatchOperator,
+                LogicalOrOperator,
+                LogicalAndOperator
+            )
+
+            // implemented functions
+            .addAll(
+                IfFunction,
+                TcFunction,
+                MuFunction,
+                FlFunction,
+                GvFunction
+            )
+
+            // unimplemented functions
+            .addAll(
+                LiFunction,
+                AqFunction,
+                NcFunction,
+                NiFunction,
+                WgFunction,
+                RmFunction,
+                CiFunction,
+                ShFunction,
+                WiFunction,
+                BiFunction,
+                SiFunction,
+                MqFunction,
+                TsFunction,
+                BpFunction,
+                CmFunction,
+                BrFunction,
+                DfFunction,
+                MiFunction,
+                WfFunction,
+                TfFunction,
+                UcFunction,
+                CeFunction,
+                AiFunction,
+                FdFunction,
+                DpFunction,
+                TuFunction
+            );
+
     }
 
     /**

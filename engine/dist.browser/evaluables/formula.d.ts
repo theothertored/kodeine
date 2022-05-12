@@ -1,5 +1,4 @@
-import { Evaluable, KodeValue } from "../base.js";
-import { EvaluationContext } from "./evaluation-context.js";
+import { Evaluable, EvaluationContext, KodeValue } from "../kodeine.js";
 /**
  * A formula consists of several evaluables. The values of the evaluables are concatenated to form the formula result.
  */

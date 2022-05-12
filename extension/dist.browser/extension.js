@@ -2,9 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = void 0;
 const vscode = require("vscode");
-const parsing_context_js_1 = require("../../engine/dist.node/kodeine-parser/parsing-context.js");
-const kodeine_parser_js_1 = require("../../engine/dist.node/kodeine-parser/kodeine-parser.js");
-const evaluation_context_js_1 = require("../../engine/dist.node/evaluables/evaluation-context.js");
+const kodeine_js_1 = require("../../engine/dist.node/kodeine.js");
 const evaluation_tree_data_provider_js_1 = require("./evaluation-tree-data-provider.js");
 const global_tree_data_provider_js_1 = require("./global-tree-data-provider.js");
 let outChannel;
@@ -20,9 +18,9 @@ let globalTreeDataProvider;
 /** Activates the extension. */
 function activate(extCtx) {
     // prepare kodeine engine
-    parsingCtx = parsing_context_js_1.ParsingContextBuilder.buildDefault();
-    parser = new kodeine_parser_js_1.KodeineParser(parsingCtx);
-    evalCtx = new evaluation_context_js_1.EvaluationContext();
+    parsingCtx = kodeine_js_1.ParsingContextBuilder.buildDefault();
+    parser = new kodeine_js_1.KodeineParser(parsingCtx);
+    evalCtx = new kodeine_js_1.EvaluationContext();
     // enable evaluation tree building
     evalCtx.buildEvaluationTree = true;
     // create an output channel for formula results
@@ -33,7 +31,7 @@ function activate(extCtx) {
     diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     extCtx.subscriptions.push(diagColl); // register it as disposable
     // create and register the formula tree view data provider
-    evaluationTreeDataProvider = new evaluation_tree_data_provider_js_1.FormulaTreeDataProvider();
+    evaluationTreeDataProvider = new evaluation_tree_data_provider_js_1.EvaluationTreeDataProvider();
     extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', evaluationTreeDataProvider));
     // prepare map to keep track of global documents
     docToGlobalNameMap = new Map();

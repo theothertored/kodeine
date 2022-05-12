@@ -23,18 +23,12 @@ var __copyProps = (to, from, except, desc) => {
 var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target, mod));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// engine/dist.node/base.js
-var require_base = __commonJS({
-  "engine/dist.node/base.js"(exports) {
+// engine/dist.node/abstractions.js
+var require_abstractions = __commonJS({
+  "engine/dist.node/abstractions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluableSource = exports.Literal = exports.FormulaEvaluationTreeNode = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.FormulaToken = void 0;
-    var FormulaToken = class {
-      getPlainTextOutput() {
-        return this.getSourceText();
-      }
-    };
-    exports.FormulaToken = FormulaToken;
+    exports.IFormulaStringParser = exports.IFormulaTokenLexer = exports.ICharReader = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = void 0;
     var IOperator = class {
     };
     exports.IOperator = IOperator;
@@ -47,113 +41,12 @@ var require_base = __commonJS({
     var IKodeFunction = class {
     };
     exports.IKodeFunction = IKodeFunction;
-    var Evaluable = class {
-      constructor(source) {
-        this.source = source;
-      }
-      getSourceText() {
-        var _a;
-        return (_a = this.source) == null ? void 0 : _a.tokens.map((t) => t.getSourceText()).toString();
-      }
-    };
-    exports.Evaluable = Evaluable;
-    var KodeValue = class extends Evaluable {
-      constructor(value, source) {
-        super(source);
-        if (typeof value === "boolean") {
-          this.numericValue = value ? 1 : 0;
-          this.text = this.numericValue.toString();
-          this.isNumeric = true;
-        } else if (typeof value === "string") {
-          this.text = value;
-          this.numericValue = (value == null ? void 0 : value.trim()) ? Number(value) : NaN;
-          this.isNumeric = !isNaN(this.numericValue);
-          let isI = value.trim().toLowerCase() === "i";
-          if (isI)
-            this.isI = true;
-        } else if (typeof value === "number") {
-          this.numericValue = value;
-          this.text = value.toString();
-          this.isNumeric = true;
-        } else {
-          this.text = value.text;
-          this.isNumeric = value.isNumeric;
-          this.numericValue = value.numericValue;
-        }
-      }
-      evaluate(evalCtx2) {
-        let result;
-        if (evalCtx2.iReplacement && this.isI)
-          result = evalCtx2.iReplacement;
-        else
-          result = this;
-        if (evalCtx2.buildEvaluationTree) {
-          evalCtx2.sideEffects.lastEvaluationTreeNode = new Literal2(result);
-        }
-        return result;
-      }
-      equals(other) {
-        if (this.isNumeric && other.isNumeric)
-          return this.numericValue == other.numericValue;
-        else if (this.isNumeric || other.isNumeric)
-          return false;
-        else
-          return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
-      }
-      static fromToken(token) {
-        return new KodeValue(token.getValue(), new EvaluableSource(token));
-      }
-    };
-    exports.KodeValue = KodeValue;
-    var FormulaEvaluationTreeNode2 = class {
-      constructor(result) {
-        this.result = result;
-      }
-    };
-    exports.FormulaEvaluationTreeNode = FormulaEvaluationTreeNode2;
-    var Literal2 = class extends FormulaEvaluationTreeNode2 {
-      constructor(value) {
-        super(value);
-      }
-      getDescription() {
-        return this.result.isNumeric ? "numeric value" : "value";
-      }
-    };
-    exports.Literal = Literal2;
-    var EvaluableSource = class {
-      constructor(...tokens) {
-        this.tokens = tokens;
-      }
-      getStartIndex() {
-        if (this.tokens.length > 0)
-          return this.tokens[0].getStartIndex();
-        else
-          throw new Error("Evaluable source contains no tokens.");
-      }
-      getEndIndex() {
-        if (this.tokens.length > 0)
-          return this.tokens[this.tokens.length - 1].getEndIndex();
-        else
-          throw new Error("Evaluable source contains no tokens.");
-      }
-      static createByConcatenatingSources(evaluables) {
-        let tokens = [];
-        evaluables.forEach((ev) => {
-          var _a;
-          if (Array.isArray((_a = ev.source) == null ? void 0 : _a.tokens)) {
-            tokens.push(...ev.source.tokens);
-          }
-        });
-        return new EvaluableSource(...tokens);
-      }
-    };
-    exports.EvaluableSource = EvaluableSource;
     var ICharReader = class {
     };
     exports.ICharReader = ICharReader;
-    var ILexer = class {
+    var IFormulaTokenLexer = class {
     };
-    exports.ILexer = ILexer;
+    exports.IFormulaTokenLexer = IFormulaTokenLexer;
     var IFormulaStringParser = class {
     };
     exports.IFormulaStringParser = IFormulaStringParser;
@@ -166,7 +59,7 @@ var require_errors = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
-    var base_js_1 = require_base();
+    var kodeine_js_1 = require_kodeine();
     var KodeError = class {
       constructor(message) {
         this.message = message;
@@ -213,7 +106,7 @@ var require_errors = __commonJS({
     exports.InvalidArgumentCountError = InvalidArgumentCountError;
     var InvalidArgumentError = class extends EvaluationError {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
-        super(argumentSource, `Value ${invalidValue instanceof base_js_1.KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
+        super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError;
@@ -226,289 +119,42 @@ var require_errors = __commonJS({
   }
 });
 
-// engine/dist.node/implementations/functions/if-function.js
-var require_if_function = __commonJS({
-  "engine/dist.node/implementations/functions/if-function.js"(exports) {
+// engine/dist.node/string-char-reader.js
+var require_string_char_reader = __commonJS({
+  "engine/dist.node/string-char-reader.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IfFunction = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var IfFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "if";
+    exports.StringCharReader = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var StringCharReader = class extends kodeine_js_1.ICharReader {
+      constructor(text) {
+        super();
+        this._text = text;
+        this._position = 0;
       }
-      call(evalCtx2, call, args) {
-        if (args.length <= 1) {
-          throw new errors_js_1.InvalidArgumentCountError(call, "At least two arguments required.");
-        }
-        let lastCondArgI = Math.floor((args.length - 2) / 2) * 2;
-        ;
-        for (var i = 0; i <= lastCondArgI; i += 2) {
-          let condArg = args[i];
-          if (!condArg.isNumeric && condArg.text !== "" || condArg.isNumeric && condArg.numericValue !== 0) {
-            return new base_js_1.KodeValue(args[i + 1], call.source);
-          }
-        }
-        if (lastCondArgI + 2 < args.length) {
-          return new base_js_1.KodeValue(args[lastCondArgI + 2], call.source);
-        } else {
-          return new base_js_1.KodeValue("", call.source);
-        }
+      getPosition() {
+        return this._position;
+      }
+      peek(charCount, offset) {
+        offset != null ? offset : offset = 0;
+        return this._text.substring(this._position + offset, this._position + offset + charCount);
+      }
+      consume(charCount) {
+        let oldPos = this._position;
+        this._position += charCount;
+        return this._text.substring(oldPos, oldPos + charCount);
+      }
+      EOF() {
+        return this._position >= this._text.length;
       }
     };
-    exports.IfFunction = IfFunction;
+    exports.StringCharReader = StringCharReader;
   }
 });
 
-// engine/dist.node/implementations/functions/unimplemented-functions.js
-var require_unimplemented_functions = __commonJS({
-  "engine/dist.node/implementations/functions/unimplemented-functions.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TimerUtilsFunction = exports.DateParserFunction = exports.FitnessDataFunction = exports.AstronomicalInfoFunction = exports.CalendarEventFunction = exports.UnreadCounterFunction = exports.TimeSpanFunction = exports.WeatherForecastFunction = exports.MusicInfoFunction = exports.DateFormatFunction = exports.BroadcastReceiverFunction = exports.ColorMakerFunction = exports.BitmapPaletteFunction = exports.TrafficStatsFunction = exports.MusicQueueFunction = exports.SystemInfoFunction = exports.BatteryInfoFunction = exports.CurrentWeatherFunction = exports.ShellCommandFunction = exports.ColorEditorFunction = exports.ResourceMonitorFunction = exports.WebGetFunction = exports.SystemNotificationsFunction = exports.NetworkConnectivityFunction = exports.AirQualityFunction = exports.LocationInfoFunction = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var LocationInfoFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "li";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.LocationInfoFunction = LocationInfoFunction;
-    var AirQualityFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "aq";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.AirQualityFunction = AirQualityFunction;
-    var NetworkConnectivityFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "nc";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.NetworkConnectivityFunction = NetworkConnectivityFunction;
-    var SystemNotificationsFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "ni";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.SystemNotificationsFunction = SystemNotificationsFunction;
-    var WebGetFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "wg";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.WebGetFunction = WebGetFunction;
-    var ResourceMonitorFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "rm";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.ResourceMonitorFunction = ResourceMonitorFunction;
-    var ColorEditorFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "ce";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.ColorEditorFunction = ColorEditorFunction;
-    var ShellCommandFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "sh";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.ShellCommandFunction = ShellCommandFunction;
-    var CurrentWeatherFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "wi";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.CurrentWeatherFunction = CurrentWeatherFunction;
-    var BatteryInfoFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "bi";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.BatteryInfoFunction = BatteryInfoFunction;
-    var SystemInfoFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "si";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.SystemInfoFunction = SystemInfoFunction;
-    var MusicQueueFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "mq";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.MusicQueueFunction = MusicQueueFunction;
-    var TrafficStatsFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "ts";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.TrafficStatsFunction = TrafficStatsFunction;
-    var BitmapPaletteFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "bp";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.BitmapPaletteFunction = BitmapPaletteFunction;
-    var ColorMakerFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "cm";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.ColorMakerFunction = ColorMakerFunction;
-    var BroadcastReceiverFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "br";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.BroadcastReceiverFunction = BroadcastReceiverFunction;
-    var DateFormatFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "df";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.DateFormatFunction = DateFormatFunction;
-    var MusicInfoFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "mi";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.MusicInfoFunction = MusicInfoFunction;
-    var WeatherForecastFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "wf";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.WeatherForecastFunction = WeatherForecastFunction;
-    var TimeSpanFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "tf";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.TimeSpanFunction = TimeSpanFunction;
-    var UnreadCounterFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "uc";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.UnreadCounterFunction = UnreadCounterFunction;
-    var CalendarEventFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "ci";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.CalendarEventFunction = CalendarEventFunction;
-    var AstronomicalInfoFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "ai";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.AstronomicalInfoFunction = AstronomicalInfoFunction;
-    var FitnessDataFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "fd";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.FitnessDataFunction = FitnessDataFunction;
-    var DateParserFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "dp";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.DateParserFunction = DateParserFunction;
-    var TimerUtilsFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "tu";
-      }
-      call(evalCtx2, call, args) {
-        throw new errors_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.TimerUtilsFunction = TimerUtilsFunction;
-  }
-});
-
-// engine/dist.node/evaluables/evaluation-context.js
+// engine/dist.node/evaluation/evaluation-context.js
 var require_evaluation_context = __commonJS({
-  "engine/dist.node/evaluables/evaluation-context.js"(exports) {
+  "engine/dist.node/evaluation/evaluation-context.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = void 0;
@@ -555,408 +201,409 @@ var require_evaluation_context = __commonJS({
   }
 });
 
-// engine/dist.node/implementations/operators/unary-operators.js
-var require_unary_operators = __commonJS({
-  "engine/dist.node/implementations/operators/unary-operators.js"(exports) {
+// engine/dist.node/evaluation/evaluation-tree.js
+var require_evaluation_tree = __commonJS({
+  "engine/dist.node/evaluation/evaluation-tree.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.NegationOperator = void 0;
-    var base_js_1 = require_base();
-    var evaluation_context_js_1 = require_evaluation_context();
-    var NegationOperator = class extends base_js_1.IUnaryOperator {
-      getSymbol() {
-        return "-";
+    exports.CouldNotBeEvaluated = exports.Literal = exports.EvaluatedUnaryOperation = exports.EvaluatedBinaryOperation = exports.EvaluatedFunctionCall = exports.EvaluatedExpression = exports.FormulaEvaluationTree = exports.FormulaEvaluationTreeNode = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var FormulaEvaluationTreeNode2 = class {
+      constructor(result) {
+        this.result = result;
       }
-      operation(evalCtx2, operation, a) {
-        if (a.isNumeric) {
-          let value = -a.numericValue;
-          if (Number.isInteger(value))
-            return new base_js_1.KodeValue(value + ".0");
-          else
-            return new base_js_1.KodeValue(value);
+    };
+    exports.FormulaEvaluationTreeNode = FormulaEvaluationTreeNode2;
+    var FormulaEvaluationTree3 = class extends FormulaEvaluationTreeNode2 {
+      constructor(parts, result) {
+        super(result);
+        this.parts = parts;
+      }
+      getDescription() {
+        return "formula";
+      }
+    };
+    exports.FormulaEvaluationTree = FormulaEvaluationTree3;
+    var EvaluatedExpression2 = class extends FormulaEvaluationTreeNode2 {
+      constructor(child, result) {
+        super(result);
+        this.child = child;
+      }
+      getDescription() {
+        return "expression";
+      }
+    };
+    exports.EvaluatedExpression = EvaluatedExpression2;
+    var EvaluatedFunctionCall2 = class extends FormulaEvaluationTreeNode2 {
+      constructor(call, args, result) {
+        super(result);
+        this.call = call;
+        this.args = args;
+      }
+      getDescription() {
+        var _a;
+        if (this.call.func instanceof kodeine_js_1.KodeFunctionWithModes) {
+          return `${this.call.func.getName()}(${(_a = this.args[0]) == null ? void 0 : _a.result.text}) call`;
         } else {
-          evalCtx2.sideEffects.warnings.push(new evaluation_context_js_1.UnaryMinusStringModeWarning(operation));
-          return new base_js_1.KodeValue(a.text + "-null", operation.source);
+          return `${this.call.func.getName()}() call`;
         }
       }
     };
-    exports.NegationOperator = NegationOperator;
+    exports.EvaluatedFunctionCall = EvaluatedFunctionCall2;
+    var EvaluatedBinaryOperation2 = class extends FormulaEvaluationTreeNode2 {
+      constructor(operation, argA, argB, result) {
+        super(result);
+        this.operation = operation;
+        this.argA = argA;
+        this.argB = argB;
+      }
+      getDescription() {
+        return `${this.operation.operator.getSymbol()} operator`;
+      }
+    };
+    exports.EvaluatedBinaryOperation = EvaluatedBinaryOperation2;
+    var EvaluatedUnaryOperation2 = class extends FormulaEvaluationTreeNode2 {
+      constructor(operation, arg, result) {
+        super(result);
+        this.operation = operation;
+        this.arg = arg;
+      }
+      getDescription() {
+        return `${this.operation.operator.getSymbol()} operator`;
+      }
+    };
+    exports.EvaluatedUnaryOperation = EvaluatedUnaryOperation2;
+    var Literal2 = class extends FormulaEvaluationTreeNode2 {
+      constructor(value) {
+        super(value);
+      }
+      getDescription() {
+        return this.result.isNumeric ? "numeric value" : "value";
+      }
+    };
+    exports.Literal = Literal2;
+    var CouldNotBeEvaluated = class extends FormulaEvaluationTreeNode2 {
+      constructor(result) {
+        super(result);
+      }
+      getDescription() {
+        return `evaluation failed`;
+      }
+    };
+    exports.CouldNotBeEvaluated = CouldNotBeEvaluated;
   }
 });
 
-// engine/dist.node/implementations/operators/two-mode-binary-operator.js
-var require_two_mode_binary_operator = __commonJS({
-  "engine/dist.node/implementations/operators/two-mode-binary-operator.js"(exports) {
+// engine/dist.node/evaluation/evaluables/evaluable.js
+var require_evaluable = __commonJS({
+  "engine/dist.node/evaluation/evaluables/evaluable.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TwoModeBinaryOperator = void 0;
-    var base_js_1 = require_base();
-    var TwoModeBinaryOperator = class extends base_js_1.IBinaryOperator {
-      operation(evalCtx2, operation, a, b) {
-        if (a.isNumeric && b.isNumeric) {
-          return new base_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
-        } else {
-          return new base_js_1.KodeValue(this.textMode(a, b), operation.source);
-        }
+    exports.EvaluableSource = exports.Evaluable = void 0;
+    var Evaluable = class {
+      constructor(source) {
+        this.source = source;
       }
-      textMode(a, b) {
-        if (a.isNumeric)
-          return a.numericValue + this.getSymbol() + b.text;
-        else if (b.isNumeric)
-          return a.text + this.getSymbol() + b.numericValue;
-        else
-          return a.text + this.getSymbol() + b.text;
+      getSourceText() {
+        var _a;
+        return (_a = this.source) == null ? void 0 : _a.tokens.map((t) => t.getSourceText()).toString();
       }
     };
-    exports.TwoModeBinaryOperator = TwoModeBinaryOperator;
+    exports.Evaluable = Evaluable;
+    var EvaluableSource = class {
+      constructor(...tokens) {
+        this.tokens = tokens;
+      }
+      getStartIndex() {
+        if (this.tokens.length > 0)
+          return this.tokens[0].getStartIndex();
+        else
+          throw new Error("Evaluable source contains no tokens.");
+      }
+      getEndIndex() {
+        if (this.tokens.length > 0)
+          return this.tokens[this.tokens.length - 1].getEndIndex();
+        else
+          throw new Error("Evaluable source contains no tokens.");
+      }
+      static createByConcatenatingSources(evaluables) {
+        let tokens = [];
+        evaluables.forEach((ev) => {
+          var _a;
+          if (Array.isArray((_a = ev.source) == null ? void 0 : _a.tokens)) {
+            tokens.push(...ev.source.tokens);
+          }
+        });
+        return new EvaluableSource(...tokens);
+      }
+    };
+    exports.EvaluableSource = EvaluableSource;
   }
 });
 
-// engine/dist.node/implementations/operators/binary-operators.js
-var require_binary_operators = __commonJS({
-  "engine/dist.node/implementations/operators/binary-operators.js"(exports) {
+// engine/dist.node/evaluation/evaluables/kode-value.js
+var require_kode_value = __commonJS({
+  "engine/dist.node/evaluation/evaluables/kode-value.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.LogicalAndOperator = exports.LogicalOrOperator = exports.RegexMatchOperator = exports.GreaterThanOrEqualToOperator = exports.LesserThanOrEqualToOperator = exports.GreaterThanOperator = exports.LesserThanOperator = exports.InequalityOperator = exports.EqualityOperator = exports.SubtractionOperator = exports.AdditionOperator = exports.ModuloOperator = exports.DivisionOperator = exports.MultiplicationOperator = exports.ExponentiationOperator = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var two_mode_binary_operator_js_1 = require_two_mode_binary_operator();
-    var ExponentiationOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "^";
-      }
-      getPrecedence() {
-        return 5;
-      }
-      numericMode(a, b) {
-        return __pow(a, b);
-      }
-    };
-    exports.ExponentiationOperator = ExponentiationOperator;
-    var MultiplicationOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "*";
-      }
-      getPrecedence() {
-        return 4;
-      }
-      numericMode(a, b) {
-        return a * b;
-      }
-    };
-    exports.MultiplicationOperator = MultiplicationOperator;
-    var DivisionOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "/";
-      }
-      getPrecedence() {
-        return 4;
-      }
-      numericMode(a, b) {
-        return a / b;
-      }
-    };
-    exports.DivisionOperator = DivisionOperator;
-    var ModuloOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "%";
-      }
-      getPrecedence() {
-        return 4;
-      }
-      numericMode(a, b) {
-        return a % b;
-      }
-    };
-    exports.ModuloOperator = ModuloOperator;
-    var AdditionOperator = class extends base_js_1.IBinaryOperator {
-      getSymbol() {
-        return "+";
-      }
-      getPrecedence() {
-        return 3;
-      }
-      operation(evalCtx2, operation, a, b) {
-        if (a.isNumeric && b.isNumeric) {
-          return new base_js_1.KodeValue(a.numericValue + b.numericValue);
+    exports.KodeValue = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var KodeValue = class extends kodeine_js_1.Evaluable {
+      constructor(value, source) {
+        super(source);
+        if (typeof value === "boolean") {
+          this.numericValue = value ? 1 : 0;
+          this.text = this.numericValue.toString();
+          this.isNumeric = true;
+        } else if (typeof value === "string") {
+          this.text = value;
+          this.numericValue = (value == null ? void 0 : value.trim()) ? Number(value) : NaN;
+          this.isNumeric = !isNaN(this.numericValue);
+          let isI = value.trim().toLowerCase() === "i";
+          if (isI)
+            this.isI = true;
+        } else if (typeof value === "number") {
+          this.numericValue = value;
+          this.text = value.toString();
+          this.isNumeric = true;
         } else {
-          if (a.isNumeric)
-            return new base_js_1.KodeValue(a.numericValue + b.text, operation.source);
-          else if (b.isNumeric)
-            return new base_js_1.KodeValue(a.text + b.numericValue, operation.source);
-          else
-            return new base_js_1.KodeValue(a.text + b.text, operation.source);
+          this.text = value.text;
+          this.isNumeric = value.isNumeric;
+          this.numericValue = value.numericValue;
+        }
+      }
+      evaluate(evalCtx2) {
+        let result;
+        if (evalCtx2.iReplacement && this.isI)
+          result = evalCtx2.iReplacement;
+        else
+          result = this;
+        if (evalCtx2.buildEvaluationTree) {
+          evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.Literal(result);
+        }
+        return result;
+      }
+      equals(other) {
+        if (this.isNumeric && other.isNumeric)
+          return this.numericValue == other.numericValue;
+        else if (this.isNumeric || other.isNumeric)
+          return false;
+        else
+          return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
+      }
+      static fromToken(token) {
+        return new KodeValue(token.getValue(), new kodeine_js_1.EvaluableSource(token));
+      }
+    };
+    exports.KodeValue = KodeValue;
+  }
+});
+
+// engine/dist.node/evaluation/evaluables/unary-operation.js
+var require_unary_operation = __commonJS({
+  "engine/dist.node/evaluation/evaluables/unary-operation.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.UnaryOperation = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var UnaryOperation = class extends kodeine_js_1.Evaluable {
+      constructor(operator, arg, source) {
+        super(source);
+        this.operator = operator;
+        this.arg = arg;
+      }
+      evaluate(evalCtx2) {
+        if (evalCtx2.buildEvaluationTree) {
+          let argResult = this.arg.evaluate(evalCtx2);
+          let argNode = evalCtx2.sideEffects.lastEvaluationTreeNode;
+          let result = this.operator.operation(evalCtx2, this, argResult);
+          evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedUnaryOperation(this, argNode, result);
+          return result;
+        } else {
+          return this.operator.operation(evalCtx2, this, this.arg.evaluate(evalCtx2));
         }
       }
     };
-    exports.AdditionOperator = AdditionOperator;
-    var SubtractionOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "-";
+    exports.UnaryOperation = UnaryOperation;
+  }
+});
+
+// engine/dist.node/evaluation/evaluables/binary-operation.js
+var require_binary_operation = __commonJS({
+  "engine/dist.node/evaluation/evaluables/binary-operation.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BinaryOperation = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var BinaryOperation = class extends kodeine_js_1.Evaluable {
+      constructor(operator, argA, argB, source) {
+        super(source);
+        this.operator = operator;
+        this.argA = argA;
+        this.argB = argB;
       }
-      getPrecedence() {
-        return 3;
-      }
-      numericMode(a, b) {
-        return a - b;
-      }
-    };
-    exports.SubtractionOperator = SubtractionOperator;
-    var EqualityOperator = class extends base_js_1.IBinaryOperator {
-      getSymbol() {
-        return "=";
-      }
-      getPrecedence() {
-        return 2;
-      }
-      operation(evalCtx2, operation, a, b) {
-        return new base_js_1.KodeValue(a.equals(b), operation.source);
-      }
-    };
-    exports.EqualityOperator = EqualityOperator;
-    var InequalityOperator = class extends base_js_1.IBinaryOperator {
-      getSymbol() {
-        return "!=";
-      }
-      getPrecedence() {
-        return 2;
-      }
-      operation(evalCtx2, operation, a, b) {
-        if (a.isNumeric && b.isNumeric)
-          return new base_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
-        else if (a.isNumeric || b.isNumeric)
-          return new base_js_1.KodeValue(1, operation.source);
-        else
-          return new base_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
+      evaluate(evalCtx2) {
+        if (evalCtx2.buildEvaluationTree) {
+          let argAResult = this.argA.evaluate(evalCtx2);
+          let argANode = evalCtx2.sideEffects.lastEvaluationTreeNode;
+          let argBResult = this.argB.evaluate(evalCtx2);
+          let argBNode = evalCtx2.sideEffects.lastEvaluationTreeNode;
+          let result = this.operator.operation(evalCtx2, this, argAResult, argBResult);
+          evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedBinaryOperation(this, argANode, argBNode, result);
+          return result;
+        } else {
+          return this.operator.operation(evalCtx2, this, this.argA.evaluate(evalCtx2), this.argB.evaluate(evalCtx2));
+        }
       }
     };
-    exports.InequalityOperator = InequalityOperator;
-    var LesserThanOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "<";
+    exports.BinaryOperation = BinaryOperation;
+  }
+});
+
+// engine/dist.node/evaluation/evaluables/function-call.js
+var require_function_call = __commonJS({
+  "engine/dist.node/evaluation/evaluables/function-call.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.FunctionCall = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var FunctionCall = class extends kodeine_js_1.Evaluable {
+      constructor(func, args, source) {
+        super(source);
+        this.func = func;
+        this.args = args;
       }
-      getPrecedence() {
-        return 2;
-      }
-      numericMode(a, b) {
-        return a < b;
-      }
-    };
-    exports.LesserThanOperator = LesserThanOperator;
-    var GreaterThanOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return ">";
-      }
-      getPrecedence() {
-        return 2;
-      }
-      numericMode(a, b) {
-        return a > b;
-      }
-    };
-    exports.GreaterThanOperator = GreaterThanOperator;
-    var LesserThanOrEqualToOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "<=";
-      }
-      getPrecedence() {
-        return 2;
-      }
-      numericMode(a, b) {
-        return a <= b;
-      }
-    };
-    exports.LesserThanOrEqualToOperator = LesserThanOrEqualToOperator;
-    var GreaterThanOrEqualToOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return ">=";
-      }
-      getPrecedence() {
-        return 2;
-      }
-      numericMode(a, b) {
-        return a >= b;
-      }
-    };
-    exports.GreaterThanOrEqualToOperator = GreaterThanOrEqualToOperator;
-    var RegexMatchOperator = class extends base_js_1.IBinaryOperator {
-      getSymbol() {
-        return "~=";
-      }
-      getPrecedence() {
-        return 2;
-      }
-      operation(evalCtx2, operation, a, b) {
+      evaluate(evalCtx2) {
         try {
-          return new base_js_1.KodeValue(new RegExp(b.text).test(a.text), operation.source);
+          if (evalCtx2.buildEvaluationTree) {
+            let argResults = [];
+            let argNodes = [];
+            for (let i = 0; i < this.args.length; i++) {
+              const arg = this.args[i];
+              argResults[i] = arg.evaluate(evalCtx2);
+              argNodes[i] = evalCtx2.sideEffects.lastEvaluationTreeNode;
+            }
+            let funcResult = this.func.call(evalCtx2, this, argResults);
+            evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedFunctionCall(this, argNodes, funcResult);
+            return funcResult;
+          } else {
+            return this.func.call(evalCtx2, this, this.args.map((a) => a.evaluate(evalCtx2)));
+          }
         } catch (err) {
-          throw new errors_js_1.RegexEvaluationError(operation.argB, err == null ? void 0 : err.toString());
-        }
-      }
-    };
-    exports.RegexMatchOperator = RegexMatchOperator;
-    var LogicalOrOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "|";
-      }
-      getPrecedence() {
-        return 1;
-      }
-      numericMode(a, b) {
-        return a == 1 || b == 1 ? 1 : 0;
-      }
-    };
-    exports.LogicalOrOperator = LogicalOrOperator;
-    var LogicalAndOperator = class extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
-      getSymbol() {
-        return "&";
-      }
-      getPrecedence() {
-        return 1;
-      }
-      numericMode(a, b) {
-        return a == 1 && b == 1 ? 1 : 0;
-      }
-    };
-    exports.LogicalAndOperator = LogicalAndOperator;
-  }
-});
-
-// engine/dist.node/implementations/helpers/number-to-text-converter.js
-var require_number_to_text_converter = __commonJS({
-  "engine/dist.node/implementations/helpers/number-to-text-converter.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.NumberToTextConverter = void 0;
-    exports.NumberToTextConverter = (() => {
-      const maxConvertible = __pow(2, 31) - 1;
-      const million = 1e6;
-      const billion = 1e9;
-      const zeroToNineteen = [
-        "zero",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-        "ten",
-        "eleven",
-        "twelve",
-        "thirteen",
-        "fourteen",
-        "fifteen",
-        "sixteen",
-        "seventeen",
-        "eighteen",
-        "nineteen"
-      ];
-      const tens = ["zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
-      const _convertUnder20 = (n) => {
-        return zeroToNineteen[n];
-      };
-      const _convertUnderHundred = (n) => {
-        if (n < 20) {
-          return _convertUnder20(n);
-        } else {
-          let tenCount = Math.floor(n / 10);
-          let output = tens[tenCount];
-          let rest = n % 10;
-          if (rest > 0) {
-            return `${output} ${_convertUnder20(rest)}`;
+          if (err instanceof kodeine_js_1.EvaluationError) {
+            evalCtx2.sideEffects.errors.push(err);
+            return new kodeine_js_1.KodeValue("", this.source);
           } else {
-            return output;
+            throw err;
           }
         }
-      };
-      const _convertUnderThousand = (n) => {
-        if (n < 100) {
-          return _convertUnderHundred(n);
-        } else {
-          let hundredCount = Math.floor(n / 100);
-          let output = _convertUnder20(hundredCount);
-          let rest = n % 100;
-          if (rest > 0)
-            return `${output} hundred ${_convertUnderHundred(rest)}`;
-          else
-            return output;
-        }
-      };
-      const _convertUnderMillion = (n) => {
-        if (n < 1e3) {
-          return _convertUnderThousand(n);
-        } else {
-          let thousandCount = Math.floor(n / 1e3);
-          let output = _convertUnderThousand(thousandCount);
-          let rest = n % 1e3;
-          if (rest > 0)
-            return `${output} thousand ${_convertUnderThousand(rest)}`;
-          else
-            return output;
-        }
-      };
-      const _convertUnderBillion = (n) => {
-        if (n < million) {
-          return _convertUnderMillion(n);
-        } else {
-          let millionCount = Math.floor(n / million);
-          let output = _convertUnderThousand(millionCount);
-          let rest = n % million;
-          if (rest > 0)
-            return `${output} million ${_convertUnderMillion(rest)}`;
-          else
-            return `${output} million`;
-        }
-      };
-      return {
-        max: maxConvertible,
-        convert: (n) => {
-          if (n < 0)
-            throw new Error(`Can only convert positive numbers.`);
-          else if (n > maxConvertible)
-            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
-          if (n < billion) {
-            return _convertUnderBillion(n);
-          } else {
-            let billionCount = Math.floor(n / billion);
-            let output = _convertUnder20(billionCount);
-            let rest = n % billion;
-            if (rest > 0)
-              return `${output} billion ${_convertUnderBillion(rest)}`;
-            else
-              return `${output} billion`;
-          }
-        }
-      };
-    })();
+      }
+    };
+    exports.FunctionCall = FunctionCall;
   }
 });
 
-// engine/dist.node/implementations/helpers/text-capitalizer.js
-var require_text_capitalizer = __commonJS({
-  "engine/dist.node/implementations/helpers/text-capitalizer.js"(exports) {
+// engine/dist.node/evaluation/evaluables/expression.js
+var require_expression = __commonJS({
+  "engine/dist.node/evaluation/evaluables/expression.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TextCapitalizer = void 0;
-    exports.TextCapitalizer = (() => ({
-      capitalize: (text) => {
-        return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
+    exports.Expression = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var Expression = class extends kodeine_js_1.Evaluable {
+      constructor(evaluable, source) {
+        super(source);
+        this.evaluable = evaluable;
       }
-    }))();
+      evaluate(evalCtx2) {
+        let result = this.evaluable.evaluate(evalCtx2);
+        if (evalCtx2.buildEvaluationTree) {
+          evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedExpression(evalCtx2.sideEffects.lastEvaluationTreeNode, result);
+        }
+        return result;
+      }
+    };
+    exports.Expression = Expression;
   }
 });
 
-// engine/dist.node/implementations/functions/kode-function-with-modes.js
+// engine/dist.node/evaluation/evaluables/formula.js
+var require_formula = __commonJS({
+  "engine/dist.node/evaluation/evaluables/formula.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Formula = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var Formula2 = class extends kodeine_js_1.Evaluable {
+      constructor(evaluables) {
+        super(kodeine_js_1.EvaluableSource.createByConcatenatingSources(evaluables));
+        this.evaluables = [];
+        this.evaluables = evaluables;
+      }
+      evaluate(evalCtx2) {
+        let result;
+        let parts = [];
+        if (this.evaluables.length === 0) {
+          result = new kodeine_js_1.KodeValue("", this.source);
+        } else {
+          let output = "";
+          for (var evaluable of this.evaluables) {
+            try {
+              let partResult = evaluable.evaluate(evalCtx2);
+              if (evalCtx2.buildEvaluationTree) {
+                parts.push(evalCtx2.sideEffects.lastEvaluationTreeNode);
+              }
+              output += partResult.text;
+            } catch (err) {
+              if (err instanceof kodeine_js_1.EvaluationError) {
+                evalCtx2.sideEffects.errors.push(err);
+              } else {
+                throw err;
+              }
+            }
+          }
+          result = new kodeine_js_1.KodeValue(output, this.source);
+        }
+        if (evalCtx2.buildEvaluationTree) {
+          evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.FormulaEvaluationTree(parts, result);
+        }
+        return result;
+      }
+    };
+    exports.Formula = Formula2;
+  }
+});
+
+// engine/dist.node/evaluation/evaluables/broken-evaluable.js
+var require_broken_evaluable = __commonJS({
+  "engine/dist.node/evaluation/evaluables/broken-evaluable.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.BrokenEvaluable = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var BrokenEvaluable = class extends kodeine_js_1.Evaluable {
+      constructor(source) {
+        super(source);
+      }
+      evaluate(evalCtx2) {
+        let result = new kodeine_js_1.KodeValue("", this.source);
+        if (evalCtx2.buildEvaluationTree) {
+          evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.CouldNotBeEvaluated(result);
+        }
+        return result;
+      }
+    };
+    exports.BrokenEvaluable = BrokenEvaluable;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/base/kode-function-with-modes.js
 var require_kode_function_with_modes = __commonJS({
-  "engine/dist.node/implementations/functions/kode-function-with-modes.js"(exports) {
+  "engine/dist.node/evaluation/implementations/base/kode-function-with-modes.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FunctionWithModes = void 0;
-    var errors_js_1 = require_errors();
-    var base_js_1 = require_base();
+    exports.KodeFunctionWithModes = void 0;
+    var kodeine_js_1 = require_kodeine();
     var FunctionMode = class {
       constructor(argumentPatterns, implementationFunction) {
         this.argumentPatterns = argumentPatterns;
@@ -969,7 +616,7 @@ var require_kode_function_with_modes = __commonJS({
         this.call = call;
       }
     };
-    var FunctionWithModes = class extends base_js_1.IKodeFunction {
+    var KodeFunctionWithModes = class extends kodeine_js_1.IKodeFunction {
       constructor() {
         super();
         this._modes = {};
@@ -987,7 +634,7 @@ var require_kode_function_with_modes = __commonJS({
             if (argValue.isNumeric) {
               return argValue.numericValue;
             } else {
-              throw new errors_js_1.InvalidArgumentError(`${call.func.getName()}(${modeName})`, argPatternElements.name, i, call.args[i], argValue, `Argument must be numeric.`);
+              throw new kodeine_js_1.InvalidArgumentError(`${call.func.getName()}(${modeName})`, argPatternElements.name, i, call.args[i], argValue, `Argument must be numeric.`);
             }
           default:
             throw new Error(`Invalid argument pattern "${argPatternElements.source}" for ${call.func.getName()}(${modeName}), argument #${i + 1}: Unknown type "${argPatternElements.type}".`);
@@ -995,12 +642,12 @@ var require_kode_function_with_modes = __commonJS({
       }
       call(evalCtx2, call, args) {
         if (args.length === 0) {
-          throw new errors_js_1.InvalidArgumentCountError(call, `${call.func.getName()}() requires at least a mode argument.`);
+          throw new kodeine_js_1.InvalidArgumentCountError(call, `${call.func.getName()}() requires at least a mode argument.`);
         }
         let modeName = args[0].text.trim().toLowerCase();
         let mode = this._modes[modeName];
         if (!mode) {
-          throw new errors_js_1.InvalidArgumentError(`${call.func.getName()}()`, "mode", 0, call.args[0], args[0], `Mode "${modeName}" not found.`);
+          throw new kodeine_js_1.InvalidArgumentError(`${call.func.getName()}()`, "mode", 0, call.args[0], args[0], `Mode "${modeName}" not found.`);
         }
         let implementationCallArgs = [];
         let optionalArgumentEncountered = false;
@@ -1031,16 +678,16 @@ var require_kode_function_with_modes = __commonJS({
               if (optionalArgumentEncountered) {
                 throw new Error(`Invalid argument pattern "${argPattern}" for ${call.func.getName()}(${modeName}), argument #${i + 1} (${argPatternElements.name}): Cannot have a required parameter after an optional parameter.`);
               } else if (i + 1 >= args.length) {
-                throw new errors_js_1.InvalidArgumentCountError(call, `Argument #${i + 1} (${argPatternElements.name}) missing.`, `${call.func.getName()}(${modeName})`);
+                throw new kodeine_js_1.InvalidArgumentCountError(call, `Argument #${i + 1} (${argPatternElements.name}) missing.`, `${call.func.getName()}(${modeName})`);
               }
             }
             if (!restParamEncountered && args.length - 1 > mode.argumentPatterns.length) {
-              throw new errors_js_1.InvalidArgumentCountError(call, `Too many arguments (expected ${mode.argumentPatterns.length} at most).`, `${call.func.getName()}(${modeName})`);
+              throw new kodeine_js_1.InvalidArgumentCountError(call, `Too many arguments (expected ${mode.argumentPatterns.length} at most).`, `${call.func.getName()}(${modeName})`);
             }
             if (argPatternElements.isRest) {
               let remainingParamCount = args.length - i - 1;
               if (argPatternElements.restMinCount && remainingParamCount < argPatternElements.restMinCount) {
-                throw new errors_js_1.InvalidArgumentCountError(call, `At least ${argPatternElements.restMinCount} argument${argPatternElements.restMinCount === 1 ? "" : "s"} required.`, `${call.func.getName()}(${modeName})`);
+                throw new kodeine_js_1.InvalidArgumentCountError(call, `At least ${argPatternElements.restMinCount} argument${argPatternElements.restMinCount === 1 ? "" : "s"} required.`, `${call.func.getName()}(${modeName})`);
               } else {
                 let restParam = [];
                 for (let j = i + 1; j < args.length; j++) {
@@ -1057,77 +704,553 @@ var require_kode_function_with_modes = __commonJS({
         }
         var modeCtx = new ModeImplementationFunctionContext(evalCtx2, call);
         let val = mode.implementationFunc.call(modeCtx, ...implementationCallArgs);
-        return val instanceof base_js_1.KodeValue ? val : new base_js_1.KodeValue(val, call.source);
+        return val instanceof kodeine_js_1.KodeValue ? val : new kodeine_js_1.KodeValue(val, call.source);
       }
     };
-    exports.FunctionWithModes = FunctionWithModes;
+    exports.KodeFunctionWithModes = KodeFunctionWithModes;
   }
 });
 
-// engine/dist.node/implementations/helpers/ordinal-suffix-helper.js
-var require_ordinal_suffix_helper = __commonJS({
-  "engine/dist.node/implementations/helpers/ordinal-suffix-helper.js"(exports) {
+// engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js
+var require_unimplemented_functions = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.OrdinalSuffixHelper = void 0;
-    exports.OrdinalSuffixHelper = (() => {
-      const suffixForDigit = (digit) => {
-        if (digit === 1)
-          return "st";
-        else if (digit === 2)
-          return "nd";
-        else if (digit === 3)
-          return "rd";
-        else
-          return "th";
-      };
-      return {
-        getSuffix: (number) => {
-          number = Math.abs(number);
-          if (number <= 9)
-            return suffixForDigit(number);
-          else if (number < 20)
-            return "th";
-          else
-            return suffixForDigit(number % 10);
-        }
-      };
-    })();
+    exports.TuFunction = exports.DpFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.DfFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var LiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "li";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.LiFunction = LiFunction;
+    var AqFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "aq";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.AqFunction = AqFunction;
+    var NcFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "nc";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.NcFunction = NcFunction;
+    var NiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "ni";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.NiFunction = NiFunction;
+    var WgFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "wg";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.WgFunction = WgFunction;
+    var RmFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "rm";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.RmFunction = RmFunction;
+    var CeFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "ce";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.CeFunction = CeFunction;
+    var ShFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "sh";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.ShFunction = ShFunction;
+    var WiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "wi";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.WiFunction = WiFunction;
+    var BiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "bi";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.BiFunction = BiFunction;
+    var SiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "si";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.SiFunction = SiFunction;
+    var MqFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "mq";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.MqFunction = MqFunction;
+    var TsFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "ts";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.TsFunction = TsFunction;
+    var BpFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "bp";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.BpFunction = BpFunction;
+    var CmFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "cm";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.CmFunction = CmFunction;
+    var BrFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "br";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.BrFunction = BrFunction;
+    var DfFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "df";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.DfFunction = DfFunction;
+    var MiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "mi";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.MiFunction = MiFunction;
+    var WfFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "wf";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.WfFunction = WfFunction;
+    var TfFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "tf";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.TfFunction = TfFunction;
+    var UcFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "uc";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.UcFunction = UcFunction;
+    var CiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "ci";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.CiFunction = CiFunction;
+    var AiFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "ai";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.AiFunction = AiFunction;
+    var FdFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "fd";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.FdFunction = FdFunction;
+    var DpFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "dp";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.DpFunction = DpFunction;
+    var TuFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "tu";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.TuFunction = TuFunction;
   }
 });
 
-// engine/dist.node/implementations/helpers/number-to-roman-converter.js
-var require_number_to_roman_converter = __commonJS({
-  "engine/dist.node/implementations/helpers/number-to-roman-converter.js"(exports) {
+// engine/dist.node/evaluation/implementations/functions/fl-function.js
+var require_fl_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/fl-function.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.NumberToRomanConverter = void 0;
-    exports.NumberToRomanConverter = (() => {
-      const maxConvertible = 1e3 * 1e3;
-      const ones = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
-      const tens = ["", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"];
-      const hundreds = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"];
-      return {
-        max: maxConvertible,
-        convert: (n) => {
-          if (n < 0)
-            throw new Error(`Can only convert positive numbers.`);
-          else if (n > maxConvertible)
-            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
-          const thousandsCount = Math.floor(n / 1e3);
-          const hundredsCount = Math.floor(n % 1e3 / 100);
-          const tensCount = Math.floor(n % 100 / 10);
-          const onesCount = Math.floor(n % 10);
-          return "M".repeat(thousandsCount) + hundreds[hundredsCount] + tens[tensCount] + ones[onesCount];
+    exports.FlFunction = exports.FlEvaluationError = exports.FlEvaluationWarning = exports.FlParsingError = exports.FlParsingWarning = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var FlParsingWarning = class extends kodeine_js_1.EvaluationWarning {
+      constructor(formulaTextSource, inIncrement, internalWarning) {
+        super(formulaTextSource, `Warning when parsing ${inIncrement ? "increment" : "evaluation"} formula in fl(): ` + internalWarning.message);
+        this.internalWarning = internalWarning;
+      }
+    };
+    exports.FlParsingWarning = FlParsingWarning;
+    var FlParsingError = class extends kodeine_js_1.EvaluationError {
+      constructor(formulaTextSource, inIncrement, internalError) {
+        super(formulaTextSource, `Error when parsing ${inIncrement ? "increment" : "evaluation"} formula in fl(): ` + internalError.message);
+        this.internalError = internalError;
+      }
+    };
+    exports.FlParsingError = FlParsingError;
+    var FlEvaluationWarning = class extends kodeine_js_1.EvaluationWarning {
+      constructor(formulaTextSource, iValue, inIncrement, internalWarning) {
+        super(formulaTextSource, `Warning when evaluating ${inIncrement ? "increment" : "evaluation"} formula in fl() with i = ${iValue.text}: ` + internalWarning.message);
+        this.internalWarning = internalWarning;
+      }
+    };
+    exports.FlEvaluationWarning = FlEvaluationWarning;
+    var FlEvaluationError = class extends kodeine_js_1.EvaluationError {
+      constructor(formulaTextSource, iValue, inIncrement, internalError) {
+        super(formulaTextSource, `Error when evaluating ${inIncrement ? "increment" : "evaluation"} formula in fl() with i = ${iValue.text}: ` + internalError.message);
+        this.internalError = internalError;
+      }
+    };
+    exports.FlEvaluationError = FlEvaluationError;
+    var FlFunction = class extends kodeine_js_1.IKodeFunction {
+      static get maxIterationCount() {
+        return 1e3;
+      }
+      getName() {
+        return "fl";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length < 4) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "At least four arguments required (start, end, increment, formula text, optional separator).");
+        } else if (args.length > 5) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "At most five arguments allowed (start, end, increment, formula text, optional separator).");
         }
-      };
-    })();
+        let iterationCounter = 0;
+        let i = args[0];
+        let endI = args[1];
+        if (!args[2].text) {
+          return new kodeine_js_1.KodeValue("", call.source);
+        }
+        let incrFormulaText = `$${args[2].text}$`;
+        let evalFormulaText = `$${args[3].text}$`;
+        let separator = args[4] ? args[4].text : "";
+        let results = [];
+        let parsingCtx2 = kodeine_js_1.ParsingContextBuilder.buildDefault();
+        let parser2 = new kodeine_js_1.KodeineParser(parsingCtx2);
+        let incrFormula;
+        let evalFormula;
+        try {
+          incrFormula = parser2.parse(incrFormulaText);
+        } catch (err) {
+          if (err instanceof kodeine_js_1.KodeParsingError) {
+            evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
+            incrFormula = null;
+          } else {
+            throw err;
+          }
+        }
+        parsingCtx2.sideEffects.errors.forEach((err) => {
+          evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
+        });
+        parsingCtx2.sideEffects.warnings.forEach((warn) => {
+          evalCtx2.sideEffects.warnings.push(new FlParsingWarning(call.args[2], true, warn));
+        });
+        parsingCtx2.clearSideEffects();
+        try {
+          evalFormula = evalFormulaText === "$$" ? null : parser2.parse(evalFormulaText);
+        } catch (err) {
+          if (err instanceof kodeine_js_1.KodeParsingError) {
+            evalCtx2.sideEffects.errors.push(new FlParsingError(this.call.arguments[3], false, err));
+            evalFormula = null;
+          } else {
+            throw err;
+          }
+        }
+        parsingCtx2.sideEffects.errors.forEach((err) => {
+          evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
+        });
+        parsingCtx2.sideEffects.warnings.forEach((warn) => {
+          evalCtx2.sideEffects.warnings.push(new FlParsingWarning(call.args[2], true, warn));
+        });
+        let eqOperator = parsingCtx2.findBinaryOperator("=");
+        if (eqOperator === null) {
+          throw new Error('Operator with symbol "=" was not found.');
+        }
+        let childEvalCtx = evalCtx2.clone();
+        while (iterationCounter++ < FlFunction.maxIterationCount) {
+          childEvalCtx.iReplacement = i;
+          if (evalFormula) {
+            try {
+              let evalResult = evalFormula.evaluate(childEvalCtx);
+              results.push(evalResult.text);
+            } catch (err) {
+              if (err instanceof kodeine_js_1.EvaluationError) {
+                evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[3], i, false, err));
+              } else {
+                throw err;
+              }
+            }
+            childEvalCtx.sideEffects.errors.forEach((err) => {
+              evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[3], i, false, err));
+            });
+            childEvalCtx.sideEffects.warnings.forEach((warn) => {
+              evalCtx2.sideEffects.warnings.push(new FlEvaluationError(call.args[3], i, false, warn));
+            });
+            childEvalCtx.clearSideEffects();
+          } else {
+            results.push("");
+          }
+          if (i.equals(endI)) {
+            break;
+          }
+          if (incrFormula) {
+            try {
+              i = incrFormula.evaluate(childEvalCtx);
+            } catch (err) {
+              if (err instanceof kodeine_js_1.EvaluationError) {
+                evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[2], i, true, err));
+              } else {
+                throw err;
+              }
+            }
+            childEvalCtx.sideEffects.errors.forEach((err) => {
+              evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[2], i, true, err));
+            });
+            childEvalCtx.sideEffects.warnings.forEach((warn) => {
+              evalCtx2.sideEffects.warnings.push(new FlEvaluationError(call.args[2], i, true, warn));
+            });
+            childEvalCtx.clearSideEffects();
+          } else {
+            i = new kodeine_js_1.KodeValue("");
+          }
+        }
+        return new kodeine_js_1.KodeValue(results.join(separator), call.source);
+      }
+    };
+    exports.FlFunction = FlFunction;
   }
 });
 
-// engine/dist.node/implementations/helpers/html-entitity-converter.js
+// engine/dist.node/evaluation/implementations/functions/gv-function.js
+var require_gv_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/gv-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.GvFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var GvFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "gv";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length < 1)
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "At least one argument required.");
+        else if (args.length > 1)
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Only one-argument gv() calls are currently implemented.");
+        let globalName = args[0].text.trim().toLowerCase();
+        if (evalCtx2.sideEffects.globalNameStack.indexOf(globalName) >= 0) {
+          throw new kodeine_js_1.EvaluationError(call, `Global reference loop detected. Global stack: ${evalCtx2.sideEffects.globalNameStack.join(" > ")}.`);
+        } else {
+          evalCtx2.sideEffects.globalNameStack.push(globalName);
+          let globalFormula = evalCtx2.globals.get(globalName);
+          if (globalFormula) {
+            let globalValue = globalFormula.evaluate(evalCtx2);
+            evalCtx2.sideEffects.globalNameStack.pop();
+            return globalValue;
+          } else {
+            return new kodeine_js_1.KodeValue("", call.source);
+          }
+        }
+      }
+    };
+    exports.GvFunction = GvFunction;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/if-function.js
+var require_if_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/if-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.IfFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var IfFunction = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "if";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length <= 1) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "At least two arguments required.");
+        }
+        let lastCondArgI = Math.floor((args.length - 2) / 2) * 2;
+        ;
+        for (var i = 0; i <= lastCondArgI; i += 2) {
+          let condArg = args[i];
+          if (!condArg.isNumeric && condArg.text !== "" || condArg.isNumeric && condArg.numericValue !== 0) {
+            return new kodeine_js_1.KodeValue(args[i + 1], call.source);
+          }
+        }
+        if (lastCondArgI + 2 < args.length) {
+          return new kodeine_js_1.KodeValue(args[lastCondArgI + 2], call.source);
+        } else {
+          return new kodeine_js_1.KodeValue("", call.source);
+        }
+      }
+    };
+    exports.IfFunction = IfFunction;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/mu-function.js
+var require_mu_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/mu-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.MuFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var MuFunction = class extends kodeine_js_1.KodeFunctionWithModes {
+      getName() {
+        return "mu";
+      }
+      singleArgMode(name, func) {
+        this.mode(name, ["num number"], func);
+      }
+      constructor() {
+        super();
+        this.singleArgMode("ceil", Math.ceil);
+        this.singleArgMode("floor", Math.floor);
+        this.singleArgMode("sqrt", Math.sqrt);
+        this.mode("round", ["num number", "num decimals?"], function(number, decimals) {
+          if (decimals === void 0) {
+            return Math.round(number);
+          } else {
+            if (decimals < 0) {
+              throw new kodeine_js_1.InvalidArgumentError("mu(round)", "decimals", 2, this.call.args[2], decimals, 'The number of decimal places cannot be negative. Kustom will throw "mu: 45".');
+            } else {
+              let powerOf10 = __pow(10, decimals);
+              return Math.round(number * powerOf10) / powerOf10;
+            }
+          }
+        });
+        this.mode("min", ["num values[2]"], function(values) {
+          return Math.min(...values);
+        });
+        this.mode("max", ["num values[2]"], function(values) {
+          return Math.max(...values);
+        });
+        this.singleArgMode("abs", Math.abs);
+        this.singleArgMode("cos", (n) => Math.cos(n / 180 * Math.PI));
+        this.singleArgMode("sin", (n) => Math.sin(n / 180 * Math.PI));
+        this.singleArgMode("tan", (n) => Math.tan(n / 180 * Math.PI));
+        this.singleArgMode("acos", (n) => Math.acos(n) / Math.PI * 180);
+        this.singleArgMode("asin", (n) => Math.asin(n) / Math.PI * 180);
+        this.singleArgMode("atan", (n) => Math.atan(n) / Math.PI * 180);
+        this.singleArgMode("log", Math.log10);
+        this.mode("pow", ["num number", "num exponent"], function(number, exponent) {
+          return __pow(number, exponent);
+        });
+        this.singleArgMode("ln", Math.log);
+        this.mode("rnd", ["num min", "num max"], function(min, max) {
+          return min + Math.floor(Math.random() * (max - min + 1));
+        });
+        this.mode("h2d", ["txt hex"], function(hex) {
+          let output = Number("0x" + hex);
+          if (isNaN(output)) {
+            throw new kodeine_js_1.InvalidArgumentError("mu(h2d)", "hex", 1, this.call.args[1], hex, `Value "${hex}" could not be parsed as a hexadecimal number.`);
+          } else {
+            return output;
+          }
+        });
+        this.mode("d2h", ["num number"], function(number) {
+          return number.toString(16);
+        });
+      }
+    };
+    exports.MuFunction = MuFunction;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/html-entitity-converter.js
 var require_html_entitity_converter = __commonJS({
-  "engine/dist.node/implementations/helpers/html-entitity-converter.js"(exports) {
+  "engine/dist.node/evaluation/implementations/helpers/html-entitity-converter.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.HtmlEntityConverter = void 0;
@@ -3389,21 +3512,207 @@ var require_html_entitity_converter = __commonJS({
   }
 });
 
-// engine/dist.node/implementations/functions/tc-function.js
+// engine/dist.node/evaluation/implementations/helpers/number-to-roman-converter.js
+var require_number_to_roman_converter = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/number-to-roman-converter.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NumberToRomanConverter = void 0;
+    exports.NumberToRomanConverter = (() => {
+      const maxConvertible = 1e3 * 1e3;
+      const ones = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
+      const tens = ["", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"];
+      const hundreds = ["", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"];
+      return {
+        max: maxConvertible,
+        convert: (n) => {
+          if (n < 0)
+            throw new Error(`Can only convert positive numbers.`);
+          else if (n > maxConvertible)
+            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
+          const thousandsCount = Math.floor(n / 1e3);
+          const hundredsCount = Math.floor(n % 1e3 / 100);
+          const tensCount = Math.floor(n % 100 / 10);
+          const onesCount = Math.floor(n % 10);
+          return "M".repeat(thousandsCount) + hundreds[hundredsCount] + tens[tensCount] + ones[onesCount];
+        }
+      };
+    })();
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/number-to-text-converter.js
+var require_number_to_text_converter = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/number-to-text-converter.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NumberToTextConverter = void 0;
+    exports.NumberToTextConverter = (() => {
+      const maxConvertible = __pow(2, 31) - 1;
+      const million = 1e6;
+      const billion = 1e9;
+      const zeroToNineteen = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen"
+      ];
+      const tens = ["zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+      const _convertUnder20 = (n) => {
+        return zeroToNineteen[n];
+      };
+      const _convertUnderHundred = (n) => {
+        if (n < 20) {
+          return _convertUnder20(n);
+        } else {
+          let tenCount = Math.floor(n / 10);
+          let output = tens[tenCount];
+          let rest = n % 10;
+          if (rest > 0) {
+            return `${output} ${_convertUnder20(rest)}`;
+          } else {
+            return output;
+          }
+        }
+      };
+      const _convertUnderThousand = (n) => {
+        if (n < 100) {
+          return _convertUnderHundred(n);
+        } else {
+          let hundredCount = Math.floor(n / 100);
+          let output = _convertUnder20(hundredCount);
+          let rest = n % 100;
+          if (rest > 0)
+            return `${output} hundred ${_convertUnderHundred(rest)}`;
+          else
+            return output;
+        }
+      };
+      const _convertUnderMillion = (n) => {
+        if (n < 1e3) {
+          return _convertUnderThousand(n);
+        } else {
+          let thousandCount = Math.floor(n / 1e3);
+          let output = _convertUnderThousand(thousandCount);
+          let rest = n % 1e3;
+          if (rest > 0)
+            return `${output} thousand ${_convertUnderThousand(rest)}`;
+          else
+            return output;
+        }
+      };
+      const _convertUnderBillion = (n) => {
+        if (n < million) {
+          return _convertUnderMillion(n);
+        } else {
+          let millionCount = Math.floor(n / million);
+          let output = _convertUnderThousand(millionCount);
+          let rest = n % million;
+          if (rest > 0)
+            return `${output} million ${_convertUnderMillion(rest)}`;
+          else
+            return `${output} million`;
+        }
+      };
+      return {
+        max: maxConvertible,
+        convert: (n) => {
+          if (n < 0)
+            throw new Error(`Can only convert positive numbers.`);
+          else if (n > maxConvertible)
+            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
+          if (n < billion) {
+            return _convertUnderBillion(n);
+          } else {
+            let billionCount = Math.floor(n / billion);
+            let output = _convertUnder20(billionCount);
+            let rest = n % billion;
+            if (rest > 0)
+              return `${output} billion ${_convertUnderBillion(rest)}`;
+            else
+              return `${output} billion`;
+          }
+        }
+      };
+    })();
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/ordinal-suffix-helper.js
+var require_ordinal_suffix_helper = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/ordinal-suffix-helper.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.OrdinalSuffixHelper = void 0;
+    exports.OrdinalSuffixHelper = (() => {
+      const suffixForDigit = (digit) => {
+        if (digit === 1)
+          return "st";
+        else if (digit === 2)
+          return "nd";
+        else if (digit === 3)
+          return "rd";
+        else
+          return "th";
+      };
+      return {
+        getSuffix: (number) => {
+          number = Math.abs(number);
+          if (number <= 9)
+            return suffixForDigit(number);
+          else if (number < 20)
+            return "th";
+          else
+            return suffixForDigit(number % 10);
+        }
+      };
+    })();
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/text-capitalizer.js
+var require_text_capitalizer = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/text-capitalizer.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TextCapitalizer = void 0;
+    exports.TextCapitalizer = (() => ({
+      capitalize: (text) => {
+        return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
+      }
+    }))();
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/tc-function.js
 var require_tc_function = __commonJS({
-  "engine/dist.node/implementations/functions/tc-function.js"(exports) {
+  "engine/dist.node/evaluation/implementations/functions/tc-function.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TcFunction = void 0;
-    var evaluation_context_js_1 = require_evaluation_context();
-    var errors_js_1 = require_errors();
-    var number_to_text_converter_js_1 = require_number_to_text_converter();
-    var text_capitalizer_js_1 = require_text_capitalizer();
-    var kode_function_with_modes_js_1 = require_kode_function_with_modes();
-    var ordinal_suffix_helper_js_1 = require_ordinal_suffix_helper();
-    var number_to_roman_converter_js_1 = require_number_to_roman_converter();
+    var kodeine_js_1 = require_kodeine();
     var html_entitity_converter_js_1 = require_html_entitity_converter();
-    var TcFunction = class extends kode_function_with_modes_js_1.FunctionWithModes {
+    var number_to_roman_converter_js_1 = require_number_to_roman_converter();
+    var number_to_text_converter_js_1 = require_number_to_text_converter();
+    var ordinal_suffix_helper_js_1 = require_ordinal_suffix_helper();
+    var text_capitalizer_js_1 = require_text_capitalizer();
+    var TcFunction = class extends kodeine_js_1.KodeFunctionWithModes {
       getName() {
         return "tc";
       }
@@ -3444,7 +3753,7 @@ var require_tc_function = __commonJS({
         });
         this.mode("cap", ["txt text"], function(text) {
           if (text === "") {
-            throw new errors_js_1.InvalidArgumentError("tc(cap)", "text", 1, this.call.args[1], text, 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.');
+            throw new kodeine_js_1.InvalidArgumentError("tc(cap)", "text", 1, this.call.args[1], text, 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.');
           }
           return text_capitalizer_js_1.TextCapitalizer.capitalize(text);
         });
@@ -3471,12 +3780,12 @@ var require_tc_function = __commonJS({
         this.mode("utf", ["txt hexCode"], function(hexCode) {
           let parsedCode = Number("0x" + hexCode);
           if (isNaN(parsedCode)) {
-            throw new errors_js_1.InvalidArgumentError(`tc(utf)`, "hexCode", 1, this.call.args[1], hexCode, "Value could not be parsed as a hexadecimal number.");
+            throw new kodeine_js_1.InvalidArgumentError(`tc(utf)`, "hexCode", 1, this.call.args[1], hexCode, "Value could not be parsed as a hexadecimal number.");
           } else {
             try {
               return String.fromCodePoint(parsedCode);
             } catch (err) {
-              throw new errors_js_1.InvalidArgumentError(`tc(utf)`, "hexCode", 1, this.call.args[1], hexCode, "Value is not a valid character code: " + err.message);
+              throw new kodeine_js_1.InvalidArgumentError(`tc(utf)`, "hexCode", 1, this.call.args[1], hexCode, "Value is not a valid character code: " + err.message);
             }
           }
         });
@@ -3488,11 +3797,11 @@ var require_tc_function = __commonJS({
           return text.replace(expr, (match) => {
             let num = Number(match);
             if (isNaN(num)) {
-              this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+              this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
               return match;
             } else {
               if (-num > number_to_text_converter_js_1.NumberToTextConverter.max) {
-                throw new errors_js_1.InvalidArgumentError("tc(n2w)", "text", 1, this.call.args[1], match, `Negative numbers throw an error when their absolute value is greater than the max value for a signed 32 bit integer (${number_to_text_converter_js_1.NumberToTextConverter.max}).`);
+                throw new kodeine_js_1.InvalidArgumentError("tc(n2w)", "text", 1, this.call.args[1], match, `Negative numbers throw an error when their absolute value is greater than the max value for a signed 32 bit integer (${number_to_text_converter_js_1.NumberToTextConverter.max}).`);
               }
               return (num < 0 ? "-" : "") + number_to_text_converter_js_1.NumberToTextConverter.convert(Math.min(Math.abs(num), number_to_text_converter_js_1.NumberToTextConverter.max));
             }
@@ -3506,11 +3815,11 @@ var require_tc_function = __commonJS({
           return text.replace(expr, (match) => {
             let num = Number(match);
             if (isNaN(num)) {
-              this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+              this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
               return match;
             } else {
               if (Math.abs(num) > number_to_roman_converter_js_1.NumberToRomanConverter.max) {
-                throw new errors_js_1.InvalidArgumentError("tc(roman)", "text", 1, this.call.args[1], match, `Number ${match} is greater than the maximum for tc(roman) (${number_to_text_converter_js_1.NumberToTextConverter.max}). Each decimal digit you add to your number increases the number of Ms (roman numeral for 1,000) in the output exponentially. To illustrate, 1,000,000 results in 1,000 Ms, 10,000,000 results in 10,000 Ms and 100,000,000 results in 100,000 Ms. TL;DR: Kustom will crash.`);
+                throw new kodeine_js_1.InvalidArgumentError("tc(roman)", "text", 1, this.call.args[1], match, `Number ${match} is greater than the maximum for tc(roman) (${number_to_text_converter_js_1.NumberToTextConverter.max}). Each decimal digit you add to your number increases the number of Ms (roman numeral for 1,000) in the output exponentially. To illustrate, 1,000,000 results in 1,000 Ms, 10,000,000 results in 10,000 Ms and 100,000,000 results in 100,000 Ms. TL;DR: Kustom will crash.`);
               }
               return (num < 0 ? "-" : "") + number_to_roman_converter_js_1.NumberToRomanConverter.convert(Math.abs(num));
             }
@@ -3539,7 +3848,7 @@ var require_tc_function = __commonJS({
         this.mode("split", ["txt text", "txt splitBy", "num index"], function(text, splitBy, index) {
           var _a;
           if (index < 0) {
-            throw new errors_js_1.InvalidArgumentError("tc(split)", "index", 3, this.call.args[3], index, 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). Note that this does not happen when the passed index is greater than or equal to [split element count].');
+            throw new kodeine_js_1.InvalidArgumentError("tc(split)", "index", 3, this.call.args[3], index, 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). Note that this does not happen when the passed index is greater than or equal to [split element count].');
           }
           return (_a = text.split(splitBy).filter((s) => s !== "")[index]) != null ? _a : "";
         });
@@ -3556,7 +3865,7 @@ var require_tc_function = __commonJS({
                   if (digit) {
                     let groupNumber = Number(digit);
                     if (groupNumber > sourceMatchGroupCount) {
-                      this.evalCtx.sideEffects.errors.push(new errors_js_1.EvaluationError(this.call.args[3], `Replacement contains a reference to a group index that wasn't captured (captured ${sourceMatchGroupCount} group${sourceMatchGroupCount === 1 ? "" : "s"}, referenced group $${digit}). tc(reg) will return an empty string.`));
+                      this.evalCtx.sideEffects.errors.push(new kodeine_js_1.EvaluationError(this.call.args[3], `Replacement contains a reference to a group index that wasn't captured (captured ${sourceMatchGroupCount} group${sourceMatchGroupCount === 1 ? "" : "s"}, referenced group $${digit}). tc(reg) will return an empty string.`));
                       hadErrors = true;
                       return outBackslashes + `$${digit}`;
                     } else {
@@ -3575,28 +3884,28 @@ var require_tc_function = __commonJS({
             });
             return hadErrors ? "" : result;
           } catch (err) {
-            throw new errors_js_1.RegexEvaluationError(this.call.args[2], err.message);
+            throw new kodeine_js_1.RegexEvaluationError(this.call.args[2], err.message);
           }
         });
         this.mode("html", ["txt text"], function(text) {
-          this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call, "tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom."));
+          this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call, "tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom."));
           return text.replace(/<[^>]+?>/g, "").replace(/&.*?;/g, (match) => html_entitity_converter_js_1.HtmlEntityConverter.convert(match));
         });
         this.mode("url", ["txt text", "txt encoding?"], function(text, encoding) {
           if (encoding) {
-            this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[2], "This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error."));
+            this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[2], "This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error."));
           }
           return encodeURIComponent(text);
         });
         this.mode("nfmt", ["txt text"], function(text) {
           if (/\.\.+/.test(text)) {
-            throw new errors_js_1.InvalidArgumentError("tc(nmft)", "text", 1, this.call.args[1], text, 'Kustom throws "tc: multiple points" when there are two or more consecutive points (.) anywhere in the input string.');
+            throw new kodeine_js_1.InvalidArgumentError("tc(nmft)", "text", 1, this.call.args[1], text, 'Kustom throws "tc: multiple points" when there are two or more consecutive points (.) anywhere in the input string.');
           }
           let expr = /-?(\d+\.?\d*|\d*\.?\d+)/g;
           return text.replace(expr, (match) => {
             let num = Number(match);
             if (isNaN(num)) {
-              this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+              this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
               return match;
             } else {
               return num.toLocaleString();
@@ -3645,225 +3954,282 @@ var require_tc_function = __commonJS({
   }
 });
 
-// engine/dist.node/implementations/functions/mu-function.js
-var require_mu_function = __commonJS({
-  "engine/dist.node/implementations/functions/mu-function.js"(exports) {
+// engine/dist.node/evaluation/implementations/operators/unary-operators.js
+var require_unary_operators = __commonJS({
+  "engine/dist.node/evaluation/implementations/operators/unary-operators.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.MuFunction = void 0;
-    var errors_js_1 = require_errors();
-    var kode_function_with_modes_js_1 = require_kode_function_with_modes();
-    var MuFunction = class extends kode_function_with_modes_js_1.FunctionWithModes {
-      getName() {
-        return "mu";
+    exports.NegationOperator = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var NegationOperator = class extends kodeine_js_1.IUnaryOperator {
+      getSymbol() {
+        return "-";
       }
-      singleArgMode(name, func) {
-        this.mode(name, ["num number"], func);
-      }
-      constructor() {
-        super();
-        this.singleArgMode("ceil", Math.ceil);
-        this.singleArgMode("floor", Math.floor);
-        this.singleArgMode("sqrt", Math.sqrt);
-        this.mode("round", ["num number", "num decimals?"], function(number, decimals) {
-          if (decimals === void 0) {
-            return Math.round(number);
-          } else {
-            if (decimals < 0) {
-              throw new errors_js_1.InvalidArgumentError("mu(round)", "decimals", 2, this.call.args[2], decimals, 'The number of decimal places cannot be negative. Kustom will throw "mu: 45".');
-            } else {
-              let powerOf10 = __pow(10, decimals);
-              return Math.round(number * powerOf10) / powerOf10;
-            }
-          }
-        });
-        this.mode("min", ["num values[2]"], function(values) {
-          return Math.min(...values);
-        });
-        this.mode("max", ["num values[2]"], function(values) {
-          return Math.max(...values);
-        });
-        this.singleArgMode("abs", Math.abs);
-        this.singleArgMode("cos", (n) => Math.cos(n / 180 * Math.PI));
-        this.singleArgMode("sin", (n) => Math.sin(n / 180 * Math.PI));
-        this.singleArgMode("tan", (n) => Math.tan(n / 180 * Math.PI));
-        this.singleArgMode("acos", (n) => Math.acos(n) / Math.PI * 180);
-        this.singleArgMode("asin", (n) => Math.asin(n) / Math.PI * 180);
-        this.singleArgMode("atan", (n) => Math.atan(n) / Math.PI * 180);
-        this.singleArgMode("log", Math.log10);
-        this.mode("pow", ["num number", "num exponent"], function(number, exponent) {
-          return __pow(number, exponent);
-        });
-        this.singleArgMode("ln", Math.log);
-        this.mode("rnd", ["num min", "num max"], function(min, max) {
-          return min + Math.floor(Math.random() * (max - min + 1));
-        });
-        this.mode("h2d", ["txt hex"], function(hex) {
-          let output = Number("0x" + hex);
-          if (isNaN(output)) {
-            throw new errors_js_1.InvalidArgumentError("mu(h2d)", "hex", 1, this.call.args[1], hex, `Value "${hex}" could not be parsed as a hexadecimal number.`);
-          } else {
-            return output;
-          }
-        });
-        this.mode("d2h", ["num number"], function(number) {
-          return number.toString(16);
-        });
-      }
-    };
-    exports.MuFunction = MuFunction;
-  }
-});
-
-// engine/dist.node/evaluables/evaluation-tree.js
-var require_evaluation_tree = __commonJS({
-  "engine/dist.node/evaluables/evaluation-tree.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.CouldNotBeEvaluated = exports.EvaluatedUnaryOperation = exports.EvaluatedBinaryOperation = exports.EvaluatedFunctionCall = exports.EvaluatedExpression = exports.FormulaEvaluationTree = void 0;
-    var base_js_1 = require_base();
-    var kode_function_with_modes_js_1 = require_kode_function_with_modes();
-    var FormulaEvaluationTree2 = class extends base_js_1.FormulaEvaluationTreeNode {
-      constructor(parts, result) {
-        super(result);
-        this.parts = parts;
-      }
-      getDescription() {
-        return "formula";
-      }
-    };
-    exports.FormulaEvaluationTree = FormulaEvaluationTree2;
-    var EvaluatedExpression2 = class extends base_js_1.FormulaEvaluationTreeNode {
-      constructor(child, result) {
-        super(result);
-        this.child = child;
-      }
-      getDescription() {
-        return "expression";
-      }
-    };
-    exports.EvaluatedExpression = EvaluatedExpression2;
-    var EvaluatedFunctionCall2 = class extends base_js_1.FormulaEvaluationTreeNode {
-      constructor(call, args, result) {
-        super(result);
-        this.call = call;
-        this.args = args;
-      }
-      getDescription() {
-        var _a;
-        if (this.call.func instanceof kode_function_with_modes_js_1.FunctionWithModes) {
-          return `${this.call.func.getName()}(${(_a = this.args[0]) == null ? void 0 : _a.result.text}) call`;
+      operation(evalCtx2, operation, a) {
+        if (a.isNumeric) {
+          let value = -a.numericValue;
+          if (Number.isInteger(value))
+            return new kodeine_js_1.KodeValue(value + ".0");
+          else
+            return new kodeine_js_1.KodeValue(value);
         } else {
-          return `${this.call.func.getName()}() call`;
+          evalCtx2.sideEffects.warnings.push(new kodeine_js_1.UnaryMinusStringModeWarning(operation));
+          return new kodeine_js_1.KodeValue(a.text + "-null", operation.source);
         }
       }
     };
-    exports.EvaluatedFunctionCall = EvaluatedFunctionCall2;
-    var EvaluatedBinaryOperation2 = class extends base_js_1.FormulaEvaluationTreeNode {
-      constructor(operation, argA, argB, result) {
-        super(result);
-        this.operation = operation;
-        this.argA = argA;
-        this.argB = argB;
-      }
-      getDescription() {
-        return `${this.operation.operator.getSymbol()} operator`;
-      }
-    };
-    exports.EvaluatedBinaryOperation = EvaluatedBinaryOperation2;
-    var EvaluatedUnaryOperation2 = class extends base_js_1.FormulaEvaluationTreeNode {
-      constructor(operation, arg, result) {
-        super(result);
-        this.operation = operation;
-        this.arg = arg;
-      }
-      getDescription() {
-        return `${this.operation.operator.getSymbol()} operator`;
-      }
-    };
-    exports.EvaluatedUnaryOperation = EvaluatedUnaryOperation2;
-    var CouldNotBeEvaluated = class extends base_js_1.FormulaEvaluationTreeNode {
-      constructor(result) {
-        super(result);
-      }
-      getDescription() {
-        return `evaluation failed`;
-      }
-    };
-    exports.CouldNotBeEvaluated = CouldNotBeEvaluated;
+    exports.NegationOperator = NegationOperator;
   }
 });
 
-// engine/dist.node/evaluables/broken-evaluable.js
-var require_broken_evaluable = __commonJS({
-  "engine/dist.node/evaluables/broken-evaluable.js"(exports) {
+// engine/dist.node/evaluation/implementations/base/two-mode-binary-operator.js
+var require_two_mode_binary_operator = __commonJS({
+  "engine/dist.node/evaluation/implementations/base/two-mode-binary-operator.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.BrokenEvaluable = void 0;
-    var base_1 = require_base();
-    var evaluation_tree_1 = require_evaluation_tree();
-    var BrokenEvaluable = class extends base_1.Evaluable {
-      constructor(source) {
-        super(source);
-      }
-      evaluate(evalCtx2) {
-        let result = new base_1.KodeValue("", this.source);
-        if (evalCtx2.buildEvaluationTree) {
-          evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_1.CouldNotBeEvaluated(result);
-        }
-        return result;
-      }
-    };
-    exports.BrokenEvaluable = BrokenEvaluable;
-  }
-});
-
-// engine/dist.node/evaluables/formula.js
-var require_formula = __commonJS({
-  "engine/dist.node/evaluables/formula.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Formula = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var evaluation_tree_js_1 = require_evaluation_tree();
-    var Formula = class extends base_js_1.Evaluable {
-      constructor(evaluables) {
-        super(base_js_1.EvaluableSource.createByConcatenatingSources(evaluables));
-        this.evaluables = [];
-        this.evaluables = evaluables;
-      }
-      evaluate(evalCtx2) {
-        let result;
-        let parts = [];
-        if (this.evaluables.length === 0) {
-          result = new base_js_1.KodeValue("", this.source);
+    exports.TwoModeBinaryOperator = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var TwoModeBinaryOperator = class extends kodeine_js_1.IBinaryOperator {
+      operation(evalCtx2, operation, a, b) {
+        if (a.isNumeric && b.isNumeric) {
+          return new kodeine_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
         } else {
-          let output = "";
-          for (var evaluable of this.evaluables) {
-            try {
-              let partResult = evaluable.evaluate(evalCtx2);
-              if (evalCtx2.buildEvaluationTree) {
-                parts.push(evalCtx2.sideEffects.lastEvaluationTreeNode);
-              }
-              output += partResult.text;
-            } catch (err) {
-              if (err instanceof errors_js_1.EvaluationError) {
-                evalCtx2.sideEffects.errors.push(err);
-              } else {
-                throw err;
-              }
-            }
-          }
-          result = new base_js_1.KodeValue(output, this.source);
+          return new kodeine_js_1.KodeValue(this.textMode(a, b), operation.source);
         }
-        if (evalCtx2.buildEvaluationTree) {
-          evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.FormulaEvaluationTree(parts, result);
-        }
-        return result;
+      }
+      textMode(a, b) {
+        if (a.isNumeric)
+          return a.numericValue + this.getSymbol() + b.text;
+        else if (b.isNumeric)
+          return a.text + this.getSymbol() + b.numericValue;
+        else
+          return a.text + this.getSymbol() + b.text;
       }
     };
-    exports.Formula = Formula;
+    exports.TwoModeBinaryOperator = TwoModeBinaryOperator;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/operators/binary-operators.js
+var require_binary_operators = __commonJS({
+  "engine/dist.node/evaluation/implementations/operators/binary-operators.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.LogicalAndOperator = exports.LogicalOrOperator = exports.RegexMatchOperator = exports.GreaterThanOrEqualToOperator = exports.LesserThanOrEqualToOperator = exports.GreaterThanOperator = exports.LesserThanOperator = exports.InequalityOperator = exports.EqualityOperator = exports.SubtractionOperator = exports.AdditionOperator = exports.ModuloOperator = exports.DivisionOperator = exports.MultiplicationOperator = exports.ExponentiationOperator = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var ExponentiationOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "^";
+      }
+      getPrecedence() {
+        return 5;
+      }
+      numericMode(a, b) {
+        return __pow(a, b);
+      }
+    };
+    exports.ExponentiationOperator = ExponentiationOperator;
+    var MultiplicationOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "*";
+      }
+      getPrecedence() {
+        return 4;
+      }
+      numericMode(a, b) {
+        return a * b;
+      }
+    };
+    exports.MultiplicationOperator = MultiplicationOperator;
+    var DivisionOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "/";
+      }
+      getPrecedence() {
+        return 4;
+      }
+      numericMode(a, b) {
+        return a / b;
+      }
+    };
+    exports.DivisionOperator = DivisionOperator;
+    var ModuloOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "%";
+      }
+      getPrecedence() {
+        return 4;
+      }
+      numericMode(a, b) {
+        return a % b;
+      }
+    };
+    exports.ModuloOperator = ModuloOperator;
+    var AdditionOperator = class extends kodeine_js_1.IBinaryOperator {
+      getSymbol() {
+        return "+";
+      }
+      getPrecedence() {
+        return 3;
+      }
+      operation(evalCtx2, operation, a, b) {
+        if (a.isNumeric && b.isNumeric) {
+          return new kodeine_js_1.KodeValue(a.numericValue + b.numericValue);
+        } else {
+          if (a.isNumeric)
+            return new kodeine_js_1.KodeValue(a.numericValue + b.text, operation.source);
+          else if (b.isNumeric)
+            return new kodeine_js_1.KodeValue(a.text + b.numericValue, operation.source);
+          else
+            return new kodeine_js_1.KodeValue(a.text + b.text, operation.source);
+        }
+      }
+    };
+    exports.AdditionOperator = AdditionOperator;
+    var SubtractionOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "-";
+      }
+      getPrecedence() {
+        return 3;
+      }
+      numericMode(a, b) {
+        return a - b;
+      }
+    };
+    exports.SubtractionOperator = SubtractionOperator;
+    var EqualityOperator = class extends kodeine_js_1.IBinaryOperator {
+      getSymbol() {
+        return "=";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      operation(evalCtx2, operation, a, b) {
+        return new kodeine_js_1.KodeValue(a.equals(b), operation.source);
+      }
+    };
+    exports.EqualityOperator = EqualityOperator;
+    var InequalityOperator = class extends kodeine_js_1.IBinaryOperator {
+      getSymbol() {
+        return "!=";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      operation(evalCtx2, operation, a, b) {
+        if (a.isNumeric && b.isNumeric)
+          return new kodeine_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
+        else if (a.isNumeric || b.isNumeric)
+          return new kodeine_js_1.KodeValue(1, operation.source);
+        else
+          return new kodeine_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
+      }
+    };
+    exports.InequalityOperator = InequalityOperator;
+    var LesserThanOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "<";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      numericMode(a, b) {
+        return a < b;
+      }
+    };
+    exports.LesserThanOperator = LesserThanOperator;
+    var GreaterThanOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return ">";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      numericMode(a, b) {
+        return a > b;
+      }
+    };
+    exports.GreaterThanOperator = GreaterThanOperator;
+    var LesserThanOrEqualToOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "<=";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      numericMode(a, b) {
+        return a <= b;
+      }
+    };
+    exports.LesserThanOrEqualToOperator = LesserThanOrEqualToOperator;
+    var GreaterThanOrEqualToOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return ">=";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      numericMode(a, b) {
+        return a >= b;
+      }
+    };
+    exports.GreaterThanOrEqualToOperator = GreaterThanOrEqualToOperator;
+    var RegexMatchOperator = class extends kodeine_js_1.IBinaryOperator {
+      getSymbol() {
+        return "~=";
+      }
+      getPrecedence() {
+        return 2;
+      }
+      operation(evalCtx2, operation, a, b) {
+        try {
+          return new kodeine_js_1.KodeValue(new RegExp(b.text).test(a.text), operation.source);
+        } catch (err) {
+          throw new kodeine_js_1.RegexEvaluationError(operation.argB, err == null ? void 0 : err.toString());
+        }
+      }
+    };
+    exports.RegexMatchOperator = RegexMatchOperator;
+    var LogicalOrOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "|";
+      }
+      getPrecedence() {
+        return 1;
+      }
+      numericMode(a, b) {
+        return a == 1 || b == 1 ? 1 : 0;
+      }
+    };
+    exports.LogicalOrOperator = LogicalOrOperator;
+    var LogicalAndOperator = class extends kodeine_js_1.TwoModeBinaryOperator {
+      getSymbol() {
+        return "&";
+      }
+      getPrecedence() {
+        return 1;
+      }
+      numericMode(a, b) {
+        return a == 1 && b == 1 ? 1 : 0;
+      }
+    };
+    exports.LogicalAndOperator = LogicalAndOperator;
+  }
+});
+
+// engine/dist.node/kodeine-lexer/formula-token.js
+var require_formula_token = __commonJS({
+  "engine/dist.node/kodeine-lexer/formula-token.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.FormulaToken = void 0;
+    var FormulaToken = class {
+      getPlainTextOutput() {
+        return this.getSourceText();
+      }
+    };
+    exports.FormulaToken = FormulaToken;
   }
 });
 
@@ -3873,8 +4239,8 @@ var require_formula_tokens = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.OperatorToken = exports.UnquotedValueToken = exports.QuotedValueToken = exports.UnclosedQuotedValueToken = exports.CommaToken = exports.ClosingParenthesisToken = exports.OpeningParenthesisToken = exports.WhitespaceToken = exports.DollarSignToken = exports.EscapedDollarSignToken = exports.PlainTextToken = exports.SimpleToken = void 0;
-    var base_js_1 = require_base();
-    var SimpleToken = class extends base_js_1.FormulaToken {
+    var kodeine_js_1 = require_kodeine();
+    var SimpleToken = class extends kodeine_js_1.FormulaToken {
       constructor(text, startIndex) {
         super();
         this._text = text;
@@ -3957,7 +4323,7 @@ var require_formula_tokens = __commonJS({
       }
     };
     exports.CommaToken = CommaToken;
-    var UnclosedQuotedValueToken = class extends base_js_1.FormulaToken {
+    var UnclosedQuotedValueToken = class extends kodeine_js_1.FormulaToken {
       constructor(textFollowingQuotationMark, quotationMarkIndex) {
         super();
         this._textFollowingQuotationMark = textFollowingQuotationMark;
@@ -3977,7 +4343,7 @@ var require_formula_tokens = __commonJS({
       }
     };
     exports.UnclosedQuotedValueToken = UnclosedQuotedValueToken;
-    var QuotedValueToken = class extends base_js_1.FormulaToken {
+    var QuotedValueToken = class extends kodeine_js_1.FormulaToken {
       constructor(valueText, openingQuotationMarkIndex) {
         super();
         this._innerText = valueText;
@@ -4036,7 +4402,7 @@ var require_kodeine_lexer = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.KodeineLexer = exports.KodeineLexerState = void 0;
-    var formula_tokens_js_1 = require_formula_tokens();
+    var kodeine_js_1 = require_kodeine();
     var KodeineLexerState;
     (function(KodeineLexerState2) {
       KodeineLexerState2[KodeineLexerState2["Default"] = 0] = "Default";
@@ -4087,17 +4453,17 @@ var require_kodeine_lexer = __commonJS({
             let nextChar = this._charReader.peek(1);
             if (nextChar === "$") {
               this._charReader.consume(1);
-              return new formula_tokens_js_1.EscapedDollarSignToken(startIndex);
+              return new kodeine_js_1.EscapedDollarSignToken(startIndex);
             } else {
               this._state = KodeineLexerState.Kode;
-              return new formula_tokens_js_1.DollarSignToken(startIndex);
+              return new kodeine_js_1.DollarSignToken(startIndex);
             }
           } else {
             let buffer = char;
             while (!this._charReader.EOF() && this._charReader.peek(1) !== "$") {
               buffer += this._charReader.consume(1);
             }
-            return new formula_tokens_js_1.PlainTextToken(buffer, startIndex);
+            return new kodeine_js_1.PlainTextToken(buffer, startIndex);
           }
         } else if (this._state === KodeineLexerState.Kode) {
           if (this._isWhitespace(char)) {
@@ -4105,27 +4471,27 @@ var require_kodeine_lexer = __commonJS({
             while (!this._charReader.EOF() && this._isWhitespace(this._charReader.peek(1))) {
               buffer += this._charReader.consume(1);
             }
-            return new formula_tokens_js_1.WhitespaceToken(buffer, startIndex);
+            return new kodeine_js_1.WhitespaceToken(buffer, startIndex);
           } else if (char === "(") {
-            return new formula_tokens_js_1.OpeningParenthesisToken(startIndex);
+            return new kodeine_js_1.OpeningParenthesisToken(startIndex);
           } else if (char === ")") {
-            return new formula_tokens_js_1.ClosingParenthesisToken(startIndex);
+            return new kodeine_js_1.ClosingParenthesisToken(startIndex);
           } else if (char === ",") {
-            return new formula_tokens_js_1.CommaToken(startIndex);
+            return new kodeine_js_1.CommaToken(startIndex);
           } else if (char === '"') {
             let buffer = "";
             while (!this._charReader.EOF() && this._charReader.peek(1) !== '"') {
               buffer += this._charReader.consume(1);
             }
             if (this._charReader.EOF()) {
-              return new formula_tokens_js_1.UnclosedQuotedValueToken(buffer, startIndex);
+              return new kodeine_js_1.UnclosedQuotedValueToken(buffer, startIndex);
             } else {
               this._charReader.consume(1);
-              return new formula_tokens_js_1.QuotedValueToken(buffer, startIndex);
+              return new kodeine_js_1.QuotedValueToken(buffer, startIndex);
             }
           } else if (char === "$") {
             this._state = KodeineLexerState.Default;
-            return new formula_tokens_js_1.DollarSignToken(startIndex);
+            return new kodeine_js_1.DollarSignToken(startIndex);
           } else {
             let initiallyMatchingOperatorSymbols = this._operatorSymbols.filter((op) => op.startsWith(char));
             if (initiallyMatchingOperatorSymbols.length > 0) {
@@ -4137,9 +4503,9 @@ var require_kodeine_lexer = __commonJS({
               }
               if (longestMatchingOperatorSymbol) {
                 this._charReader.consume(longestMatchingOperatorSymbol.length - 1);
-                return new formula_tokens_js_1.OperatorToken(longestMatchingOperatorSymbol, startIndex);
+                return new kodeine_js_1.OperatorToken(longestMatchingOperatorSymbol, startIndex);
               } else {
-                return new formula_tokens_js_1.UnquotedValueToken(char, startIndex);
+                return new kodeine_js_1.UnquotedValueToken(char, startIndex);
               }
             } else {
               let buffer = char;
@@ -4172,7 +4538,7 @@ var require_kodeine_lexer = __commonJS({
                 }
               }
               this._charReader.consume(buffer.length - 1);
-              return new formula_tokens_js_1.UnquotedValueToken(buffer, startIndex);
+              return new kodeine_js_1.UnquotedValueToken(buffer, startIndex);
             }
           }
         } else {
@@ -4191,124 +4557,229 @@ var require_kodeine_lexer = __commonJS({
   }
 });
 
-// engine/dist.node/string-char-reader.js
-var require_string_char_reader = __commonJS({
-  "engine/dist.node/string-char-reader.js"(exports) {
+// engine/dist.node/kodeine-parser/expressions/i-expression-builder.js
+var require_i_expression_builder = __commonJS({
+  "engine/dist.node/kodeine-parser/expressions/i-expression-builder.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.StringCharReader = void 0;
-    var base_js_1 = require_base();
-    var StringCharReader = class extends base_js_1.ICharReader {
-      constructor(text) {
+    exports.IExpressionBuilder = void 0;
+    var IExpressionBuilder = class {
+    };
+    exports.IExpressionBuilder = IExpressionBuilder;
+  }
+});
+
+// engine/dist.node/kodeine-parser/expressions/expression-builder.js
+var require_expression_builder = __commonJS({
+  "engine/dist.node/kodeine-parser/expressions/expression-builder.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ExpressionBuilder = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var ExpressionBuilder = class {
+      constructor(parsingCtx2, includeSurroundingTokens, ...startingTokens) {
+        this._elements = [];
+        this._parsingCtx = parsingCtx2;
+        this._includeSurroundingTokens = includeSurroundingTokens;
+        this._startingTokens = startingTokens;
+      }
+      _getLastElement() {
+        return this._elements[this._elements.length - 1];
+      }
+      addValue(token) {
+        var _a;
+        let lastElement = this._getLastElement();
+        if (lastElement instanceof kodeine_js_1.Evaluable) {
+          if (token instanceof kodeine_js_1.UnquotedValueToken && (token.getSourceText() == "~" || token.getSourceText() == "!") || lastElement instanceof kodeine_js_1.KodeValue && ((_a = lastElement.source) == null ? void 0 : _a.tokens.length) === 1 && lastElement.source.tokens[0] instanceof kodeine_js_1.UnquotedValueToken && (lastElement.text == "~" || lastElement.text == "!")) {
+            throw new kodeine_js_1.KodeSyntaxError(token, "A value cannot follow another value. Kustom treats first characters of binary operators as standalone unquoted values when they are not a part of a full operator symbols. ! and ~ both behave this way (first characters of != and ~= respectively).");
+          } else {
+            throw new kodeine_js_1.KodeSyntaxError(token, "A value cannot follow another value.");
+          }
+        }
+        this._elements.push(kodeine_js_1.KodeValue.fromToken(token));
+      }
+      addEvaluable(evaluable) {
+        let lastElement = this._getLastElement();
+        if (lastElement instanceof kodeine_js_1.Evaluable) {
+          throw new kodeine_js_1.KodeSyntaxError(evaluable.source.tokens[0], "A value cannot follow another value.");
+        }
+        this._elements.push(evaluable);
+      }
+      addOperator(token) {
+        let lastElement = this._getLastElement();
+        let tokenShouldBeUnaryOperator = !lastElement || lastElement instanceof kodeine_js_1.BinaryOperatorOccurence || lastElement instanceof kodeine_js_1.UnaryOperatorOccurence;
+        if (tokenShouldBeUnaryOperator) {
+          let unaryOperator = this._parsingCtx.findUnaryOperator(token.getSymbol());
+          if (unaryOperator) {
+            this._elements.push(new kodeine_js_1.UnaryOperatorOccurence(unaryOperator, token));
+          } else {
+            let binaryOperator = this._parsingCtx.findBinaryOperator(token.getSymbol());
+            if (binaryOperator) {
+              throw new kodeine_js_1.KodeSyntaxError(token, `Left hand side argument for binary operator "${token.getSymbol()}" missing.`);
+            } else {
+              throw new kodeine_js_1.KodeSyntaxError(token, `Unrecognized operator "${token.getSymbol()}".`);
+            }
+          }
+        } else {
+          let binaryOperator = this._parsingCtx.findBinaryOperator(token.getSymbol());
+          if (binaryOperator) {
+            this._elements.push(new kodeine_js_1.BinaryOperatorOccurence(binaryOperator, token));
+          } else {
+            let unaryOperator = this._parsingCtx.findUnaryOperator(token.getSymbol());
+            if (unaryOperator) {
+              throw new kodeine_js_1.KodeSyntaxError(token, `Unary operator "${token.getSymbol()}" cannot have a left hand side argument.`);
+            } else {
+              throw new kodeine_js_1.KodeSyntaxError(token, `Unrecognized operator "${token.getSymbol()}".`);
+            }
+          }
+        }
+      }
+      getIsEmpty() {
+        return this._elements.length === 0;
+      }
+      build(closingToken) {
+        if (this._elements.length === 0) {
+          throw new kodeine_js_1.KodeSyntaxError(closingToken, "Empty expression.");
+        } else {
+          let finalElement;
+          if (this._elements.length === 1) {
+            finalElement = this._elements[0];
+          } else {
+            for (var i = 0; i < this._elements.length; i++) {
+              let element = this._elements[i];
+              if (element instanceof kodeine_js_1.UnaryOperatorOccurence) {
+                let firstElI = i;
+                let unaryOpStack = [element];
+                for (i = i + 1; i < this._elements.length; i++) {
+                  element = this._elements[i];
+                  if (element instanceof kodeine_js_1.UnaryOperatorOccurence) {
+                    unaryOpStack.push(element);
+                  } else if (element instanceof kodeine_js_1.Evaluable) {
+                    let unaryOpCount = unaryOpStack.length;
+                    let evaluable = element;
+                    while (unaryOpStack.length > 0) {
+                      let unaryOpOccurence = unaryOpStack.pop();
+                      evaluable = new kodeine_js_1.UnaryOperation(unaryOpOccurence.operator, evaluable, new kodeine_js_1.EvaluableSource(unaryOpOccurence.token, ...evaluable.source.tokens));
+                    }
+                    this._elements.splice(firstElI, unaryOpCount + 1, evaluable);
+                    i = firstElI;
+                    break;
+                  } else {
+                    throw new kodeine_js_1.KodeSyntaxError(closingToken, `Binary operator cannot follow a unary operator.`);
+                  }
+                }
+              }
+            }
+            while (this._elements.length > 1) {
+              let maxPrecedence = -1;
+              let maxPrecedenceI = -1;
+              for (var i = 0; i < this._elements.length; i++) {
+                let element = this._elements[i];
+                if (element instanceof kodeine_js_1.BinaryOperatorOccurence) {
+                  if (element.operator.getPrecedence() > maxPrecedence) {
+                    maxPrecedence = element.operator.getPrecedence();
+                    maxPrecedenceI = i;
+                  }
+                }
+              }
+              if (maxPrecedenceI === -1) {
+                throw new kodeine_js_1.KodeSyntaxError(closingToken, "No binary operators found in the expression.");
+              } else {
+                let opOccurence = this._elements[maxPrecedenceI];
+                if (maxPrecedenceI === 0 || !(this._elements[maxPrecedenceI - 1] instanceof kodeine_js_1.Evaluable)) {
+                  throw new kodeine_js_1.KodeSyntaxError(closingToken, `Left hand side argument for binary operator "${opOccurence.operator.getSymbol()}" missing.`);
+                } else if (maxPrecedenceI === this._elements.length - 1 || !(this._elements[maxPrecedenceI + 1] instanceof kodeine_js_1.Evaluable)) {
+                  throw new kodeine_js_1.KodeSyntaxError(closingToken, `Right hand side argument for binary operator "${opOccurence.operator.getSymbol()}" missing.`);
+                } else {
+                  let a = this._elements[maxPrecedenceI - 1];
+                  let b = this._elements[maxPrecedenceI + 1];
+                  let operation = new kodeine_js_1.BinaryOperation(opOccurence.operator, a, b, new kodeine_js_1.EvaluableSource(...a.source.tokens, opOccurence.token, ...b.source.tokens));
+                  this._elements.splice(maxPrecedenceI - 1, 3, operation);
+                  i = maxPrecedenceI - 1;
+                }
+              }
+            }
+            finalElement = this._elements[0];
+          }
+          if (finalElement instanceof kodeine_js_1.Evaluable) {
+            if (this._includeSurroundingTokens) {
+              return new kodeine_js_1.Expression(finalElement, new kodeine_js_1.EvaluableSource(...this._startingTokens, ...finalElement.source.tokens, closingToken));
+            } else {
+              return finalElement;
+            }
+          } else {
+            throw new kodeine_js_1.KodeSyntaxError(closingToken, `Expression cannot consist of only the "${finalElement.operator.getSymbol()}" operator.`);
+          }
+        }
+      }
+    };
+    exports.ExpressionBuilder = ExpressionBuilder;
+  }
+});
+
+// engine/dist.node/kodeine-parser/expressions/function-call-builder.js
+var require_function_call_builder = __commonJS({
+  "engine/dist.node/kodeine-parser/expressions/function-call-builder.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.FunctionCallBuilder = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var FunctionCallBuilder = class extends kodeine_js_1.IExpressionBuilder {
+      constructor(parsingCtx2, functionOccurence) {
         super();
-        this._text = text;
-        this._position = 0;
+        this._innerTokens = [];
+        this._args = [];
+        this._parsingCtx = parsingCtx2;
+        this._functionOccurence = functionOccurence;
+        this._currentArgumentBuilder = new kodeine_js_1.ExpressionBuilder(parsingCtx2, false, ...functionOccurence.openingTokens);
       }
-      getPosition() {
-        return this._position;
+      addEvaluable(evaluable) {
+        this._innerTokens.push(...evaluable.source.tokens);
+        this._currentArgumentBuilder.addEvaluable(evaluable);
       }
-      peek(charCount, offset) {
-        offset != null ? offset : offset = 0;
-        return this._text.substring(this._position + offset, this._position + offset + charCount);
+      addValue(token) {
+        this._innerTokens.push(token);
+        this._currentArgumentBuilder.addValue(token);
       }
-      consume(charCount) {
-        let oldPos = this._position;
-        this._position += charCount;
-        return this._text.substring(oldPos, oldPos + charCount);
+      addOperator(token) {
+        this._innerTokens.push(token);
+        this._currentArgumentBuilder.addOperator(token);
       }
-      EOF() {
-        return this._position >= this._text.length;
-      }
-    };
-    exports.StringCharReader = StringCharReader;
-  }
-});
-
-// engine/dist.node/evaluables/binary-operation.js
-var require_binary_operation = __commonJS({
-  "engine/dist.node/evaluables/binary-operation.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.BinaryOperation = void 0;
-    var base_js_1 = require_base();
-    var evaluation_tree_js_1 = require_evaluation_tree();
-    var BinaryOperation = class extends base_js_1.Evaluable {
-      constructor(operator, argA, argB, source) {
-        super(source);
-        this.operator = operator;
-        this.argA = argA;
-        this.argB = argB;
-      }
-      evaluate(evalCtx2) {
-        if (evalCtx2.buildEvaluationTree) {
-          let argAResult = this.argA.evaluate(evalCtx2);
-          let argANode = evalCtx2.sideEffects.lastEvaluationTreeNode;
-          let argBResult = this.argB.evaluate(evalCtx2);
-          let argBNode = evalCtx2.sideEffects.lastEvaluationTreeNode;
-          let result = this.operator.operation(evalCtx2, this, argAResult, argBResult);
-          evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedBinaryOperation(this, argANode, argBNode, result);
-          return result;
+      nextArgument(comma) {
+        if (this._currentArgumentBuilder.getIsEmpty()) {
+          throw new kodeine_js_1.KodeSyntaxError(comma, "Argument missing.");
         } else {
-          return this.operator.operation(evalCtx2, this, this.argA.evaluate(evalCtx2), this.argB.evaluate(evalCtx2));
+          this._innerTokens.push(comma);
+          this._args.push(this._currentArgumentBuilder.build(comma));
+          this._currentArgumentBuilder = new kodeine_js_1.ExpressionBuilder(this._parsingCtx, false, comma);
         }
       }
-    };
-    exports.BinaryOperation = BinaryOperation;
-  }
-});
-
-// engine/dist.node/evaluables/expression.js
-var require_expression = __commonJS({
-  "engine/dist.node/evaluables/expression.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Expression = void 0;
-    var base_js_1 = require_base();
-    var evaluation_tree_js_1 = require_evaluation_tree();
-    var Expression = class extends base_js_1.Evaluable {
-      constructor(evaluable, source) {
-        super(source);
-        this.evaluable = evaluable;
-      }
-      evaluate(evalCtx2) {
-        let result = this.evaluable.evaluate(evalCtx2);
-        if (evalCtx2.buildEvaluationTree) {
-          evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedExpression(evalCtx2.sideEffects.lastEvaluationTreeNode, result);
-        }
-        return result;
-      }
-    };
-    exports.Expression = Expression;
-  }
-});
-
-// engine/dist.node/evaluables/unary-operation.js
-var require_unary_operation = __commonJS({
-  "engine/dist.node/evaluables/unary-operation.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.UnaryOperation = void 0;
-    var base_js_1 = require_base();
-    var evaluation_tree_js_1 = require_evaluation_tree();
-    var UnaryOperation = class extends base_js_1.Evaluable {
-      constructor(operator, arg, source) {
-        super(source);
-        this.operator = operator;
-        this.arg = arg;
-      }
-      evaluate(evalCtx2) {
-        if (evalCtx2.buildEvaluationTree) {
-          let argResult = this.arg.evaluate(evalCtx2);
-          let argNode = evalCtx2.sideEffects.lastEvaluationTreeNode;
-          let result = this.operator.operation(evalCtx2, this, argResult);
-          evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedUnaryOperation(this, argNode, result);
-          return result;
+      build(closingToken) {
+        if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
+          return new kodeine_js_1.FunctionCall(this._functionOccurence.func, this._args, new kodeine_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
         } else {
-          return this.operator.operation(evalCtx2, this, this.arg.evaluate(evalCtx2));
+          this._args.push(this._currentArgumentBuilder.build(closingToken));
+          return new kodeine_js_1.FunctionCall(this._functionOccurence.func, this._args, new kodeine_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
         }
       }
     };
-    exports.UnaryOperation = UnaryOperation;
+    exports.FunctionCallBuilder = FunctionCallBuilder;
+  }
+});
+
+// engine/dist.node/kodeine-parser/expressions/function-occurence.js
+var require_function_occurence = __commonJS({
+  "engine/dist.node/kodeine-parser/expressions/function-occurence.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.FunctionOccurence = void 0;
+    var FunctionOccurence = class {
+      constructor(func, ...openingTokens) {
+        this.openingTokens = openingTokens;
+        this.func = func;
+      }
+    };
+    exports.FunctionOccurence = FunctionOccurence;
   }
 });
 
@@ -4341,306 +4812,13 @@ var require_operator_occurences = __commonJS({
   }
 });
 
-// engine/dist.node/kodeine-parser/expressions/expression-builder.js
-var require_expression_builder = __commonJS({
-  "engine/dist.node/kodeine-parser/expressions/expression-builder.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ExpressionBuilder = void 0;
-    var base_js_1 = require_base();
-    var base_js_2 = require_base();
-    var errors_js_1 = require_errors();
-    var binary_operation_js_1 = require_binary_operation();
-    var expression_js_1 = require_expression();
-    var unary_operation_js_1 = require_unary_operation();
-    var formula_tokens_js_1 = require_formula_tokens();
-    var operator_occurences_js_1 = require_operator_occurences();
-    var ExpressionBuilder = class {
-      constructor(parsingCtx2, includeSurroundingTokens, ...startingTokens) {
-        this._elements = [];
-        this._parsingCtx = parsingCtx2;
-        this._includeSurroundingTokens = includeSurroundingTokens;
-        this._startingTokens = startingTokens;
-      }
-      _getLastElement() {
-        return this._elements[this._elements.length - 1];
-      }
-      addValue(token) {
-        var _a;
-        let lastElement = this._getLastElement();
-        if (lastElement instanceof base_js_1.Evaluable) {
-          if (token instanceof formula_tokens_js_1.UnquotedValueToken && (token.getSourceText() == "~" || token.getSourceText() == "!") || lastElement instanceof base_js_1.KodeValue && ((_a = lastElement.source) == null ? void 0 : _a.tokens.length) === 1 && lastElement.source.tokens[0] instanceof formula_tokens_js_1.UnquotedValueToken && (lastElement.text == "~" || lastElement.text == "!")) {
-            throw new errors_js_1.KodeSyntaxError(token, "A value cannot follow another value. Kustom treats first characters of binary operators as standalone unquoted values when they are not a part of a full operator symbols. ! and ~ both behave this way (first characters of != and ~= respectively).");
-          } else {
-            throw new errors_js_1.KodeSyntaxError(token, "A value cannot follow another value.");
-          }
-        }
-        this._elements.push(base_js_1.KodeValue.fromToken(token));
-      }
-      addEvaluable(evaluable) {
-        let lastElement = this._getLastElement();
-        if (lastElement instanceof base_js_1.Evaluable) {
-          throw new errors_js_1.KodeSyntaxError(evaluable.source.tokens[0], "A value cannot follow another value.");
-        }
-        this._elements.push(evaluable);
-      }
-      addOperator(token) {
-        let lastElement = this._getLastElement();
-        let tokenShouldBeUnaryOperator = !lastElement || lastElement instanceof operator_occurences_js_1.BinaryOperatorOccurence || lastElement instanceof operator_occurences_js_1.UnaryOperatorOccurence;
-        if (tokenShouldBeUnaryOperator) {
-          let unaryOperator = this._parsingCtx.findUnaryOperator(token.getSymbol());
-          if (unaryOperator) {
-            this._elements.push(new operator_occurences_js_1.UnaryOperatorOccurence(unaryOperator, token));
-          } else {
-            let binaryOperator = this._parsingCtx.findBinaryOperator(token.getSymbol());
-            if (binaryOperator) {
-              throw new errors_js_1.KodeSyntaxError(token, `Left hand side argument for binary operator "${token.getSymbol()}" missing.`);
-            } else {
-              throw new errors_js_1.KodeSyntaxError(token, `Unrecognized operator "${token.getSymbol()}".`);
-            }
-          }
-        } else {
-          let binaryOperator = this._parsingCtx.findBinaryOperator(token.getSymbol());
-          if (binaryOperator) {
-            this._elements.push(new operator_occurences_js_1.BinaryOperatorOccurence(binaryOperator, token));
-          } else {
-            let unaryOperator = this._parsingCtx.findUnaryOperator(token.getSymbol());
-            if (unaryOperator) {
-              throw new errors_js_1.KodeSyntaxError(token, `Unary operator "${token.getSymbol()}" cannot have a left hand side argument.`);
-            } else {
-              throw new errors_js_1.KodeSyntaxError(token, `Unrecognized operator "${token.getSymbol()}".`);
-            }
-          }
-        }
-      }
-      getIsEmpty() {
-        return this._elements.length === 0;
-      }
-      build(closingToken) {
-        if (this._elements.length === 0) {
-          throw new errors_js_1.KodeSyntaxError(closingToken, "Empty expression.");
-        } else {
-          let finalElement;
-          if (this._elements.length === 1) {
-            finalElement = this._elements[0];
-          } else {
-            for (var i = 0; i < this._elements.length; i++) {
-              let element = this._elements[i];
-              if (element instanceof operator_occurences_js_1.UnaryOperatorOccurence) {
-                let firstElI = i;
-                let unaryOpStack = [element];
-                for (i = i + 1; i < this._elements.length; i++) {
-                  element = this._elements[i];
-                  if (element instanceof operator_occurences_js_1.UnaryOperatorOccurence) {
-                    unaryOpStack.push(element);
-                  } else if (element instanceof base_js_1.Evaluable) {
-                    let unaryOpCount = unaryOpStack.length;
-                    let evaluable = element;
-                    while (unaryOpStack.length > 0) {
-                      let unaryOpOccurence = unaryOpStack.pop();
-                      evaluable = new unary_operation_js_1.UnaryOperation(unaryOpOccurence.operator, evaluable, new base_js_2.EvaluableSource(unaryOpOccurence.token, ...evaluable.source.tokens));
-                    }
-                    this._elements.splice(firstElI, unaryOpCount + 1, evaluable);
-                    i = firstElI;
-                    break;
-                  } else {
-                    throw new errors_js_1.KodeSyntaxError(closingToken, `Binary operator cannot follow a unary operator.`);
-                  }
-                }
-              }
-            }
-            while (this._elements.length > 1) {
-              let maxPrecedence = -1;
-              let maxPrecedenceI = -1;
-              for (var i = 0; i < this._elements.length; i++) {
-                let element = this._elements[i];
-                if (element instanceof operator_occurences_js_1.BinaryOperatorOccurence) {
-                  if (element.operator.getPrecedence() > maxPrecedence) {
-                    maxPrecedence = element.operator.getPrecedence();
-                    maxPrecedenceI = i;
-                  }
-                }
-              }
-              if (maxPrecedenceI === -1) {
-                throw new errors_js_1.KodeSyntaxError(closingToken, "No binary operators found in the expression.");
-              } else {
-                let opOccurence = this._elements[maxPrecedenceI];
-                if (maxPrecedenceI === 0 || !(this._elements[maxPrecedenceI - 1] instanceof base_js_1.Evaluable)) {
-                  throw new errors_js_1.KodeSyntaxError(closingToken, `Left hand side argument for binary operator "${opOccurence.operator.getSymbol()}" missing.`);
-                } else if (maxPrecedenceI === this._elements.length - 1 || !(this._elements[maxPrecedenceI + 1] instanceof base_js_1.Evaluable)) {
-                  throw new errors_js_1.KodeSyntaxError(closingToken, `Right hand side argument for binary operator "${opOccurence.operator.getSymbol()}" missing.`);
-                } else {
-                  let a = this._elements[maxPrecedenceI - 1];
-                  let b = this._elements[maxPrecedenceI + 1];
-                  let operation = new binary_operation_js_1.BinaryOperation(opOccurence.operator, a, b, new base_js_2.EvaluableSource(...a.source.tokens, opOccurence.token, ...b.source.tokens));
-                  this._elements.splice(maxPrecedenceI - 1, 3, operation);
-                  i = maxPrecedenceI - 1;
-                }
-              }
-            }
-            finalElement = this._elements[0];
-          }
-          if (finalElement instanceof base_js_1.Evaluable) {
-            if (this._includeSurroundingTokens) {
-              return new expression_js_1.Expression(finalElement, new base_js_2.EvaluableSource(...this._startingTokens, ...finalElement.source.tokens, closingToken));
-            } else {
-              return finalElement;
-            }
-          } else {
-            throw new errors_js_1.KodeSyntaxError(closingToken, `Expression cannot consist of only the "${finalElement.operator.getSymbol()}" operator.`);
-          }
-        }
-      }
-    };
-    exports.ExpressionBuilder = ExpressionBuilder;
-  }
-});
-
-// engine/dist.node/evaluables/function-call.js
-var require_function_call = __commonJS({
-  "engine/dist.node/evaluables/function-call.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FunctionCall = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var evaluation_tree_js_1 = require_evaluation_tree();
-    var FunctionCall = class extends base_js_1.Evaluable {
-      constructor(func, args, source) {
-        super(source);
-        this.func = func;
-        this.args = args;
-      }
-      evaluate(evalCtx2) {
-        try {
-          if (evalCtx2.buildEvaluationTree) {
-            let argResults = [];
-            let argNodes = [];
-            for (let i = 0; i < this.args.length; i++) {
-              const arg = this.args[i];
-              argResults[i] = arg.evaluate(evalCtx2);
-              argNodes[i] = evalCtx2.sideEffects.lastEvaluationTreeNode;
-            }
-            let funcResult = this.func.call(evalCtx2, this, argResults);
-            evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedFunctionCall(this, argNodes, funcResult);
-            return funcResult;
-          } else {
-            return this.func.call(evalCtx2, this, this.args.map((a) => a.evaluate(evalCtx2)));
-          }
-        } catch (err) {
-          if (err instanceof errors_js_1.EvaluationError) {
-            evalCtx2.sideEffects.errors.push(err);
-            return new base_js_1.KodeValue("", this.source);
-          } else {
-            throw err;
-          }
-        }
-      }
-    };
-    exports.FunctionCall = FunctionCall;
-  }
-});
-
-// engine/dist.node/kodeine-parser/expressions/i-expression-builder.js
-var require_i_expression_builder = __commonJS({
-  "engine/dist.node/kodeine-parser/expressions/i-expression-builder.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.IExpressionBuilder = void 0;
-    var IExpressionBuilder = class {
-    };
-    exports.IExpressionBuilder = IExpressionBuilder;
-  }
-});
-
-// engine/dist.node/kodeine-parser/expressions/function-call-builder.js
-var require_function_call_builder = __commonJS({
-  "engine/dist.node/kodeine-parser/expressions/function-call-builder.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FunctionCallBuilder = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var function_call_js_1 = require_function_call();
-    var expression_builder_js_1 = require_expression_builder();
-    var i_expression_builder_js_1 = require_i_expression_builder();
-    var FunctionCallBuilder = class extends i_expression_builder_js_1.IExpressionBuilder {
-      constructor(parsingCtx2, functionOccurence) {
-        super();
-        this._innerTokens = [];
-        this._args = [];
-        this._parsingCtx = parsingCtx2;
-        this._functionOccurence = functionOccurence;
-        this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(parsingCtx2, false, ...functionOccurence.openingTokens);
-      }
-      addEvaluable(evaluable) {
-        this._innerTokens.push(...evaluable.source.tokens);
-        this._currentArgumentBuilder.addEvaluable(evaluable);
-      }
-      addValue(token) {
-        this._innerTokens.push(token);
-        this._currentArgumentBuilder.addValue(token);
-      }
-      addOperator(token) {
-        this._innerTokens.push(token);
-        this._currentArgumentBuilder.addOperator(token);
-      }
-      nextArgument(comma) {
-        if (this._currentArgumentBuilder.getIsEmpty()) {
-          throw new errors_js_1.KodeSyntaxError(comma, "Argument missing.");
-        } else {
-          this._innerTokens.push(comma);
-          this._args.push(this._currentArgumentBuilder.build(comma));
-          this._currentArgumentBuilder = new expression_builder_js_1.ExpressionBuilder(this._parsingCtx, false, comma);
-        }
-      }
-      build(closingToken) {
-        if (this._args.length === 0 && this._currentArgumentBuilder.getIsEmpty()) {
-          return new function_call_js_1.FunctionCall(this._functionOccurence.func, this._args, new base_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
-        } else {
-          this._args.push(this._currentArgumentBuilder.build(closingToken));
-          return new function_call_js_1.FunctionCall(this._functionOccurence.func, this._args, new base_js_1.EvaluableSource(...this._functionOccurence.openingTokens, ...this._innerTokens, closingToken));
-        }
-      }
-    };
-    exports.FunctionCallBuilder = FunctionCallBuilder;
-  }
-});
-
-// engine/dist.node/kodeine-parser/expressions/function-occurence.js
-var require_function_occurence = __commonJS({
-  "engine/dist.node/kodeine-parser/expressions/function-occurence.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FunctionOccurence = void 0;
-    var FunctionOccurence = class {
-      constructor(func, ...openingTokens) {
-        this.openingTokens = openingTokens;
-        this.func = func;
-      }
-    };
-    exports.FunctionOccurence = FunctionOccurence;
-  }
-});
-
 // engine/dist.node/kodeine-parser/kodeine-parser.js
 var require_kodeine_parser = __commonJS({
   "engine/dist.node/kodeine-parser/kodeine-parser.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.KodeineParser = exports.KodeineParserState = void 0;
-    var base_js_1 = require_base();
-    var base_js_2 = require_base();
-    var errors_js_1 = require_errors();
-    var broken_evaluable_js_1 = require_broken_evaluable();
-    var formula_js_1 = require_formula();
-    var formula_tokens_js_1 = require_formula_tokens();
-    var kodeine_lexer_js_1 = require_kodeine_lexer();
-    var string_char_reader_js_1 = require_string_char_reader();
-    var expression_builder_js_1 = require_expression_builder();
-    var function_call_builder_js_1 = require_function_call_builder();
-    var function_occurence_js_1 = require_function_occurence();
-    var parsing_context_js_1 = require_parsing_context();
+    var kodeine_js_1 = require_kodeine();
     var KodeineParserState;
     (function(KodeineParserState2) {
       KodeineParserState2[KodeineParserState2["Default"] = 0] = "Default";
@@ -4652,13 +4830,13 @@ var require_kodeine_parser = __commonJS({
       }
       parse(source) {
         if (typeof source === "string") {
-          let charReader = new string_char_reader_js_1.StringCharReader(source);
-          let lexer = new kodeine_lexer_js_1.KodeineLexer(charReader, this._parsingCtx.getOperatorSymbolsLongestFirst());
+          let charReader = new kodeine_js_1.StringCharReader(source);
+          let lexer = new kodeine_js_1.KodeineLexer(charReader, this._parsingCtx.getOperatorSymbolsLongestFirst());
           return this._parseCore(lexer);
-        } else if (source instanceof base_js_1.ICharReader) {
-          let lexer = new kodeine_lexer_js_1.KodeineLexer(source, this._parsingCtx.getOperatorSymbolsLongestFirst());
+        } else if (source instanceof kodeine_js_1.ICharReader) {
+          let lexer = new kodeine_js_1.KodeineLexer(source, this._parsingCtx.getOperatorSymbolsLongestFirst());
           return this._parseCore(lexer);
-        } else if (source instanceof base_js_1.ILexer) {
+        } else if (source instanceof kodeine_js_1.IFormulaTokenLexer) {
           return this._parseCore(source);
         } else {
           throw new Error("Cannot parse the given source.");
@@ -4676,7 +4854,7 @@ var require_kodeine_parser = __commonJS({
           } else {
             let index = tokenBuffer.length - 1;
             let token = tokenBuffer[index];
-            while (token && token instanceof formula_tokens_js_1.WhitespaceToken) {
+            while (token && token instanceof kodeine_js_1.WhitespaceToken) {
               index--;
               token = tokenBuffer[index];
             }
@@ -4691,11 +4869,11 @@ var require_kodeine_parser = __commonJS({
           let token = lexer.consume(1)[0];
           let skipPushingToBuffer = false;
           if (state === KodeineParserState.Default) {
-            if (token instanceof formula_tokens_js_1.DollarSignToken) {
+            if (token instanceof kodeine_js_1.DollarSignToken) {
               state = KodeineParserState.Kode;
-              exprBuilderStack = [new expression_builder_js_1.ExpressionBuilder(this._parsingCtx, true, token)];
+              exprBuilderStack = [new kodeine_js_1.ExpressionBuilder(this._parsingCtx, true, token)];
               if (tokenBuffer.length > 0) {
-                formulaEvaluables.push(new base_js_1.KodeValue(tokenBuffer.map((t) => t.getPlainTextOutput()).join(""), new base_js_2.EvaluableSource(...tokenBuffer)));
+                formulaEvaluables.push(new kodeine_js_1.KodeValue(tokenBuffer.map((t) => t.getPlainTextOutput()).join(""), new kodeine_js_1.EvaluableSource(...tokenBuffer)));
               }
               tokenBuffer = [token];
             } else {
@@ -4703,15 +4881,15 @@ var require_kodeine_parser = __commonJS({
             }
           } else if (state === KodeineParserState.Kode) {
             try {
-              if (token instanceof formula_tokens_js_1.UnquotedValueToken) {
+              if (token instanceof kodeine_js_1.UnquotedValueToken) {
                 let offset = 0;
                 let nextToken = lexer.peek(1, offset++)[0];
-                if (nextToken instanceof formula_tokens_js_1.WhitespaceToken) {
-                  while (nextToken && nextToken instanceof formula_tokens_js_1.WhitespaceToken) {
+                if (nextToken instanceof kodeine_js_1.WhitespaceToken) {
+                  while (nextToken && nextToken instanceof kodeine_js_1.WhitespaceToken) {
                     nextToken = lexer.peek(1, offset++)[0];
                   }
                 }
-                if (nextToken instanceof formula_tokens_js_1.OpeningParenthesisToken) {
+                if (nextToken instanceof kodeine_js_1.OpeningParenthesisToken) {
                   skipPushingToBuffer = true;
                   tokenBuffer.push(token);
                   let whitespaceTokens = [];
@@ -4724,69 +4902,69 @@ var require_kodeine_parser = __commonJS({
                   let funcName = token.getValue();
                   let func = this._parsingCtx.findFunction(funcName);
                   if (func) {
-                    exprBuilderStack.push(new function_call_builder_js_1.FunctionCallBuilder(this._parsingCtx, new function_occurence_js_1.FunctionOccurence(func, token, ...whitespaceTokens, nextToken)));
+                    exprBuilderStack.push(new kodeine_js_1.FunctionCallBuilder(this._parsingCtx, new kodeine_js_1.FunctionOccurence(func, token, ...whitespaceTokens, nextToken)));
                   } else {
-                    throw new errors_js_1.KodeFunctionNotFoundError(token);
+                    throw new kodeine_js_1.KodeFunctionNotFoundError(token);
                   }
                 } else {
                   peekLastExprBuilder().addValue(token);
                 }
-              } else if (token instanceof formula_tokens_js_1.QuotedValueToken) {
+              } else if (token instanceof kodeine_js_1.QuotedValueToken) {
                 peekLastExprBuilder().addValue(token);
-              } else if (token instanceof formula_tokens_js_1.OperatorToken) {
+              } else if (token instanceof kodeine_js_1.OperatorToken) {
                 peekLastExprBuilder().addOperator(token);
-              } else if (token instanceof formula_tokens_js_1.OpeningParenthesisToken) {
+              } else if (token instanceof kodeine_js_1.OpeningParenthesisToken) {
                 let prevToken = getPrevNonWhitespaceToken();
-                if (prevToken === null || prevToken instanceof formula_tokens_js_1.OperatorToken || prevToken instanceof formula_tokens_js_1.OpeningParenthesisToken || prevToken instanceof formula_tokens_js_1.DollarSignToken || prevToken instanceof formula_tokens_js_1.CommaToken) {
-                  exprBuilderStack.push(new expression_builder_js_1.ExpressionBuilder(this._parsingCtx, true, token));
-                } else if (prevToken instanceof formula_tokens_js_1.UnquotedValueToken) {
-                  throw new errors_js_1.KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
+                if (prevToken === null || prevToken instanceof kodeine_js_1.OperatorToken || prevToken instanceof kodeine_js_1.OpeningParenthesisToken || prevToken instanceof kodeine_js_1.DollarSignToken || prevToken instanceof kodeine_js_1.CommaToken) {
+                  exprBuilderStack.push(new kodeine_js_1.ExpressionBuilder(this._parsingCtx, true, token));
+                } else if (prevToken instanceof kodeine_js_1.UnquotedValueToken) {
+                  throw new kodeine_js_1.KodeSyntaxError(token, `Unquoted value followed by an opening parenthesis wasn't picked up as a function call.`);
                 } else {
-                  throw new errors_js_1.KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${prevToken.getName()}.`);
+                  throw new kodeine_js_1.KodeSyntaxError(token, `An opening parenthesis cannot follow a(n) ${prevToken.getName()}.`);
                 }
-              } else if (token instanceof formula_tokens_js_1.CommaToken) {
+              } else if (token instanceof kodeine_js_1.CommaToken) {
                 let lastExprBuilder = peekLastExprBuilder();
-                if (lastExprBuilder instanceof function_call_builder_js_1.FunctionCallBuilder) {
+                if (lastExprBuilder instanceof kodeine_js_1.FunctionCallBuilder) {
                   lastExprBuilder.nextArgument(token);
                 } else {
-                  throw new errors_js_1.KodeSyntaxError(token, `A comma cannot appear outside of function calls.`);
+                  throw new kodeine_js_1.KodeSyntaxError(token, `A comma cannot appear outside of function calls.`);
                 }
-              } else if (token instanceof formula_tokens_js_1.ClosingParenthesisToken) {
+              } else if (token instanceof kodeine_js_1.ClosingParenthesisToken) {
                 if (exprBuilderStack.length <= 1) {
-                  throw new errors_js_1.KodeSyntaxError(token, `Too many closing parentheses.`);
+                  throw new kodeine_js_1.KodeSyntaxError(token, `Too many closing parentheses.`);
                 } else {
                   let evaluable = exprBuilderStack.pop().build(token);
                   peekLastExprBuilder().addEvaluable(evaluable);
                 }
-              } else if (token instanceof formula_tokens_js_1.DollarSignToken) {
+              } else if (token instanceof kodeine_js_1.DollarSignToken) {
                 skipPushingToBuffer = true;
                 if (exprBuilderStack.length > 1) {
-                  throw new errors_js_1.KodeSyntaxError(token, `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
+                  throw new kodeine_js_1.KodeSyntaxError(token, `Unclosed parentheses (${exprBuilderStack.length - 1}).`);
                 }
                 let evaluable = exprBuilderStack.pop().build(token);
                 formulaEvaluables.push(evaluable);
                 state = KodeineParserState.Default;
                 tokenBuffer = [];
-              } else if (token instanceof formula_tokens_js_1.UnclosedQuotedValueToken) {
+              } else if (token instanceof kodeine_js_1.UnclosedQuotedValueToken) {
                 state = KodeineParserState.Default;
                 skipPushingToBuffer = true;
                 if (tokenBuffer.length > 0) {
                   tokenBuffer.push(token);
-                  this._parsingCtx.sideEffects.warnings.push(new parsing_context_js_1.UnclosedQuotedValueWarning(...tokenBuffer));
-                  formulaEvaluables.push(new base_js_1.KodeValue(tokenBuffer.slice(1).map((t) => t.getSourceText()).join(""), new base_js_2.EvaluableSource(...tokenBuffer)));
+                  this._parsingCtx.sideEffects.warnings.push(new kodeine_js_1.UnclosedQuotedValueWarning(...tokenBuffer));
+                  formulaEvaluables.push(new kodeine_js_1.KodeValue(tokenBuffer.slice(1).map((t) => t.getSourceText()).join(""), new kodeine_js_1.EvaluableSource(...tokenBuffer)));
                 }
                 tokenBuffer = [];
-              } else if (token instanceof formula_tokens_js_1.WhitespaceToken) {
+              } else if (token instanceof kodeine_js_1.WhitespaceToken) {
               } else {
-                throw new errors_js_1.UnrecognizedTokenError(token);
+                throw new kodeine_js_1.UnrecognizedTokenError(token);
               }
               if (!skipPushingToBuffer) {
                 tokenBuffer.push(token);
               }
             } catch (err) {
-              if (err instanceof errors_js_1.KodeParsingError) {
+              if (err instanceof kodeine_js_1.KodeParsingError) {
                 this._parsingCtx.sideEffects.errors.push(err);
-                if (token instanceof formula_tokens_js_1.DollarSignToken) {
+                if (token instanceof kodeine_js_1.DollarSignToken) {
                   state = KodeineParserState.Default;
                 } else {
                   let nextToken;
@@ -4794,14 +4972,14 @@ var require_kodeine_parser = __commonJS({
                     nextToken = lexer.consume(1)[0];
                     if (token) {
                       tokenBuffer.push(token);
-                      if (token instanceof formula_tokens_js_1.DollarSignToken) {
+                      if (token instanceof kodeine_js_1.DollarSignToken) {
                         state = KodeineParserState.Default;
                         break;
                       }
                     }
-                  } while (!lexer.EOF() && token && !(token instanceof formula_tokens_js_1.DollarSignToken));
+                  } while (!lexer.EOF() && token && !(token instanceof kodeine_js_1.DollarSignToken));
                 }
-                formulaEvaluables.push(new broken_evaluable_js_1.BrokenEvaluable(new base_js_2.EvaluableSource(...tokenBuffer)));
+                formulaEvaluables.push(new kodeine_js_1.BrokenEvaluable(new kodeine_js_1.EvaluableSource(...tokenBuffer)));
                 tokenBuffer = [];
               } else {
                 throw err;
@@ -4813,212 +4991,17 @@ var require_kodeine_parser = __commonJS({
         }
         if (tokenBuffer.length > 0) {
           if (state === KodeineParserState.Default) {
-            formulaEvaluables.push(new base_js_1.KodeValue(tokenBuffer.map((t) => t.getPlainTextOutput()).join(""), new base_js_2.EvaluableSource(...tokenBuffer)));
+            formulaEvaluables.push(new kodeine_js_1.KodeValue(tokenBuffer.map((t) => t.getPlainTextOutput()).join(""), new kodeine_js_1.EvaluableSource(...tokenBuffer)));
           } else {
-            this._parsingCtx.sideEffects.warnings.push(new parsing_context_js_1.UnclosedDollarSignWarning(...tokenBuffer));
-            formulaEvaluables.push(new base_js_1.KodeValue(tokenBuffer.slice(1).map((t) => t.getSourceText()).join(""), new base_js_2.EvaluableSource(...tokenBuffer)));
+            this._parsingCtx.sideEffects.warnings.push(new kodeine_js_1.UnclosedDollarSignWarning(...tokenBuffer));
+            formulaEvaluables.push(new kodeine_js_1.KodeValue(tokenBuffer.slice(1).map((t) => t.getSourceText()).join(""), new kodeine_js_1.EvaluableSource(...tokenBuffer)));
           }
         }
-        let formula = new formula_js_1.Formula(formulaEvaluables);
+        let formula = new kodeine_js_1.Formula(formulaEvaluables);
         return formula;
       }
     };
     exports.KodeineParser = KodeineParser2;
-  }
-});
-
-// engine/dist.node/implementations/functions/fl-function.js
-var require_fl_function = __commonJS({
-  "engine/dist.node/implementations/functions/fl-function.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.FlFunction = exports.FlEvaluationError = exports.FlEvaluationWarning = exports.FlParsingError = exports.FlParsingWarning = void 0;
-    var base_js_1 = require_base();
-    var evaluation_context_js_1 = require_evaluation_context();
-    var errors_js_1 = require_errors();
-    var parsing_context_js_1 = require_parsing_context();
-    var kodeine_parser_js_1 = require_kodeine_parser();
-    var FlParsingWarning = class extends evaluation_context_js_1.EvaluationWarning {
-      constructor(formulaTextSource, inIncrement, internalWarning) {
-        super(formulaTextSource, `Warning when parsing ${inIncrement ? "increment" : "evaluation"} formula in fl(): ` + internalWarning.message);
-        this.internalWarning = internalWarning;
-      }
-    };
-    exports.FlParsingWarning = FlParsingWarning;
-    var FlParsingError = class extends errors_js_1.EvaluationError {
-      constructor(formulaTextSource, inIncrement, internalError) {
-        super(formulaTextSource, `Error when parsing ${inIncrement ? "increment" : "evaluation"} formula in fl(): ` + internalError.message);
-        this.internalError = internalError;
-      }
-    };
-    exports.FlParsingError = FlParsingError;
-    var FlEvaluationWarning = class extends evaluation_context_js_1.EvaluationWarning {
-      constructor(formulaTextSource, iValue, inIncrement, internalWarning) {
-        super(formulaTextSource, `Warning when evaluating ${inIncrement ? "increment" : "evaluation"} formula in fl() with i = ${iValue.text}: ` + internalWarning.message);
-        this.internalWarning = internalWarning;
-      }
-    };
-    exports.FlEvaluationWarning = FlEvaluationWarning;
-    var FlEvaluationError = class extends errors_js_1.EvaluationError {
-      constructor(formulaTextSource, iValue, inIncrement, internalError) {
-        super(formulaTextSource, `Error when evaluating ${inIncrement ? "increment" : "evaluation"} formula in fl() with i = ${iValue.text}: ` + internalError.message);
-        this.internalError = internalError;
-      }
-    };
-    exports.FlEvaluationError = FlEvaluationError;
-    var FlFunction = class extends base_js_1.IKodeFunction {
-      static get maxIterationCount() {
-        return 1e3;
-      }
-      getName() {
-        return "fl";
-      }
-      call(evalCtx2, call, args) {
-        if (args.length < 4) {
-          throw new errors_js_1.InvalidArgumentCountError(call, "At least four arguments required (start, end, increment, formula text, optional separator).");
-        } else if (args.length > 5) {
-          throw new errors_js_1.InvalidArgumentCountError(call, "At most five arguments allowed (start, end, increment, formula text, optional separator).");
-        }
-        let iterationCounter = 0;
-        let i = args[0];
-        let endI = args[1];
-        if (!args[2].text) {
-          return new base_js_1.KodeValue("", call.source);
-        }
-        let incrFormulaText = `$${args[2].text}$`;
-        let evalFormulaText = `$${args[3].text}$`;
-        let separator = args[4] ? args[4].text : "";
-        let results = [];
-        let parsingCtx2 = parsing_context_js_1.ParsingContextBuilder.buildDefault();
-        let parser2 = new kodeine_parser_js_1.KodeineParser(parsingCtx2);
-        let incrFormula;
-        let evalFormula;
-        try {
-          incrFormula = parser2.parse(incrFormulaText);
-        } catch (err) {
-          if (err instanceof errors_js_1.KodeParsingError) {
-            evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
-            incrFormula = null;
-          } else {
-            throw err;
-          }
-        }
-        parsingCtx2.sideEffects.errors.forEach((err) => {
-          evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
-        });
-        parsingCtx2.sideEffects.warnings.forEach((warn) => {
-          evalCtx2.sideEffects.warnings.push(new FlParsingWarning(call.args[2], true, warn));
-        });
-        parsingCtx2.clearSideEffects();
-        try {
-          evalFormula = evalFormulaText === "$$" ? null : parser2.parse(evalFormulaText);
-        } catch (err) {
-          if (err instanceof errors_js_1.KodeParsingError) {
-            evalCtx2.sideEffects.errors.push(new FlParsingError(this.call.arguments[3], false, err));
-            evalFormula = null;
-          } else {
-            throw err;
-          }
-        }
-        parsingCtx2.sideEffects.errors.forEach((err) => {
-          evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
-        });
-        parsingCtx2.sideEffects.warnings.forEach((warn) => {
-          evalCtx2.sideEffects.warnings.push(new FlParsingWarning(call.args[2], true, warn));
-        });
-        let eqOperator = parsingCtx2.findBinaryOperator("=");
-        if (eqOperator === null) {
-          throw new Error('Operator with symbol "=" was not found.');
-        }
-        let childEvalCtx = evalCtx2.clone();
-        while (iterationCounter++ < FlFunction.maxIterationCount) {
-          childEvalCtx.iReplacement = i;
-          if (evalFormula) {
-            try {
-              let evalResult = evalFormula.evaluate(childEvalCtx);
-              results.push(evalResult.text);
-            } catch (err) {
-              if (err instanceof errors_js_1.EvaluationError) {
-                evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[3], i, false, err));
-              } else {
-                throw err;
-              }
-            }
-            childEvalCtx.sideEffects.errors.forEach((err) => {
-              evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[3], i, false, err));
-            });
-            childEvalCtx.sideEffects.warnings.forEach((warn) => {
-              evalCtx2.sideEffects.warnings.push(new FlEvaluationError(call.args[3], i, false, warn));
-            });
-            childEvalCtx.clearSideEffects();
-          } else {
-            results.push("");
-          }
-          if (i.equals(endI)) {
-            break;
-          }
-          if (incrFormula) {
-            try {
-              i = incrFormula.evaluate(childEvalCtx);
-            } catch (err) {
-              if (err instanceof errors_js_1.EvaluationError) {
-                evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[2], i, true, err));
-              } else {
-                throw err;
-              }
-            }
-            childEvalCtx.sideEffects.errors.forEach((err) => {
-              evalCtx2.sideEffects.errors.push(new FlEvaluationError(call.args[2], i, true, err));
-            });
-            childEvalCtx.sideEffects.warnings.forEach((warn) => {
-              evalCtx2.sideEffects.warnings.push(new FlEvaluationError(call.args[2], i, true, warn));
-            });
-            childEvalCtx.clearSideEffects();
-          } else {
-            i = new base_js_1.KodeValue("");
-          }
-        }
-        return new base_js_1.KodeValue(results.join(separator), call.source);
-      }
-    };
-    exports.FlFunction = FlFunction;
-  }
-});
-
-// engine/dist.node/implementations/functions/gv-function.js
-var require_gv_function = __commonJS({
-  "engine/dist.node/implementations/functions/gv-function.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.GvFunction = void 0;
-    var base_js_1 = require_base();
-    var errors_js_1 = require_errors();
-    var GvFunction = class extends base_js_1.IKodeFunction {
-      getName() {
-        return "gv";
-      }
-      call(evalCtx2, call, args) {
-        if (args.length < 1)
-          throw new errors_js_1.InvalidArgumentCountError(call, "At least one argument required.");
-        else if (args.length > 1)
-          throw new errors_js_1.InvalidArgumentCountError(call, "Only one-argument gv() calls are currently implemented.");
-        let globalName = args[0].text.trim().toLowerCase();
-        if (evalCtx2.sideEffects.globalNameStack.indexOf(globalName) >= 0) {
-          throw new errors_js_1.EvaluationError(call, `Global reference loop detected. Global stack: ${evalCtx2.sideEffects.globalNameStack.join(" > ")}.`);
-        } else {
-          evalCtx2.sideEffects.globalNameStack.push(globalName);
-          let globalFormula = evalCtx2.globals.get(globalName);
-          if (globalFormula) {
-            let globalValue = globalFormula.evaluate(evalCtx2);
-            evalCtx2.sideEffects.globalNameStack.pop();
-            return globalValue;
-          } else {
-            return new base_js_1.KodeValue("", call.source);
-          }
-        }
-      }
-    };
-    exports.GvFunction = GvFunction;
   }
 });
 
@@ -5028,15 +5011,7 @@ var require_parsing_context = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UnclosedQuotedValueWarning = exports.UnclosedDollarSignWarning = exports.ParsingWarning = exports.ParsingSideEffects = exports.ParsingContextBuilder = exports.ParsingContext = void 0;
-    var base_js_1 = require_base();
-    var if_function_js_1 = require_if_function();
-    var UnimplementedFunctions = require_unimplemented_functions();
-    var UnaryOperators = require_unary_operators();
-    var BinaryOperators = require_binary_operators();
-    var tc_function_js_1 = require_tc_function();
-    var mu_function_js_1 = require_mu_function();
-    var fl_function_js_1 = require_fl_function();
-    var gv_function_js_1 = require_gv_function();
+    var kodeine_js_1 = require_kodeine();
     var ParsingContext2 = class {
       constructor(functions, unaryOperators, binaryOperators) {
         this._operatorSymbols = /* @__PURE__ */ new Set();
@@ -5085,14 +5060,25 @@ var require_parsing_context = __commonJS({
         this._binaryOperators[operator.getSymbol()] = operator;
       }
       add(obj) {
-        if (obj instanceof base_js_1.IKodeFunction)
+        if (obj instanceof kodeine_js_1.IKodeFunction)
           this._addFunction(obj);
-        else if (obj instanceof base_js_1.IUnaryOperator)
+        else if (obj instanceof kodeine_js_1.IUnaryOperator)
           this._addUnaryOperator(obj);
-        else if (obj instanceof base_js_1.IBinaryOperator)
+        else if (obj instanceof kodeine_js_1.IBinaryOperator)
           this._addBinaryOperator(obj);
         else
           this.add(new obj());
+        return this;
+      }
+      addAll(...objs) {
+        objs.forEach((obj) => {
+          try {
+            this.add(obj);
+          } catch (err) {
+            let a = obj;
+            throw err;
+          }
+        });
         return this;
       }
       addFromModule(moduleNamespace) {
@@ -5109,8 +5095,7 @@ var require_parsing_context = __commonJS({
         return this;
       }
       addDefaults() {
-        this.addFromModule(UnimplementedFunctions).add(if_function_js_1.IfFunction).add(tc_function_js_1.TcFunction).add(mu_function_js_1.MuFunction).add(fl_function_js_1.FlFunction).add(gv_function_js_1.GvFunction).addFromModule(UnaryOperators).addFromModule(BinaryOperators);
-        return this;
+        return this.addAll(kodeine_js_1.NegationOperator, kodeine_js_1.ExponentiationOperator, kodeine_js_1.MultiplicationOperator, kodeine_js_1.DivisionOperator, kodeine_js_1.ModuloOperator, kodeine_js_1.AdditionOperator, kodeine_js_1.SubtractionOperator, kodeine_js_1.EqualityOperator, kodeine_js_1.InequalityOperator, kodeine_js_1.LesserThanOperator, kodeine_js_1.GreaterThanOperator, kodeine_js_1.LesserThanOrEqualToOperator, kodeine_js_1.GreaterThanOrEqualToOperator, kodeine_js_1.RegexMatchOperator, kodeine_js_1.LogicalOrOperator, kodeine_js_1.LogicalAndOperator).addAll(kodeine_js_1.IfFunction, kodeine_js_1.TcFunction, kodeine_js_1.MuFunction, kodeine_js_1.FlFunction, kodeine_js_1.GvFunction).addAll(kodeine_js_1.LiFunction, kodeine_js_1.AqFunction, kodeine_js_1.NcFunction, kodeine_js_1.NiFunction, kodeine_js_1.WgFunction, kodeine_js_1.RmFunction, kodeine_js_1.CiFunction, kodeine_js_1.ShFunction, kodeine_js_1.WiFunction, kodeine_js_1.BiFunction, kodeine_js_1.SiFunction, kodeine_js_1.MqFunction, kodeine_js_1.TsFunction, kodeine_js_1.BpFunction, kodeine_js_1.CmFunction, kodeine_js_1.BrFunction, kodeine_js_1.DfFunction, kodeine_js_1.MiFunction, kodeine_js_1.WfFunction, kodeine_js_1.TfFunction, kodeine_js_1.UcFunction, kodeine_js_1.CeFunction, kodeine_js_1.AiFunction, kodeine_js_1.FdFunction, kodeine_js_1.DpFunction, kodeine_js_1.TuFunction);
       }
       build() {
         return new ParsingContext2(this._functions, this._unaryOperators, this._binaryOperators);
@@ -5149,6 +5134,67 @@ var require_parsing_context = __commonJS({
   }
 });
 
+// engine/dist.node/kodeine.js
+var require_kodeine = __commonJS({
+  "engine/dist.node/kodeine.js"(exports) {
+    "use strict";
+    var __createBinding = exports && exports.__createBinding || (Object.create ? function(o, m, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    } : function(o, m, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m[k];
+    });
+    var __exportStar = exports && exports.__exportStar || function(m, exports2) {
+      for (var p in m)
+        if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p))
+          __createBinding(exports2, m, p);
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    __exportStar(require_abstractions(), exports);
+    __exportStar(require_errors(), exports);
+    __exportStar(require_string_char_reader(), exports);
+    __exportStar(require_evaluation_context(), exports);
+    __exportStar(require_evaluation_tree(), exports);
+    __exportStar(require_evaluable(), exports);
+    __exportStar(require_kode_value(), exports);
+    __exportStar(require_unary_operation(), exports);
+    __exportStar(require_binary_operation(), exports);
+    __exportStar(require_function_call(), exports);
+    __exportStar(require_expression(), exports);
+    __exportStar(require_formula(), exports);
+    __exportStar(require_broken_evaluable(), exports);
+    __exportStar(require_kode_function_with_modes(), exports);
+    __exportStar(require_unimplemented_functions(), exports);
+    __exportStar(require_fl_function(), exports);
+    __exportStar(require_gv_function(), exports);
+    __exportStar(require_if_function(), exports);
+    __exportStar(require_mu_function(), exports);
+    __exportStar(require_tc_function(), exports);
+    __exportStar(require_unary_operators(), exports);
+    __exportStar(require_two_mode_binary_operator(), exports);
+    __exportStar(require_binary_operators(), exports);
+    __exportStar(require_formula_token(), exports);
+    __exportStar(require_formula_tokens(), exports);
+    __exportStar(require_kodeine_lexer(), exports);
+    __exportStar(require_i_expression_builder(), exports);
+    __exportStar(require_expression_builder(), exports);
+    __exportStar(require_function_call_builder(), exports);
+    __exportStar(require_function_occurence(), exports);
+    __exportStar(require_operator_occurences(), exports);
+    __exportStar(require_kodeine_parser(), exports);
+    __exportStar(require_parsing_context(), exports);
+  }
+});
+
 // extension/src/extension.ts
 var extension_exports = {};
 __export(extension_exports, {
@@ -5156,15 +5202,12 @@ __export(extension_exports, {
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode3 = __toESM(require("vscode"));
-var import_parsing_context = __toESM(require_parsing_context());
-var import_kodeine_parser = __toESM(require_kodeine_parser());
-var import_evaluation_context = __toESM(require_evaluation_context());
+var import_kodeine2 = __toESM(require_kodeine());
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode = __toESM(require("vscode"));
-var import_base = __toESM(require_base());
-var import_evaluation_tree = __toESM(require_evaluation_tree());
-var FormulaTreeDataProvider = class {
+var import_kodeine = __toESM(require_kodeine());
+var EvaluationTreeDataProvider = class {
   constructor() {
     this._onDidChangeTreeData = new vscode.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -5177,22 +5220,22 @@ var FormulaTreeDataProvider = class {
       } else {
         return void 0;
       }
-    } else if (element instanceof import_evaluation_tree.FormulaEvaluationTree) {
+    } else if (element instanceof import_kodeine.FormulaEvaluationTree) {
       return element.parts;
-    } else if (element instanceof import_evaluation_tree.EvaluatedUnaryOperation) {
+    } else if (element instanceof import_kodeine.EvaluatedUnaryOperation) {
       return [element.arg];
-    } else if (element instanceof import_evaluation_tree.EvaluatedBinaryOperation) {
+    } else if (element instanceof import_kodeine.EvaluatedBinaryOperation) {
       return [element.argA, element.argB];
-    } else if (element instanceof import_evaluation_tree.EvaluatedFunctionCall) {
+    } else if (element instanceof import_kodeine.EvaluatedFunctionCall) {
       return element.args;
-    } else if (element instanceof import_evaluation_tree.EvaluatedExpression) {
+    } else if (element instanceof import_kodeine.EvaluatedExpression) {
       return [element.child];
     } else {
       return void 0;
     }
   }
   getTreeItem(element) {
-    let treeItem = new vscode.TreeItem(`${element.result.text}`, element instanceof import_base.Literal ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed);
+    let treeItem = new vscode.TreeItem(`${element.result.text}`, element instanceof import_kodeine.Literal ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed);
     treeItem.description = element.getDescription();
     return treeItem;
   }
@@ -5247,16 +5290,16 @@ var evaluationTreeDataProvider;
 var globalTreeDataProvider;
 function activate(extCtx) {
   var _a;
-  parsingCtx = import_parsing_context.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine_parser.KodeineParser(parsingCtx);
-  evalCtx = new import_evaluation_context.EvaluationContext();
+  parsingCtx = import_kodeine2.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine2.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine2.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
   outChannel = vscode3.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
   outChannel.show(true);
   diagColl = vscode3.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
-  evaluationTreeDataProvider = new FormulaTreeDataProvider();
+  evaluationTreeDataProvider = new EvaluationTreeDataProvider();
   extCtx.subscriptions.push(vscode3.window.registerTreeDataProvider("formulaEvaluationTree", evaluationTreeDataProvider));
   docToGlobalNameMap = /* @__PURE__ */ new Map();
   globalTreeDataProvider = new GlobalTreeDataProvider([]);

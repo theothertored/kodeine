@@ -1,5 +1,4 @@
-import { IKodeFunction, KodeValue } from "../../base.js";
-import { EvaluationError, InvalidArgumentCountError } from "../../errors.js";
+import { KodeValue, IKodeFunction, EvaluationError, InvalidArgumentCountError } from "engine/src/kodeine.js";
 /** Implementation of Kustom's `gv()` function. */
 export class GvFunction extends IKodeFunction {
     getName() { return 'gv'; }

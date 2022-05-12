@@ -1,5 +1,4 @@
-import { IUnaryOperator, KodeValue } from "../../base.js";
-import { UnaryMinusStringModeWarning } from "../../evaluables/evaluation-context.js";
+import { KodeValue, IUnaryOperator, UnaryMinusStringModeWarning } from "../../kodeine.js";
 /** Implements the only unary operator in kode, negation (unary minus). */
 export class NegationOperator extends IUnaryOperator {
     getSymbol() { return '-'; }

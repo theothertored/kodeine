@@ -1,5 +1,4 @@
 TODO:
-- consider applying the internal module pattern to deal with circular dependencies in a cleaner fashion
 - write doc comments for the evaluation tree
 - command to print evaluation steps (probably to virtual document)
 - clean up extension code by introducing a GlobalManager class instead of functions in extension.ts
@@ -13,6 +12,7 @@ MAYBE IN THE FUTURE:
 - ...
 
 DONE:
+- consider applying the internal module pattern to deal with circular dependencies in a cleaner fashion (https://medium.com/visual-development/how-to-fix-nasty-circular-dependency-issues-once-and-for-all-in-javascript-typescript-a04c987cf0de)
 - generate static evaluation tree with results for each step as a side effect of the evaluation
 - display evaluation results for each object in the formula tree
 - create a social banner for github, add short description and topics

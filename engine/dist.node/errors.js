@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
-const base_js_1 = require("./base.js");
+const kodeine_js_1 = require("./kodeine.js");
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 class KodeError {
     constructor(message) {
@@ -89,7 +89,7 @@ class InvalidArgumentError extends EvaluationError {
      * @param message A message explaining the error.
      */
     constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
-        super(argumentSource, `Value ${invalidValue instanceof base_js_1.KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
+        super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
     }
 }
 exports.InvalidArgumentError = InvalidArgumentError;

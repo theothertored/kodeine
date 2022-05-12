@@ -1,15 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnclosedQuotedValueWarning = exports.UnclosedDollarSignWarning = exports.ParsingWarning = exports.ParsingSideEffects = exports.ParsingContextBuilder = exports.ParsingContext = void 0;
-const base_js_1 = require("../base.js");
-const if_function_js_1 = require("../implementations/functions/if-function.js");
-const UnimplementedFunctions = require("../implementations/functions/unimplemented-functions.js");
-const UnaryOperators = require("../implementations/operators/unary-operators.js");
-const BinaryOperators = require("../implementations/operators/binary-operators.js");
-const tc_function_js_1 = require("../implementations/functions/tc-function.js");
-const mu_function_js_1 = require("../implementations/functions/mu-function.js");
-const fl_function_js_1 = require("../implementations/functions/fl-function.js");
-const gv_function_js_1 = require("../implementations/functions/gv-function.js");
+const kodeine_js_1 = require("../kodeine.js");
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -93,6 +85,7 @@ class ParsingContextBuilder {
     }
     /**
      * Adds an item to the parsing context. The item can be an instance or simply a class name.
+     * @param obj The item to add to the parsing context. Can be an instance or simply a class name.
      * @returns This builder instance for call chaining.
      * @example
      * // add an instance:
@@ -101,14 +94,32 @@ class ParsingContextBuilder {
      * builder.add(IfFunction);
      */
     add(obj) {
-        if (obj instanceof base_js_1.IKodeFunction)
+        if (obj instanceof kodeine_js_1.IKodeFunction)
             this._addFunction(obj);
-        else if (obj instanceof base_js_1.IUnaryOperator)
+        else if (obj instanceof kodeine_js_1.IUnaryOperator)
             this._addUnaryOperator(obj);
-        else if (obj instanceof base_js_1.IBinaryOperator)
+        else if (obj instanceof kodeine_js_1.IBinaryOperator)
             this._addBinaryOperator(obj);
         else
             this.add(new obj());
+        return this;
+    }
+    /**
+     * Adds all items passed as arguments to the parsing context.
+     * @param objs The items to add.
+     * @returns This builder instance for call chaining.
+     * @see {@link add} for information about what objects can be added.
+     */
+    addAll(...objs) {
+        objs.forEach(obj => {
+            try {
+                this.add(obj);
+            }
+            catch (err) {
+                let a = obj;
+                throw err;
+            }
+        });
         return this;
     }
     /**
@@ -140,15 +151,13 @@ class ParsingContextBuilder {
      * @returns This builder instance for call chaining.
      */
     addDefaults() {
-        this.addFromModule(UnimplementedFunctions)
-            .add(if_function_js_1.IfFunction)
-            .add(tc_function_js_1.TcFunction)
-            .add(mu_function_js_1.MuFunction)
-            .add(fl_function_js_1.FlFunction)
-            .add(gv_function_js_1.GvFunction)
-            .addFromModule(UnaryOperators)
-            .addFromModule(BinaryOperators);
-        return this;
+        return this
+            // implemented operators
+            .addAll(kodeine_js_1.NegationOperator, kodeine_js_1.ExponentiationOperator, kodeine_js_1.MultiplicationOperator, kodeine_js_1.DivisionOperator, kodeine_js_1.ModuloOperator, kodeine_js_1.AdditionOperator, kodeine_js_1.SubtractionOperator, kodeine_js_1.EqualityOperator, kodeine_js_1.InequalityOperator, kodeine_js_1.LesserThanOperator, kodeine_js_1.GreaterThanOperator, kodeine_js_1.LesserThanOrEqualToOperator, kodeine_js_1.GreaterThanOrEqualToOperator, kodeine_js_1.RegexMatchOperator, kodeine_js_1.LogicalOrOperator, kodeine_js_1.LogicalAndOperator)
+            // implemented functions
+            .addAll(kodeine_js_1.IfFunction, kodeine_js_1.TcFunction, kodeine_js_1.MuFunction, kodeine_js_1.FlFunction, kodeine_js_1.GvFunction)
+            // unimplemented functions
+            .addAll(kodeine_js_1.LiFunction, kodeine_js_1.AqFunction, kodeine_js_1.NcFunction, kodeine_js_1.NiFunction, kodeine_js_1.WgFunction, kodeine_js_1.RmFunction, kodeine_js_1.CiFunction, kodeine_js_1.ShFunction, kodeine_js_1.WiFunction, kodeine_js_1.BiFunction, kodeine_js_1.SiFunction, kodeine_js_1.MqFunction, kodeine_js_1.TsFunction, kodeine_js_1.BpFunction, kodeine_js_1.CmFunction, kodeine_js_1.BrFunction, kodeine_js_1.DfFunction, kodeine_js_1.MiFunction, kodeine_js_1.WfFunction, kodeine_js_1.TfFunction, kodeine_js_1.UcFunction, kodeine_js_1.CeFunction, kodeine_js_1.AiFunction, kodeine_js_1.FdFunction, kodeine_js_1.DpFunction, kodeine_js_1.TuFunction);
     }
     /**
      * Creates a parsing context with all added items.

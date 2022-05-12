@@ -1,6 +1,4 @@
-import { ILexer, IFormulaStringParser, ICharReader } from "../base.js";
-import { Formula } from "../evaluables/formula.js";
-import { ParsingContext } from "./parsing-context.js";
+import { IFormulaTokenLexer, IFormulaStringParser, ICharReader, Formula, ParsingContext } from "../kodeine.js";
 /**
  * Values representing the current state of the parser.
  * - {@link Default}: Not in an evaluable part of the formula
@@ -27,7 +25,7 @@ export declare class KodeineParser implements IFormulaStringParser {
     private _parsingCtx;
     /** Constructs a {@link KodeineParser} with a parsing context.*/
     constructor(parsingCtx: ParsingContext);
-    parse(source: string | ICharReader | ILexer): Formula;
+    parse(source: string | ICharReader | IFormulaTokenLexer): Formula;
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
     private _parseCore;
 }

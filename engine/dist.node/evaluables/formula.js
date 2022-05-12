@@ -1,15 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Formula = void 0;
-const base_js_1 = require("../base.js");
-const errors_js_1 = require("../errors.js");
-const evaluation_tree_js_1 = require("./evaluation-tree.js");
+const kodeine_js_1 = require("../kodeine.js");
 /**
  * A formula consists of several evaluables. The values of the evaluables are concatenated to form the formula result.
  */
-class Formula extends base_js_1.Evaluable {
+class Formula extends kodeine_js_1.Evaluable {
     constructor(evaluables) {
-        super(base_js_1.EvaluableSource.createByConcatenatingSources(evaluables));
+        super(kodeine_js_1.EvaluableSource.createByConcatenatingSources(evaluables));
         this.evaluables = [];
         this.evaluables = evaluables;
     }
@@ -18,7 +16,7 @@ class Formula extends base_js_1.Evaluable {
         let parts = [];
         if (this.evaluables.length === 0) {
             // no evaluables in this formula, return empty string.
-            result = new base_js_1.KodeValue("", this.source);
+            result = new kodeine_js_1.KodeValue("", this.source);
         }
         else {
             // mulitple evaluables, evaluate each one and concatenate the results.
@@ -32,7 +30,7 @@ class Formula extends base_js_1.Evaluable {
                     output += partResult.text;
                 }
                 catch (err) {
-                    if (err instanceof errors_js_1.EvaluationError) {
+                    if (err instanceof kodeine_js_1.EvaluationError) {
                         // add evaluation errors to context
                         evalCtx.sideEffects.errors.push(err);
                     }
@@ -42,10 +40,10 @@ class Formula extends base_js_1.Evaluable {
                     }
                 }
             }
-            result = new base_js_1.KodeValue(output, this.source);
+            result = new kodeine_js_1.KodeValue(output, this.source);
         }
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.FormulaEvaluationTree(parts, result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.FormulaEvaluationTree(parts, result);
         }
         return result;
     }

@@ -1,6 +1,4 @@
-import { IKodeFunction, KodeValue } from "../../base.js";
-import { EvaluationContext } from "../../evaluables/evaluation-context.js";
-import { FunctionCall } from "../../evaluables/function-call.js";
+import { KodeValue, IKodeFunction, EvaluationContext, FunctionCall } from "../../kodeine.js";
 export declare class LocationInfoFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;

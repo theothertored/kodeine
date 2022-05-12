@@ -1,15 +1,4 @@
-import { ILexer, KodeValue, ICharReader } from "../base.js";
-import { EvaluableSource } from "../base.js";
-import { KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError } from "../errors.js";
-import { BrokenEvaluable } from "../evaluables/broken-evaluable.js";
-import { Formula } from "../evaluables/formula.js";
-import { ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine-lexer/formula-tokens.js";
-import { KodeineLexer } from "../kodeine-lexer/kodeine-lexer.js";
-import { StringCharReader } from "../string-char-reader.js";
-import { ExpressionBuilder } from "./expressions/expression-builder.js";
-import { FunctionCallBuilder } from "./expressions/function-call-builder.js";
-import { FunctionOccurence } from "./expressions/function-occurence.js";
-import { UnclosedDollarSignWarning, UnclosedQuotedValueWarning } from "./parsing-context.js";
+import { IFormulaTokenLexer, ICharReader, KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError, ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken, BrokenEvaluable, EvaluableSource, Formula, KodeValue, KodeineLexer, StringCharReader, ExpressionBuilder, FunctionCallBuilder, FunctionOccurence, UnclosedDollarSignWarning, UnclosedQuotedValueWarning } from "../kodeine.js";
 /**
  * Values representing the current state of the parser.
  * - {@link Default}: Not in an evaluable part of the formula
@@ -47,7 +36,7 @@ export class KodeineParser {
             let lexer = new KodeineLexer(source, this._parsingCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
         }
-        else if (source instanceof ILexer) {
+        else if (source instanceof IFormulaTokenLexer) {
             return this._parseCore(source);
         }
         else {

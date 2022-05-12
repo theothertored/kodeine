@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KodeineLexer = exports.KodeineLexerState = void 0;
-const formula_tokens_js_1 = require("./formula-tokens.js");
+const kodeine_js_1 = require("../kodeine.js");
 /**
  * Values representing the current state of the lexer.
  * - {@link Default}: Not in an evaluable part of the formula (reading plain text)
@@ -98,13 +98,13 @@ class KodeineLexer {
                     // this is an escaped dollar sign ($$)
                     // consume the second dollar sign as a part of this token
                     this._charReader.consume(1);
-                    return new formula_tokens_js_1.EscapedDollarSignToken(startIndex);
+                    return new kodeine_js_1.EscapedDollarSignToken(startIndex);
                 }
                 else {
                     // this is the beginning of an evaluable part
                     // switch the lexer state
                     this._state = KodeineLexerState.Kode;
-                    return new formula_tokens_js_1.DollarSignToken(startIndex);
+                    return new kodeine_js_1.DollarSignToken(startIndex);
                 }
             }
             else {
@@ -117,7 +117,7 @@ class KodeineLexer {
                     buffer += this._charReader.consume(1);
                 }
                 // all characters of this plain text token are now in the buffer
-                return new formula_tokens_js_1.PlainTextToken(buffer, startIndex);
+                return new kodeine_js_1.PlainTextToken(buffer, startIndex);
             }
         }
         else if (this._state === KodeineLexerState.Kode) {
@@ -133,20 +133,20 @@ class KodeineLexer {
                     buffer += this._charReader.consume(1);
                 }
                 // all characters of this whitespace token are now in the buffer
-                return new formula_tokens_js_1.WhitespaceToken(buffer, startIndex);
+                return new kodeine_js_1.WhitespaceToken(buffer, startIndex);
             }
             else if (char === '(') {
                 // opening parenthesis
                 // it's the parser's job to check if this begins a subexpression or a function call
-                return new formula_tokens_js_1.OpeningParenthesisToken(startIndex);
+                return new kodeine_js_1.OpeningParenthesisToken(startIndex);
             }
             else if (char === ')') {
                 // closing parenthesis
-                return new formula_tokens_js_1.ClosingParenthesisToken(startIndex);
+                return new kodeine_js_1.ClosingParenthesisToken(startIndex);
             }
             else if (char === ',') {
                 // comma
-                return new formula_tokens_js_1.CommaToken(startIndex);
+                return new kodeine_js_1.CommaToken(startIndex);
             }
             else if (char === '"') {
                 // this token starts with a quotation mark
@@ -162,21 +162,21 @@ class KodeineLexer {
                     // this means we found an unclosed quoted value, which is a syntax error,
                     // because we don't throw syntax errors in the lexer, we return an unclosed quoted value token
                     // and let the parser decide what to do with it
-                    return new formula_tokens_js_1.UnclosedQuotedValueToken(buffer, startIndex);
+                    return new kodeine_js_1.UnclosedQuotedValueToken(buffer, startIndex);
                 }
                 else {
                     // we reached a closing quotation mark
                     // consume the ending quotation mark character
                     this._charReader.consume(1);
                     // all inner value characters are now in the buffer
-                    return new formula_tokens_js_1.QuotedValueToken(buffer, startIndex);
+                    return new kodeine_js_1.QuotedValueToken(buffer, startIndex);
                 }
             }
             else if (char === '$') {
                 // we encountered a dollar sign, which signals the end of this evaluable part
                 // switch the state to default
                 this._state = KodeineLexerState.Default;
-                return new formula_tokens_js_1.DollarSignToken(startIndex);
+                return new kodeine_js_1.DollarSignToken(startIndex);
             }
             else {
                 // this token starts with a character that isn't easily recognizable as a special character
@@ -204,7 +204,7 @@ class KodeineLexer {
                     if (longestMatchingOperatorSymbol) {
                         // matched an entire operator, consume remaining characters of the symbol
                         this._charReader.consume(longestMatchingOperatorSymbol.length - 1);
-                        return new formula_tokens_js_1.OperatorToken(longestMatchingOperatorSymbol, startIndex);
+                        return new kodeine_js_1.OperatorToken(longestMatchingOperatorSymbol, startIndex);
                     }
                     else {
                         // matched first character of operator, but not the entire operator
@@ -212,7 +212,7 @@ class KodeineLexer {
                         // those chars are treated like value tokens all by themselves, 
                         // by which I mean that they throw err: literal cannot follow another literal
                         // when next to a quoted or unquoted value.
-                        return new formula_tokens_js_1.UnquotedValueToken(char, startIndex);
+                        return new kodeine_js_1.UnquotedValueToken(char, startIndex);
                     }
                 }
                 else {
@@ -273,7 +273,7 @@ class KodeineLexer {
                     // if the whitespace buffer is not empty, it just contains trailing whitespace, which should be a separate token
                     // consume characters that we peeked and added to the buffer (-1 because we already consumed the first character)
                     this._charReader.consume(buffer.length - 1);
-                    return new formula_tokens_js_1.UnquotedValueToken(buffer, startIndex);
+                    return new kodeine_js_1.UnquotedValueToken(buffer, startIndex);
                 }
             }
         }

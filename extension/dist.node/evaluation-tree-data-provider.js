@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FormulaTreeDataProvider = void 0;
+exports.EvaluationTreeDataProvider = void 0;
 const vscode = require("vscode");
-const base_js_1 = require("../../engine/dist.node/base.js");
-const evaluation_tree_js_1 = require("../../engine/dist.node/evaluables/evaluation-tree.js");
-class FormulaTreeDataProvider {
+const kodeine_js_1 = require("../../engine/dist.node/kodeine.js");
+class EvaluationTreeDataProvider {
     constructor() {
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -19,19 +18,19 @@ class FormulaTreeDataProvider {
                 return undefined;
             }
         }
-        else if (element instanceof evaluation_tree_js_1.FormulaEvaluationTree) {
+        else if (element instanceof kodeine_js_1.FormulaEvaluationTree) {
             return element.parts;
         }
-        else if (element instanceof evaluation_tree_js_1.EvaluatedUnaryOperation) {
+        else if (element instanceof kodeine_js_1.EvaluatedUnaryOperation) {
             return [element.arg];
         }
-        else if (element instanceof evaluation_tree_js_1.EvaluatedBinaryOperation) {
+        else if (element instanceof kodeine_js_1.EvaluatedBinaryOperation) {
             return [element.argA, element.argB];
         }
-        else if (element instanceof evaluation_tree_js_1.EvaluatedFunctionCall) {
+        else if (element instanceof kodeine_js_1.EvaluatedFunctionCall) {
             return element.args;
         }
-        else if (element instanceof evaluation_tree_js_1.EvaluatedExpression) {
+        else if (element instanceof kodeine_js_1.EvaluatedExpression) {
             return [element.child];
         }
         else {
@@ -39,7 +38,7 @@ class FormulaTreeDataProvider {
         }
     }
     getTreeItem(element) {
-        let treeItem = new vscode.TreeItem(`${element.result.text}`, element instanceof base_js_1.Literal
+        let treeItem = new vscode.TreeItem(`${element.result.text}`, element instanceof kodeine_js_1.Literal
             ? vscode.TreeItemCollapsibleState.None
             : vscode.TreeItemCollapsibleState.Collapsed);
         treeItem.description = element.getDescription();
@@ -50,5 +49,5 @@ class FormulaTreeDataProvider {
         this._onDidChangeTreeData.fire(undefined);
     }
 }
-exports.FormulaTreeDataProvider = FormulaTreeDataProvider;
+exports.EvaluationTreeDataProvider = EvaluationTreeDataProvider;
 //# sourceMappingURL=evaluation-tree-data-provider.js.map

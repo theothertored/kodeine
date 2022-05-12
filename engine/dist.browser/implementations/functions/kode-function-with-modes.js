@@ -1,5 +1,4 @@
-import { InvalidArgumentCountError, InvalidArgumentError } from "../../errors.js";
-import { KodeValue, IKodeFunction } from "../../base.js";
+import { InvalidArgumentCountError, InvalidArgumentError, IKodeFunction, KodeValue } from "../../kodeine.js";
 /** An internal class holding a list of argument patterns and an implementation of a function mode. */
 class FunctionMode {
     /**
@@ -20,7 +19,7 @@ class ModeImplementationFunctionContext {
     }
 }
 /** A base class for functions that have a mode as their first argument. */
-export class FunctionWithModes extends IKodeFunction {
+export class KodeFunctionWithModes extends IKodeFunction {
     /**
      * After calling super() in a deriving class, use the {@link mode()} function to add mode implementations.
      * @see {@link mode} documentation for usage details.

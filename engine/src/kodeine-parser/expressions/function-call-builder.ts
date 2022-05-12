@@ -1,12 +1,15 @@
-import { Evaluable, FormulaToken } from "../../base.js";
-import { EvaluableSource } from "../../base.js";
-import { KodeSyntaxError } from "../../errors.js";
-import { FunctionCall } from "../../evaluables/function-call.js";
-import { CommaToken, OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
-import { ParsingContext } from "../parsing-context.js";
-import { ExpressionBuilder } from "./expression-builder.js";
-import { FunctionOccurence } from "./function-occurence.js";
-import { IExpressionBuilder } from "./i-expression-builder.js";
+import {
+    Evaluable, EvaluableSource,
+    FormulaToken,
+    KodeSyntaxError,
+    FunctionCall,
+    CommaToken,
+    ParsingContext,
+    ExpressionBuilder,
+    FunctionOccurence,
+    IExpressionBuilder,
+    OperatorToken, QuotedValueToken, UnquotedValueToken
+} from "../../kodeine.js";
 
 /** Parsing helper class that can be fed tokens and then builds a {@link FunctionCall} evaluable. */
 export class FunctionCallBuilder extends IExpressionBuilder {
@@ -91,8 +94,8 @@ export class FunctionCallBuilder extends IExpressionBuilder {
 
             // allow for a function call with no arguments
             return new FunctionCall(
-                this._functionOccurence.func, 
-                this._args, 
+                this._functionOccurence.func,
+                this._args,
                 new EvaluableSource(
                     ...this._functionOccurence.openingTokens,
                     ...this._innerTokens,

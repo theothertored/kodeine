@@ -1,6 +1,4 @@
-import { IBinaryOperator, KodeValue } from "../../base.js";
-import { RegexEvaluationError } from "../../errors.js";
-import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
+import { KodeValue, IBinaryOperator, RegexEvaluationError, TwoModeBinaryOperator } from "../../kodeine.js";
 // this module contains implementations of all binary operators available in Kustom.
 // most operators here extend TwoModeBinaryOperator and therefore only need to
 // implement their symbol, precedence and numeric mode.

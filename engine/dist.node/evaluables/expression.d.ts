@@ -1,6 +1,4 @@
-import { Evaluable, KodeValue } from "../base.js";
-import { EvaluableSource } from "../base.js";
-import { EvaluationContext } from "./evaluation-context.js";
+import { Evaluable, EvaluableSource, EvaluationContext, KodeValue } from "../kodeine.js";
 /**
  * An expression is a set of evaluables and operators.
  * The {@link Expression} class wraps an {@link evaluable}

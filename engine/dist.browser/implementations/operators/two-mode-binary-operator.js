@@ -1,4 +1,4 @@
-import { IBinaryOperator, KodeValue } from "../../base.js";
+import { KodeValue, IBinaryOperator } from "../../kodeine.js";
 /**
  * Base class for operators that work in one way if both arguments are numeric,
  * and otherwise concatenate with the operator symbol in the middle.

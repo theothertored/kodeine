@@ -1,5 +1,4 @@
-import { IKodeFunction } from "../../base.js";
-import { EvaluationError } from "../../errors.js";
+import { IKodeFunction, EvaluationError } from "../../kodeine.js";
 // this file contains classes for functions that have not been implemented yet.
 // they should be moved to separate files after they are implemented.
 export class LocationInfoFunction extends IKodeFunction {

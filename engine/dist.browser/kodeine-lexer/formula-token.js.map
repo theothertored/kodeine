@@ -1,0 +1,1 @@
+{"version":3,"file":"formula-token.js","sourceRoot":"","sources":["../../src/kodeine-lexer/formula-token.ts"],"names":[],"mappings":"AACA,8CAA8C;AAC9C,MAAM,OAAgB,YAAY;IAc9B,uGAAuG;IACvG,kBAAkB;QACd,OAAO,IAAI,CAAC,aAAa,EAAE,CAAC;IAChC,CAAC;CAEJ"}

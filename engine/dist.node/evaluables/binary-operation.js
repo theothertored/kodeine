@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BinaryOperation = void 0;
-const base_js_1 = require("../base.js");
-const evaluation_tree_js_1 = require("./evaluation-tree.js");
+const kodeine_js_1 = require("../kodeine.js");
 /** An operation consisting of an binary operator and two evaluable arguments. */
-class BinaryOperation extends base_js_1.Evaluable {
+class BinaryOperation extends kodeine_js_1.Evaluable {
     /**
      * Constructs a binary operation from an operator and two arguments.
      * @param operator The operator.
@@ -27,7 +26,7 @@ class BinaryOperation extends base_js_1.Evaluable {
             let argBResult = this.argB.evaluate(evalCtx);
             let argBNode = evalCtx.sideEffects.lastEvaluationTreeNode;
             let result = this.operator.operation(evalCtx, this, argAResult, argBResult);
-            evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedBinaryOperation(this, argANode, argBNode, result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedBinaryOperation(this, argANode, argBNode, result);
             return result;
         }
         else {

@@ -1,4 +1,4 @@
-import { ICharReader, FormulaToken, ILexer as FormulaTokenLexer } from "../base.js";
+import { ICharReader, IFormulaTokenLexer, FormulaToken } from "../kodeine.js";
 /**
  * Values representing the current state of the lexer.
  * - {@link Default}: Not in an evaluable part of the formula (reading plain text)
@@ -9,7 +9,7 @@ export declare enum KodeineLexerState {
     Kode = 1
 }
 /** The default Kodeine lexer. Reads characters from an {@link ICharReader} and combines them into {@link FormulaToken}s. */
-export declare class KodeineLexer implements FormulaTokenLexer {
+export declare class KodeineLexer implements IFormulaTokenLexer {
     /** The source of characters for the lexer. */
     private readonly _charReader;
     /** An array of all symbols to be considered operator symbols, ordered from longest to shortest. */

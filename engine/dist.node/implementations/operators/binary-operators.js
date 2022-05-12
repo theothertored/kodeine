@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LogicalAndOperator = exports.LogicalOrOperator = exports.RegexMatchOperator = exports.GreaterThanOrEqualToOperator = exports.LesserThanOrEqualToOperator = exports.GreaterThanOperator = exports.LesserThanOperator = exports.InequalityOperator = exports.EqualityOperator = exports.SubtractionOperator = exports.AdditionOperator = exports.ModuloOperator = exports.DivisionOperator = exports.MultiplicationOperator = exports.ExponentiationOperator = void 0;
-const base_js_1 = require("../../base.js");
-const errors_js_1 = require("../../errors.js");
-const two_mode_binary_operator_js_1 = require("./two-mode-binary-operator.js");
+const kodeine_js_1 = require("../../kodeine.js");
 // this module contains implementations of all binary operators available in Kustom.
 // most operators here extend TwoModeBinaryOperator and therefore only need to
 // implement their symbol, precedence and numeric mode.
@@ -14,7 +12,7 @@ const two_mode_binary_operator_js_1 = require("./two-mode-binary-operator.js");
 // 2    = != < > <= >= ~=
 // 1    | &
 // precedence: 5
-class ExponentiationOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class ExponentiationOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '^'; }
     getPrecedence() { return 5; }
     numericMode(a, b) {
@@ -23,7 +21,7 @@ class ExponentiationOperator extends two_mode_binary_operator_js_1.TwoModeBinary
 }
 exports.ExponentiationOperator = ExponentiationOperator;
 // precedence: 4
-class MultiplicationOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class MultiplicationOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '*'; }
     getPrecedence() { return 4; }
     numericMode(a, b) {
@@ -31,7 +29,7 @@ class MultiplicationOperator extends two_mode_binary_operator_js_1.TwoModeBinary
     }
 }
 exports.MultiplicationOperator = MultiplicationOperator;
-class DivisionOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class DivisionOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '/'; }
     getPrecedence() { return 4; }
     numericMode(a, b) {
@@ -39,7 +37,7 @@ class DivisionOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperat
     }
 }
 exports.DivisionOperator = DivisionOperator;
-class ModuloOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class ModuloOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '%'; }
     getPrecedence() { return 4; }
     numericMode(a, b) {
@@ -48,25 +46,25 @@ class ModuloOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator
 }
 exports.ModuloOperator = ModuloOperator;
 // precedence: 3
-class AdditionOperator extends base_js_1.IBinaryOperator {
+class AdditionOperator extends kodeine_js_1.IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
     operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
-            return new base_js_1.KodeValue(a.numericValue + b.numericValue);
+            return new kodeine_js_1.KodeValue(a.numericValue + b.numericValue);
         }
         else {
             if (a.isNumeric)
-                return new base_js_1.KodeValue(a.numericValue + b.text, operation.source);
+                return new kodeine_js_1.KodeValue(a.numericValue + b.text, operation.source);
             else if (b.isNumeric)
-                return new base_js_1.KodeValue(a.text + b.numericValue, operation.source);
+                return new kodeine_js_1.KodeValue(a.text + b.numericValue, operation.source);
             else
-                return new base_js_1.KodeValue(a.text + b.text, operation.source);
+                return new kodeine_js_1.KodeValue(a.text + b.text, operation.source);
         }
     }
 }
 exports.AdditionOperator = AdditionOperator;
-class SubtractionOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class SubtractionOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '-'; }
     getPrecedence() { return 3; }
     numericMode(a, b) {
@@ -75,28 +73,28 @@ class SubtractionOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOpe
 }
 exports.SubtractionOperator = SubtractionOperator;
 // precedence: 2
-class EqualityOperator extends base_js_1.IBinaryOperator {
+class EqualityOperator extends kodeine_js_1.IBinaryOperator {
     getSymbol() { return '='; }
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
-        return new base_js_1.KodeValue(a.equals(b), operation.source);
+        return new kodeine_js_1.KodeValue(a.equals(b), operation.source);
     }
 }
 exports.EqualityOperator = EqualityOperator;
-class InequalityOperator extends base_js_1.IBinaryOperator {
+class InequalityOperator extends kodeine_js_1.IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric)
-            return new base_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
+            return new kodeine_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
         else if (a.isNumeric || b.isNumeric)
-            return new base_js_1.KodeValue(1, operation.source);
+            return new kodeine_js_1.KodeValue(1, operation.source);
         else
-            return new base_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
+            return new kodeine_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
     }
 }
 exports.InequalityOperator = InequalityOperator;
-class LesserThanOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class LesserThanOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '<'; }
     getPrecedence() { return 2; }
     numericMode(a, b) {
@@ -104,7 +102,7 @@ class LesserThanOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOper
     }
 }
 exports.LesserThanOperator = LesserThanOperator;
-class GreaterThanOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class GreaterThanOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '>'; }
     getPrecedence() { return 2; }
     numericMode(a, b) {
@@ -112,7 +110,7 @@ class GreaterThanOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOpe
     }
 }
 exports.GreaterThanOperator = GreaterThanOperator;
-class LesserThanOrEqualToOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class LesserThanOrEqualToOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '<='; }
     getPrecedence() { return 2; }
     numericMode(a, b) {
@@ -120,7 +118,7 @@ class LesserThanOrEqualToOperator extends two_mode_binary_operator_js_1.TwoModeB
     }
 }
 exports.LesserThanOrEqualToOperator = LesserThanOrEqualToOperator;
-class GreaterThanOrEqualToOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class GreaterThanOrEqualToOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '>='; }
     getPrecedence() { return 2; }
     numericMode(a, b) {
@@ -128,21 +126,21 @@ class GreaterThanOrEqualToOperator extends two_mode_binary_operator_js_1.TwoMode
     }
 }
 exports.GreaterThanOrEqualToOperator = GreaterThanOrEqualToOperator;
-class RegexMatchOperator extends base_js_1.IBinaryOperator {
+class RegexMatchOperator extends kodeine_js_1.IBinaryOperator {
     getSymbol() { return '~='; }
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
         try {
-            return new base_js_1.KodeValue(new RegExp(b.text).test(a.text), operation.source);
+            return new kodeine_js_1.KodeValue(new RegExp(b.text).test(a.text), operation.source);
         }
         catch (err) {
-            throw new errors_js_1.RegexEvaluationError(operation.argB, err?.toString());
+            throw new kodeine_js_1.RegexEvaluationError(operation.argB, err?.toString());
         }
     }
 }
 exports.RegexMatchOperator = RegexMatchOperator;
 // precedence: 1
-class LogicalOrOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class LogicalOrOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '|'; }
     getPrecedence() { return 1; }
     numericMode(a, b) {
@@ -150,7 +148,7 @@ class LogicalOrOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOpera
     }
 }
 exports.LogicalOrOperator = LogicalOrOperator;
-class LogicalAndOperator extends two_mode_binary_operator_js_1.TwoModeBinaryOperator {
+class LogicalAndOperator extends kodeine_js_1.TwoModeBinaryOperator {
     getSymbol() { return '&'; }
     getPrecedence() { return 1; }
     numericMode(a, b) {

@@ -1,11 +1,15 @@
 import * as vscode from 'vscode';
-import { ParsingContext, ParsingContextBuilder } from '../../engine/dist.node/kodeine-parser/parsing-context.js';
-import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
-import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
-import { Formula } from '../../engine/dist.node/evaluables/formula.js';
-import { FormulaTreeDataProvider as EvaluationTreeDataProvider } from './evaluation-tree-data-provider.js';
+
+import {
+    ParsingContext, ParsingContextBuilder,
+    KodeineParser,
+    EvaluationContext,
+    Formula,
+    FormulaEvaluationTree
+} from '../../engine/dist.node/kodeine.js';
+
+import { EvaluationTreeDataProvider } from './evaluation-tree-data-provider.js';
 import { GlobalTreeDataProvider, TextDocumentGlobal } from './global-tree-data-provider.js';
-import { FormulaEvaluationTree } from '../../engine/dist.node/evaluables/evaluation-tree.js';
 
 let outChannel: vscode.OutputChannel;
 let diagColl: vscode.DiagnosticCollection;
@@ -31,7 +35,7 @@ export function activate(extCtx: vscode.ExtensionContext) {
     evalCtx = new EvaluationContext();
 
     // enable evaluation tree building
-    evalCtx.buildEvaluationTree = true; 
+    evalCtx.buildEvaluationTree = true;
 
 
     // create an output channel for formula results

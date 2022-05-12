@@ -1,9 +1,16 @@
 import * as vscode from 'vscode';
-import { FormulaEvaluationTreeNode, Literal } from '../../engine/dist.node/base.js';
-import { FormulaEvaluationTree, EvaluatedUnaryOperation, EvaluatedBinaryOperation, EvaluatedFunctionCall, EvaluatedExpression } from '../../engine/dist.node/evaluables/evaluation-tree.js';
+import { 
+    FormulaEvaluationTreeNode, 
+    Literal,
+    FormulaEvaluationTree, 
+    EvaluatedUnaryOperation, 
+    EvaluatedBinaryOperation, 
+    EvaluatedFunctionCall, 
+    EvaluatedExpression
+} from '../../engine/dist.node/kodeine.js';
 
 
-export class FormulaTreeDataProvider implements vscode.TreeDataProvider<FormulaEvaluationTreeNode> {
+export class EvaluationTreeDataProvider implements vscode.TreeDataProvider<FormulaEvaluationTreeNode> {
 
     private _evaluationTree: FormulaEvaluationTree | null;
 

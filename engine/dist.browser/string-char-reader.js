@@ -1,4 +1,4 @@
-import { ICharReader } from "./base.js";
+import { ICharReader } from "./kodeine.js";
 /** A forward only character reader using a string variable as its source of characters. */
 export class StringCharReader extends ICharReader {
     /**

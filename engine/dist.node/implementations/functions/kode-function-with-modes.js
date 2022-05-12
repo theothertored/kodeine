@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FunctionWithModes = void 0;
-const errors_js_1 = require("../../errors.js");
-const base_js_1 = require("../../base.js");
+exports.KodeFunctionWithModes = void 0;
+const kodeine_js_1 = require("../../kodeine.js");
 /** An internal class holding a list of argument patterns and an implementation of a function mode. */
 class FunctionMode {
     /**
@@ -23,7 +22,7 @@ class ModeImplementationFunctionContext {
     }
 }
 /** A base class for functions that have a mode as their first argument. */
-class FunctionWithModes extends base_js_1.IKodeFunction {
+class KodeFunctionWithModes extends kodeine_js_1.IKodeFunction {
     /**
      * After calling super() in a deriving class, use the {@link mode()} function to add mode implementations.
      * @see {@link mode} documentation for usage details.
@@ -84,7 +83,7 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
                 }
                 else {
                     // argument is not numeric, throw
-                    throw new errors_js_1.InvalidArgumentError(`${call.func.getName()}(${modeName})`, argPatternElements.name, i, call.args[i], argValue, `Argument must be numeric.`);
+                    throw new kodeine_js_1.InvalidArgumentError(`${call.func.getName()}(${modeName})`, argPatternElements.name, i, call.args[i], argValue, `Argument must be numeric.`);
                 }
             default:
                 // some other type passed, crash
@@ -94,7 +93,7 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
     call(evalCtx, call, args) {
         if (args.length === 0) {
             // we were not given a mode argument, throw
-            throw new errors_js_1.InvalidArgumentCountError(call, `${call.func.getName()}() requires at least a mode argument.`);
+            throw new kodeine_js_1.InvalidArgumentCountError(call, `${call.func.getName()}() requires at least a mode argument.`);
         }
         // get the mode from the first argument and normalize it
         let modeName = args[0].text.trim().toLowerCase();
@@ -102,7 +101,7 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
         let mode = this._modes[modeName];
         if (!mode) {
             // we were given a mode that wasn't registered, throw
-            throw new errors_js_1.InvalidArgumentError(`${call.func.getName()}()`, 'mode', 0, call.args[0], args[0], `Mode "${modeName}" not found.`);
+            throw new kodeine_js_1.InvalidArgumentError(`${call.func.getName()}()`, 'mode', 0, call.args[0], args[0], `Mode "${modeName}" not found.`);
         }
         /** A list of arguments that will be given to the mode implementation. */
         let implementationCallArgs = [];
@@ -160,13 +159,13 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
                     }
                     else if (i + 1 >= args.length) {
                         // this mode has a required argument but we ran out of given arguments, throw
-                        throw new errors_js_1.InvalidArgumentCountError(call, `Argument #${i + 1} (${argPatternElements.name}) missing.`, `${call.func.getName()}(${modeName})`);
+                        throw new kodeine_js_1.InvalidArgumentCountError(call, `Argument #${i + 1} (${argPatternElements.name}) missing.`, `${call.func.getName()}(${modeName})`);
                     }
                 }
                 // check if we weren't given too many arguments according to the pattern,
                 // only if a rest parameter wasn't encountered (if it was, we can take any number of arguments)
                 if (!restParamEncountered && args.length - 1 > mode.argumentPatterns.length) {
-                    throw new errors_js_1.InvalidArgumentCountError(call, `Too many arguments (expected ${mode.argumentPatterns.length} at most).`, `${call.func.getName()}(${modeName})`);
+                    throw new kodeine_js_1.InvalidArgumentCountError(call, `Too many arguments (expected ${mode.argumentPatterns.length} at most).`, `${call.func.getName()}(${modeName})`);
                 }
                 // if we got this far, the pattern was validated, convert parameters
                 if (argPatternElements.isRest) {
@@ -174,7 +173,7 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
                     let remainingParamCount = args.length - i - 1;
                     if (argPatternElements.restMinCount && remainingParamCount < argPatternElements.restMinCount) {
                         // not enough arguments given for the rest parameter
-                        throw new errors_js_1.InvalidArgumentCountError(call, `At least ${argPatternElements.restMinCount} argument${argPatternElements.restMinCount === 1 ? '' : 's'} required.`, `${call.func.getName()}(${modeName})`);
+                        throw new kodeine_js_1.InvalidArgumentCountError(call, `At least ${argPatternElements.restMinCount} argument${argPatternElements.restMinCount === 1 ? '' : 's'} required.`, `${call.func.getName()}(${modeName})`);
                     }
                     else {
                         // the remaining parameters should be added to an array and passed as a rest parameter
@@ -199,8 +198,8 @@ class FunctionWithModes extends base_js_1.IKodeFunction {
         var modeCtx = new ModeImplementationFunctionContext(evalCtx, call);
         let val = mode.implementationFunc.call(modeCtx, ...implementationCallArgs);
         // if implementation returned KodeValue, return it directly, otherwise convert returned value to KodeValue
-        return val instanceof base_js_1.KodeValue ? val : new base_js_1.KodeValue(val, call.source);
+        return val instanceof kodeine_js_1.KodeValue ? val : new kodeine_js_1.KodeValue(val, call.source);
     }
 }
-exports.FunctionWithModes = FunctionWithModes;
+exports.KodeFunctionWithModes = KodeFunctionWithModes;
 //# sourceMappingURL=kode-function-with-modes.js.map

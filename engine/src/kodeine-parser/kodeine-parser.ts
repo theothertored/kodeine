@@ -1,16 +1,21 @@
-import { Evaluable, FormulaToken, ILexer, IFormulaStringParser, KodeValue, ICharReader } from "../base.js";
-import { EvaluableSource } from "../base.js";
-import { KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError } from "../errors.js";
-import { BrokenEvaluable } from "../evaluables/broken-evaluable.js";
-import { Formula } from "../evaluables/formula.js";
-import { ClosingParenthesisToken, CommaToken, DollarSignToken, EscapedDollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken } from "../kodeine-lexer/formula-tokens.js";
-import { KodeineLexer } from "../kodeine-lexer/kodeine-lexer.js";
-import { StringCharReader } from "../string-char-reader.js";
-import { ExpressionBuilder } from "./expressions/expression-builder.js";
-import { FunctionCallBuilder } from "./expressions/function-call-builder.js";
-import { FunctionOccurence } from "./expressions/function-occurence.js";
-import { IExpressionBuilder } from "./expressions/i-expression-builder.js";
-import { ParsingContext, UnclosedDollarSignWarning, UnclosedQuotedValueWarning } from "./parsing-context.js";
+import {
+    IFormulaTokenLexer, IFormulaStringParser, ICharReader,
+    KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError,
+    ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken,
+    BrokenEvaluable,
+    Evaluable, EvaluableSource,
+    Formula,
+    KodeValue,
+    FormulaToken,
+    KodeineLexer,
+    StringCharReader,
+    ExpressionBuilder,
+    FunctionCallBuilder,
+    FunctionOccurence,
+    IExpressionBuilder,
+    ParsingContext,
+    UnclosedDollarSignWarning, UnclosedQuotedValueWarning
+} from "../kodeine.js";
 
 /** 
  * Values representing the current state of the parser. 
@@ -43,7 +48,7 @@ export class KodeineParser implements IFormulaStringParser {
         this._parsingCtx = parsingCtx;
     }
 
-    parse(source: string | ICharReader | ILexer): Formula {
+    parse(source: string | ICharReader | IFormulaTokenLexer): Formula {
 
         if (typeof source === 'string') {
 
@@ -56,7 +61,7 @@ export class KodeineParser implements IFormulaStringParser {
             let lexer = new KodeineLexer(source, this._parsingCtx.getOperatorSymbolsLongestFirst());
             return this._parseCore(lexer);
 
-        } else if (source instanceof ILexer) {
+        } else if (source instanceof IFormulaTokenLexer) {
 
             return this._parseCore(source);
 
@@ -69,7 +74,7 @@ export class KodeineParser implements IFormulaStringParser {
     }
 
     /** The actual parser implementation - takes an {@link ILexer}, produces a {@link Formula}. */
-    private _parseCore(lexer: ILexer): Formula {
+    private _parseCore(lexer: IFormulaTokenLexer): Formula {
 
         this._parsingCtx.clearSideEffects();
 
@@ -450,7 +455,7 @@ export class KodeineParser implements IFormulaStringParser {
                             state = KodeineParserState.Default;
 
                         } else {
-                            
+
                             // error was not thrown when reading a dollar sign token,
                             // try to find a following dollar sign token
 

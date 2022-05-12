@@ -1,12 +1,18 @@
-import { Evaluable, FormulaToken, KodeValue } from "../../base.js";
-import { EvaluableSource } from "../../base.js";
-import { KodeSyntaxError } from "../../errors.js";
-import { BinaryOperation } from "../../evaluables/binary-operation.js";
-import { Expression } from "../../evaluables/expression.js";
-import { UnaryOperation } from "../../evaluables/unary-operation.js";
-import { OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
-import { ParsingContext } from "../parsing-context.js";
-import { UnaryOperatorOccurence, BinaryOperatorOccurence } from "./operator-occurences.js";
+import {
+    Evaluable,
+    EvaluableSource,
+    KodeValue,
+    FormulaToken,
+    KodeSyntaxError,
+    BinaryOperation,
+    Expression,
+    UnaryOperation,
+    OperatorToken,
+    ParsingContext,
+    UnaryOperatorOccurence,
+    QuotedValueToken, UnquotedValueToken,
+    BinaryOperatorOccurence
+} from "../../kodeine.js";
 
 /** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
 export class ExpressionBuilder {
@@ -54,7 +60,7 @@ export class ExpressionBuilder {
             // ugly if to print a more accurate error message for problematic characters
             if (
                 (
-                    token instanceof UnquotedValueToken 
+                    token instanceof UnquotedValueToken
                     && (token.getSourceText() == '~' || token.getSourceText() == '!')
 
                 ) || (
@@ -67,7 +73,7 @@ export class ExpressionBuilder {
 
                 // detected an unquoted value problematic token
                 throw new KodeSyntaxError(
-                    token, 
+                    token,
                     'A value cannot follow another value. '
                     + 'Kustom treats first characters of binary operators as standalone unquoted values '
                     + 'when they are not a part of a full operator symbols. ! and ~ both behave this way '

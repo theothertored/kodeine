@@ -1,5 +1,4 @@
-import { Evaluable } from "../base.js";
-import { EvaluatedExpression } from "./evaluation-tree.js";
+import { Evaluable, EvaluatedExpression } from "../kodeine.js";
 /**
  * An expression is a set of evaluables and operators.
  * The {@link Expression} class wraps an {@link evaluable}

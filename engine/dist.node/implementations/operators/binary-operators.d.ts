@@ -1,7 +1,4 @@
-import { IBinaryOperator, KodeValue } from "../../base.js";
-import { BinaryOperation } from "../../evaluables/binary-operation.js";
-import { EvaluationContext } from "../../evaluables/evaluation-context.js";
-import { TwoModeBinaryOperator } from "./two-mode-binary-operator.js";
+import { KodeValue, IBinaryOperator, BinaryOperation, EvaluationContext, TwoModeBinaryOperator } from "../../kodeine.js";
 export declare class ExponentiationOperator extends TwoModeBinaryOperator {
     getSymbol(): string;
     getPrecedence(): number;

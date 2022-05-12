@@ -1,5 +1,4 @@
-import { Evaluable } from "../base.js";
-import { EvaluatedUnaryOperation } from "./evaluation-tree.js";
+import { Evaluable, EvaluatedUnaryOperation } from "../kodeine.js";
 /** An operation consisting of a unary operator and an evaluable argument. */
 export class UnaryOperation extends Evaluable {
     /**

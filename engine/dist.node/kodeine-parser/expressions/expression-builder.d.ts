@@ -1,6 +1,4 @@
-import { Evaluable, FormulaToken } from "../../base.js";
-import { OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine-lexer/formula-tokens.js";
-import { ParsingContext } from "../parsing-context.js";
+import { Evaluable, FormulaToken, OperatorToken, ParsingContext, QuotedValueToken, UnquotedValueToken } from "../../kodeine.js";
 /** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
 export declare class ExpressionBuilder {
     /** The parsing context. Contains information on what functions and operators exist and ties their names/symbols to implementations. */

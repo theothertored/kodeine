@@ -1,7 +1,9 @@
-import { FormulaEvaluationTreeNode, KodeValue } from "../base.js";
-import { BinaryOperation } from "./binary-operation.js";
-import { FunctionCall } from "./function-call.js";
-import { UnaryOperation } from "./unary-operation.js";
+import { BinaryOperation, FunctionCall, KodeValue, UnaryOperation } from "../kodeine.js";
+export declare abstract class FormulaEvaluationTreeNode {
+    readonly result: KodeValue;
+    constructor(result: KodeValue);
+    abstract getDescription(): string;
+}
 export declare class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
     readonly parts: FormulaEvaluationTreeNode[];
     constructor(parts: FormulaEvaluationTreeNode[], result: KodeValue);
@@ -29,6 +31,10 @@ export declare class EvaluatedUnaryOperation extends FormulaEvaluationTreeNode {
     readonly arg: FormulaEvaluationTreeNode;
     readonly operation: UnaryOperation;
     constructor(operation: UnaryOperation, arg: FormulaEvaluationTreeNode, result: KodeValue);
+    getDescription(): string;
+}
+export declare class Literal extends FormulaEvaluationTreeNode {
+    constructor(value: KodeValue);
     getDescription(): string;
 }
 export declare class CouldNotBeEvaluated extends FormulaEvaluationTreeNode {

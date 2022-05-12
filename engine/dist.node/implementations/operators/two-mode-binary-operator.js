@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TwoModeBinaryOperator = void 0;
-const base_js_1 = require("../../base.js");
+const kodeine_js_1 = require("../../kodeine.js");
 /**
  * Base class for operators that work in one way if both arguments are numeric,
  * and otherwise concatenate with the operator symbol in the middle.
@@ -9,16 +9,16 @@ const base_js_1 = require("../../base.js");
  * 2 / 2    // returns 1
  * "a" / 2  // returns "a/2"
  */
-class TwoModeBinaryOperator extends base_js_1.IBinaryOperator {
+class TwoModeBinaryOperator extends kodeine_js_1.IBinaryOperator {
     /** Selects between a numeric mode and default text mode. */
     operation(evalCtx, operation, a, b) {
         if (a.isNumeric && b.isNumeric) {
             // both values are numeric, run numeric mode
-            return new base_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
+            return new kodeine_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
         }
         else {
             // at least one of the values is not numeric, run text mode
-            return new base_js_1.KodeValue(this.textMode(a, b), operation.source);
+            return new kodeine_js_1.KodeValue(this.textMode(a, b), operation.source);
         }
     }
     /**

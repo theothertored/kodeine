@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OperatorToken = exports.UnquotedValueToken = exports.QuotedValueToken = exports.UnclosedQuotedValueToken = exports.CommaToken = exports.ClosingParenthesisToken = exports.OpeningParenthesisToken = exports.WhitespaceToken = exports.DollarSignToken = exports.EscapedDollarSignToken = exports.PlainTextToken = exports.SimpleToken = void 0;
-const base_js_1 = require("../base.js");
+const kodeine_js_1 = require("../kodeine.js");
 /** A base class for simple tokens extracted from a formula source text. */
-class SimpleToken extends base_js_1.FormulaToken {
+class SimpleToken extends kodeine_js_1.FormulaToken {
     /**
      * Constructs a base token using a piece of the formula source text and its start index.
      * @param text The piece of the formula source text this token represents.
@@ -136,7 +136,7 @@ exports.CommaToken = CommaToken;
  * A token representing a quotation mark within an evaluated part of a formula that was not closed.
  * Encountering this token causes the tokens read since the start of the evaluated part of the formula to be printed as plain text.
  */
-class UnclosedQuotedValueToken extends base_js_1.FormulaToken {
+class UnclosedQuotedValueToken extends kodeine_js_1.FormulaToken {
     /**
      * Constructs an unclosed quoted value token using a piece of the formula source text following an opening quotation mark
      * and the index of the quotation mark in the formula source text.
@@ -159,7 +159,7 @@ class UnclosedQuotedValueToken extends base_js_1.FormulaToken {
 }
 exports.UnclosedQuotedValueToken = UnclosedQuotedValueToken;
 /** A token representing a quoted value within an evaluated part of a formula. */
-class QuotedValueToken extends base_js_1.FormulaToken {
+class QuotedValueToken extends kodeine_js_1.FormulaToken {
     /**
      * Constructs a quoted value token using its inner text and the index of the opening quotation mark.
      * @param valueText The text between the quotation marks.

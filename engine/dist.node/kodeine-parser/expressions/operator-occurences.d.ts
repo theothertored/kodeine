@@ -1,5 +1,4 @@
-import { IBinaryOperator, IUnaryOperator } from "../../base.js";
-import { OperatorToken } from "../../kodeine-lexer/formula-tokens.js";
+import { IBinaryOperator, IUnaryOperator, OperatorToken } from "../../kodeine.js";
 /** Represents an operator in an expression. */
 export declare abstract class OperatorOccurence {
     readonly token: OperatorToken;

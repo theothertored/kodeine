@@ -1,5 +1,4 @@
-import { Evaluable, IKodeFunction, KodeValue, EvaluableSource } from "../base.js";
-import { EvaluationContext } from "./evaluation-context.js";
+import { IKodeFunction, Evaluable, EvaluationContext, KodeValue, EvaluableSource } from "../kodeine.js";
 /** A function call, consisting of a kode function being called and arguments for the call. */
 export declare class FunctionCall extends Evaluable {
     /** The kode function being called. */

@@ -1,8 +1,4 @@
-import { EvaluableSource } from "../../base.js";
-import { KodeSyntaxError } from "../../errors.js";
-import { FunctionCall } from "../../evaluables/function-call.js";
-import { ExpressionBuilder } from "./expression-builder.js";
-import { IExpressionBuilder } from "./i-expression-builder.js";
+import { EvaluableSource, KodeSyntaxError, FunctionCall, ExpressionBuilder, IExpressionBuilder } from "../../kodeine.js";
 /** Parsing helper class that can be fed tokens and then builds a {@link FunctionCall} evaluable. */
 export class FunctionCallBuilder extends IExpressionBuilder {
     /**

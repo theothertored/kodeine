@@ -1,5 +1,4 @@
-import { IBinaryOperator, FormulaToken, IKodeFunction, IUnaryOperator } from "../base.js";
-import { KodeParsingError } from "../errors.js";
+import { IBinaryOperator, IKodeFunction, IUnaryOperator, KodeParsingError, FormulaToken } from "../kodeine.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -65,6 +64,7 @@ export declare class ParsingContextBuilder {
     private _addBinaryOperator;
     /**
      * Adds an item to the parsing context. The item can be an instance or simply a class name.
+     * @param obj The item to add to the parsing context. Can be an instance or simply a class name.
      * @returns This builder instance for call chaining.
      * @example
      * // add an instance:
@@ -73,6 +73,13 @@ export declare class ParsingContextBuilder {
      * builder.add(IfFunction);
      */
     add(obj: (new () => ParsingContextItem) | ParsingContextItem): ParsingContextBuilder;
+    /**
+     * Adds all items passed as arguments to the parsing context.
+     * @param objs The items to add.
+     * @returns This builder instance for call chaining.
+     * @see {@link add} for information about what objects can be added.
+     */
+    addAll(...objs: (new () => ParsingContextItem | ParsingContextItem)[]): ParsingContextBuilder;
     /**
      * Adds parsing context items from an imported module.
      * @param moduleNamespace The namespace under which the module was imported (see example).

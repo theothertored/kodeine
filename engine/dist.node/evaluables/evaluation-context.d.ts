@@ -1,7 +1,4 @@
-import { Evaluable, FormulaEvaluationTreeNode, KodeValue } from "../base.js";
-import { EvaluationError } from "../errors.js";
-import { Formula } from "./formula.js";
-import { UnaryOperation } from "./unary-operation.js";
+import { EvaluationError, Evaluable, FormulaEvaluationTreeNode, Formula, KodeValue, UnaryOperation } from "../kodeine.js";
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export declare class EvaluationContext {
     /** Side effects produced during evaluation. Expected to be cleared using {@link clearSideEffects()} before each evaluation run. */

@@ -1,14 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FlFunction = exports.FlEvaluationError = exports.FlEvaluationWarning = exports.FlParsingError = exports.FlParsingWarning = void 0;
-const base_js_1 = require("../../base.js");
-const evaluation_context_js_1 = require("../../evaluables/evaluation-context.js");
-const errors_js_1 = require("../../errors.js");
-const parsing_context_js_1 = require("../../kodeine-parser/parsing-context.js");
-const kodeine_parser_js_1 = require("../../kodeine-parser/kodeine-parser.js");
+const kodeine_js_1 = require("../../kodeine.js");
 /** Thrown when a parsing error was produced when parsing one of the formulas given as argument to fl(). */
 /** A parsing error that was produced when parsing one of the formulas given as argument to fl(). */
-class FlParsingWarning extends evaluation_context_js_1.EvaluationWarning {
+class FlParsingWarning extends kodeine_js_1.EvaluationWarning {
     constructor(formulaTextSource, inIncrement, internalWarning) {
         super(formulaTextSource, `Warning when parsing ${inIncrement ? 'increment' : 'evaluation'} formula in fl(): ` + internalWarning.message);
         this.internalWarning = internalWarning;
@@ -16,7 +12,7 @@ class FlParsingWarning extends evaluation_context_js_1.EvaluationWarning {
 }
 exports.FlParsingWarning = FlParsingWarning;
 /** A parsing error that was produced when parsing one of the formulas given as argument to fl(). */
-class FlParsingError extends errors_js_1.EvaluationError {
+class FlParsingError extends kodeine_js_1.EvaluationError {
     constructor(formulaTextSource, inIncrement, internalError) {
         super(formulaTextSource, `Error when parsing ${inIncrement ? 'increment' : 'evaluation'} formula in fl(): ` + internalError.message);
         this.internalError = internalError;
@@ -24,7 +20,7 @@ class FlParsingError extends errors_js_1.EvaluationError {
 }
 exports.FlParsingError = FlParsingError;
 /** A warning that was produced when evaluating one of the formulas given as argument to fl(). */
-class FlEvaluationWarning extends evaluation_context_js_1.EvaluationWarning {
+class FlEvaluationWarning extends kodeine_js_1.EvaluationWarning {
     constructor(formulaTextSource, iValue, inIncrement, internalWarning) {
         super(formulaTextSource, `Warning when evaluating ${inIncrement ? 'increment' : 'evaluation'} formula in fl() with i = ${iValue.text}: ` + internalWarning.message);
         this.internalWarning = internalWarning;
@@ -32,7 +28,7 @@ class FlEvaluationWarning extends evaluation_context_js_1.EvaluationWarning {
 }
 exports.FlEvaluationWarning = FlEvaluationWarning;
 /** An evaluation error that was produced when evaluating one of the formulas given as argument to fl(). */
-class FlEvaluationError extends errors_js_1.EvaluationError {
+class FlEvaluationError extends kodeine_js_1.EvaluationError {
     constructor(formulaTextSource, iValue, inIncrement, internalError) {
         super(formulaTextSource, `Error when evaluating ${inIncrement ? 'increment' : 'evaluation'} formula in fl() with i = ${iValue.text}: ` + internalError.message);
         this.internalError = internalError;
@@ -40,16 +36,16 @@ class FlEvaluationError extends errors_js_1.EvaluationError {
 }
 exports.FlEvaluationError = FlEvaluationError;
 /** Implementation of Kustom's `fl()` function. */
-class FlFunction extends base_js_1.IKodeFunction {
+class FlFunction extends kodeine_js_1.IKodeFunction {
     static get maxIterationCount() { return 1000; }
     getName() { return 'fl'; }
     call(evalCtx, call, args) {
         // validate argument count
         if (args.length < 4) {
-            throw new errors_js_1.InvalidArgumentCountError(call, 'At least four arguments required (start, end, increment, formula text, optional separator).');
+            throw new kodeine_js_1.InvalidArgumentCountError(call, 'At least four arguments required (start, end, increment, formula text, optional separator).');
         }
         else if (args.length > 5) {
-            throw new errors_js_1.InvalidArgumentCountError(call, 'At most five arguments allowed (start, end, increment, formula text, optional separator).');
+            throw new kodeine_js_1.InvalidArgumentCountError(call, 'At most five arguments allowed (start, end, increment, formula text, optional separator).');
         }
         let iterationCounter = 0;
         // 1st arg - initial value for i
@@ -58,7 +54,7 @@ class FlFunction extends base_js_1.IKodeFunction {
         let endI = args[1];
         // if increment is empty, fl() should return nothing for some reason
         if (!args[2].text) {
-            return new base_js_1.KodeValue('', call.source);
+            return new kodeine_js_1.KodeValue('', call.source);
         }
         // 3rd arg - increment (ex. "i + 1")
         let incrFormulaText = `$${args[2].text}$`;
@@ -69,8 +65,8 @@ class FlFunction extends base_js_1.IKodeFunction {
         // we'll be adding the results of each evaluation to this array and at the end joining them with the separator
         let results = [];
         // we'll be parsing using the default context (clone formula context in the future?)
-        let parsingCtx = parsing_context_js_1.ParsingContextBuilder.buildDefault();
-        let parser = new kodeine_parser_js_1.KodeineParser(parsingCtx);
+        let parsingCtx = kodeine_js_1.ParsingContextBuilder.buildDefault();
+        let parser = new kodeine_js_1.KodeineParser(parsingCtx);
         // we only need to parse each formula once
         let incrFormula;
         let evalFormula;
@@ -79,7 +75,7 @@ class FlFunction extends base_js_1.IKodeFunction {
             incrFormula = parser.parse(incrFormulaText);
         }
         catch (err) {
-            if (err instanceof errors_js_1.KodeParsingError) {
+            if (err instanceof kodeine_js_1.KodeParsingError) {
                 // could not parse the increment formula
                 evalCtx.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
                 // set incrFormula to null - i will be set to empty string on every iteration
@@ -105,7 +101,7 @@ class FlFunction extends base_js_1.IKodeFunction {
             evalFormula = evalFormulaText === '$$' ? null : parser.parse(evalFormulaText);
         }
         catch (err) {
-            if (err instanceof errors_js_1.KodeParsingError) {
+            if (err instanceof kodeine_js_1.KodeParsingError) {
                 // could not parse the eval formula
                 evalCtx.sideEffects.errors.push(new FlParsingError(this.call.arguments[3], false, err));
                 // set evalFormula to null - the formula will "return" empty string on every iteration
@@ -141,7 +137,7 @@ class FlFunction extends base_js_1.IKodeFunction {
                     results.push(evalResult.text);
                 }
                 catch (err) {
-                    if (err instanceof errors_js_1.EvaluationError) {
+                    if (err instanceof kodeine_js_1.EvaluationError) {
                         evalCtx.sideEffects.errors.push(new FlEvaluationError(call.args[3], i, false, err));
                     }
                     else {
@@ -173,7 +169,7 @@ class FlFunction extends base_js_1.IKodeFunction {
                     i = incrFormula.evaluate(childEvalCtx);
                 }
                 catch (err) {
-                    if (err instanceof errors_js_1.EvaluationError) {
+                    if (err instanceof kodeine_js_1.EvaluationError) {
                         evalCtx.sideEffects.errors.push(new FlEvaluationError(call.args[2], i, true, err));
                     }
                     else {
@@ -194,11 +190,11 @@ class FlFunction extends base_js_1.IKodeFunction {
             }
             else {
                 // no valid increment formula, set i to empty string
-                i = new base_js_1.KodeValue('');
+                i = new kodeine_js_1.KodeValue('');
             }
         }
         // loop finished, add results together using the separator
-        return new base_js_1.KodeValue(results.join(separator), call.source);
+        return new kodeine_js_1.KodeValue(results.join(separator), call.source);
     }
 }
 exports.FlFunction = FlFunction;

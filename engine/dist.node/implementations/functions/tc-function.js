@@ -1,16 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TcFunction = void 0;
-const evaluation_context_js_1 = require("../../evaluables/evaluation-context.js");
-const errors_js_1 = require("../../errors.js");
-const number_to_text_converter_js_1 = require("../helpers/number-to-text-converter.js");
-const text_capitalizer_js_1 = require("../helpers/text-capitalizer.js");
-const kode_function_with_modes_js_1 = require("./kode-function-with-modes.js");
-const ordinal_suffix_helper_js_1 = require("../helpers/ordinal-suffix-helper.js");
-const number_to_roman_converter_js_1 = require("../helpers/number-to-roman-converter.js");
+const kodeine_js_1 = require("../../kodeine.js");
 const html_entitity_converter_js_1 = require("../helpers/html-entitity-converter.js");
+const number_to_roman_converter_js_1 = require("../helpers/number-to-roman-converter.js");
+const number_to_text_converter_js_1 = require("../helpers/number-to-text-converter.js");
+const ordinal_suffix_helper_js_1 = require("../helpers/ordinal-suffix-helper.js");
+const text_capitalizer_js_1 = require("../helpers/text-capitalizer.js");
 /** Implementation of Kustom's tc() (text converter) function. */
-class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
+class TcFunction extends kodeine_js_1.KodeFunctionWithModes {
     getName() { return 'tc'; }
     /** Shared part of implementation for tc(cut) and tc(ell). */
     static _cut(text, startOrLength, length) {
@@ -73,7 +71,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         });
         this.mode('cap', ['txt text'], function (text) {
             if (text === '') {
-                throw new errors_js_1.InvalidArgumentError('tc(cap)', 'text', 1, this.call.args[1], text, 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.');
+                throw new kodeine_js_1.InvalidArgumentError('tc(cap)', 'text', 1, this.call.args[1], text, 'Kustom will throw "string index out of range: 1" when attempting to capitalize an empty string. This does not seem to affect function evaluation.');
             }
             // Kustom only capitalizes letters at the start of the string and after spaces
             // more about this in TextCapitalizer
@@ -112,7 +110,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
             let parsedCode = Number('0x' + hexCode);
             if (isNaN(parsedCode)) {
                 // given code is not a hex number
-                throw new errors_js_1.InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value could not be parsed as a hexadecimal number.');
+                throw new kodeine_js_1.InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value could not be parsed as a hexadecimal number.');
             }
             else {
                 try {
@@ -121,7 +119,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 }
                 catch (err) {
                     // couldn't get character using code, throw
-                    throw new errors_js_1.InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value is not a valid character code: ' + err.message);
+                    throw new kodeine_js_1.InvalidArgumentError(`tc(utf)`, 'hexCode', 1, this.call.args[1], hexCode, 'Value is not a valid character code: ' + err.message);
                 }
             }
         });
@@ -138,14 +136,14 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 let num = Number(match);
                 if (isNaN(num)) {
                     // if the number somehow is invalid, add a warning and don't replace
-                    this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+                    this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
                     return match;
                 }
                 else {
                     if (-num > number_to_text_converter_js_1.NumberToTextConverter.max) {
                         // special case for negative numbers that have an absolute value over the maximum
                         // this does not happen for positive numbers, instead, the max as words is returned
-                        throw new errors_js_1.InvalidArgumentError('tc(n2w)', 'text', 1, this.call.args[1], match, `Negative numbers throw an error when their absolute value is greater than the max value for a signed 32 bit integer (${number_to_text_converter_js_1.NumberToTextConverter.max}).`);
+                        throw new kodeine_js_1.InvalidArgumentError('tc(n2w)', 'text', 1, this.call.args[1], match, `Negative numbers throw an error when their absolute value is greater than the max value for a signed 32 bit integer (${number_to_text_converter_js_1.NumberToTextConverter.max}).`);
                     }
                     // convert and prepend a - if the input was negative
                     return (num < 0 ? '-' : '') + number_to_text_converter_js_1.NumberToTextConverter.convert(Math.min(Math.abs(num), number_to_text_converter_js_1.NumberToTextConverter.max));
@@ -168,7 +166,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 let num = Number(match);
                 if (isNaN(num)) {
                     // if the number somehow is invalid, add a warning and don't replace
-                    this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+                    this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
                     return match;
                 }
                 else {
@@ -176,7 +174,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                         // we probably could allow the user to go further,
                         // but not only will this output A LOT of characters,
                         // it will also straight up crash the app at like 7 or 8 digits
-                        throw new errors_js_1.InvalidArgumentError('tc(roman)', 'text', 1, this.call.args[1], match, `Number ${match} is greater than the maximum for tc(roman) (${number_to_text_converter_js_1.NumberToTextConverter.max}). `
+                        throw new kodeine_js_1.InvalidArgumentError('tc(roman)', 'text', 1, this.call.args[1], match, `Number ${match} is greater than the maximum for tc(roman) (${number_to_text_converter_js_1.NumberToTextConverter.max}). `
                             + 'Each decimal digit you add to your number increases the number of Ms (roman numeral for 1,000) in the output exponentially. '
                             + 'To illustrate, 1,000,000 results in 1,000 Ms, 10,000,000 results in 10,000 Ms and 100,000,000 results in 100,000 Ms. '
                             + 'TL;DR: Kustom will crash.');
@@ -217,7 +215,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         this.mode('split', ['txt text', 'txt splitBy', 'num index'], function (text, splitBy, index) {
             if (index < 0) {
                 // Kustom throws an error for indices less than 0 but not for indices greater than array length
-                throw new errors_js_1.InvalidArgumentError('tc(split)', 'index', 3, this.call.args[3], index, 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). '
+                throw new kodeine_js_1.InvalidArgumentError('tc(split)', 'index', 3, this.call.args[3], index, 'Kustom will throw "length=[split element count]; index=[passed index];" when passing a negative index to tc(split). '
                     + 'Note that this does not happen when the passed index is greater than or equal to [split element count].');
             }
             // Kustom skips over empty elements
@@ -261,7 +259,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                                     // this could throw, but that would only show one error at a time
                                     // instead we collect all errors, set a flag and return empty string
                                     // at the end if the flag was set
-                                    this.evalCtx.sideEffects.errors.push(new errors_js_1.EvaluationError(this.call.args[3], 'Replacement contains a reference to a group index that wasn\'t captured '
+                                    this.evalCtx.sideEffects.errors.push(new kodeine_js_1.EvaluationError(this.call.args[3], 'Replacement contains a reference to a group index that wasn\'t captured '
                                         + `(captured ${sourceMatchGroupCount} group${sourceMatchGroupCount === 1 ? '' : 's'}, `
                                         + `referenced group $${digit}). tc(reg) will return an empty string.`));
                                     hadErrors = true;
@@ -296,12 +294,12 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 return hadErrors ? '' : result;
             }
             catch (err) {
-                throw new errors_js_1.RegexEvaluationError(this.call.args[2], err.message);
+                throw new kodeine_js_1.RegexEvaluationError(this.call.args[2], err.message);
             }
         });
         // TODO: maybe implement accurately at some point
         this.mode('html', ['txt text'], function (text) {
-            this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call, 'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'));
+            this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call, 'tc(html) is not implemented accurately. You might see significant differences when running your formula in Kustom.'));
             // simple implementation that does the basic job
             return text
                 // remove <anything> in html brackets
@@ -312,7 +310,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         // TODO: maybe implement accurately at some point
         this.mode('url', ['txt text', 'txt encoding?'], function (text, encoding) {
             if (encoding) {
-                this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[2], 'This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error.'));
+                this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[2], 'This argument currently does nothing in kodeine. Known values accepted by Kustom are ascii, unicode, utf8, utf16 and utf32, other values throw an error.'));
             }
             // tc(url) isn't actually suitable to encoding entire urls, only params
             // this should probably be encodeURI instead
@@ -321,7 +319,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
         this.mode('nfmt', ['txt text'], function (text) {
             if (/\.\.+/.test(text)) {
                 // check for multiple points because kustom does for some reason
-                throw new errors_js_1.InvalidArgumentError('tc(nmft)', 'text', 1, this.call.args[1], text, 'Kustom throws "tc: multiple points" when there are two or more consecutive points (.) anywhere in the input string.');
+                throw new kodeine_js_1.InvalidArgumentError('tc(nmft)', 'text', 1, this.call.args[1], text, 'Kustom throws "tc: multiple points" when there are two or more consecutive points (.) anywhere in the input string.');
             }
             // capture numbers
             let expr = /-?(\d+\.?\d*|\d*\.?\d+)/g;
@@ -331,7 +329,7 @@ class TcFunction extends kode_function_with_modes_js_1.FunctionWithModes {
                 let num = Number(match);
                 if (isNaN(num)) {
                     // if the number somehow is invalid, add a warning and don't replace
-                    this.evalCtx.sideEffects.warnings.push(new evaluation_context_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
+                    this.evalCtx.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(this.call.args[1], `Number ${match} could not be parsed.`));
                     return match;
                 }
                 else {

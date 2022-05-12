@@ -1,20 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GvFunction = void 0;
-const base_js_1 = require("../../base.js");
-const errors_js_1 = require("../../errors.js");
+const kodeine_js_1 = require("engine/src/kodeine.js");
 /** Implementation of Kustom's `gv()` function. */
-class GvFunction extends base_js_1.IKodeFunction {
+class GvFunction extends kodeine_js_1.IKodeFunction {
     getName() { return 'gv'; }
     call(evalCtx, call, args) {
         // require at least two arguments (one condition and one value)
         if (args.length < 1)
-            throw new errors_js_1.InvalidArgumentCountError(call, 'At least one argument required.');
+            throw new kodeine_js_1.InvalidArgumentCountError(call, 'At least one argument required.');
         else if (args.length > 1)
-            throw new errors_js_1.InvalidArgumentCountError(call, 'Only one-argument gv() calls are currently implemented.');
+            throw new kodeine_js_1.InvalidArgumentCountError(call, 'Only one-argument gv() calls are currently implemented.');
         let globalName = args[0].text.trim().toLowerCase();
         if (evalCtx.sideEffects.globalNameStack.indexOf(globalName) >= 0) {
-            throw new errors_js_1.EvaluationError(call, `Global reference loop detected. Global stack: ${evalCtx.sideEffects.globalNameStack.join(' > ')}.`);
+            throw new kodeine_js_1.EvaluationError(call, `Global reference loop detected. Global stack: ${evalCtx.sideEffects.globalNameStack.join(' > ')}.`);
         }
         else {
             // push global name to stack
@@ -30,7 +29,7 @@ class GvFunction extends base_js_1.IKodeFunction {
             }
             else {
                 // global not found, return empty string
-                return new base_js_1.KodeValue('', call.source);
+                return new kodeine_js_1.KodeValue('', call.source);
             }
         }
     }

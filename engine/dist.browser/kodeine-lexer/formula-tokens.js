@@ -1,4 +1,4 @@
-import { FormulaToken } from "../base.js";
+import { FormulaToken } from "../kodeine.js";
 /** A base class for simple tokens extracted from a formula source text. */
 export class SimpleToken extends FormulaToken {
     /**
