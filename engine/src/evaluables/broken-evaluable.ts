@@ -1,5 +1,6 @@
 import { Evaluable, EvaluableSource, KodeValue } from "../base";
 import { EvaluationContext } from "./evaluation-context";
+import { CouldNotBeEvaluated } from "./evaluation-tree";
 
 export class BrokenEvaluable extends Evaluable {
 
@@ -8,7 +9,16 @@ export class BrokenEvaluable extends Evaluable {
     }
 
     evaluate(evalCtx: EvaluationContext): KodeValue {
-        return new KodeValue('', this.source);
+
+        let result = new KodeValue('', this.source);
+
+        if (evalCtx.buildEvaluationTree) {
+
+            evalCtx.sideEffects.lastEvaluationTreeNode = new CouldNotBeEvaluated(result);
+
+        }
+
+        return result;
     }
 
 }

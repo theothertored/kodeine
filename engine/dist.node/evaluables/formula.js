@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Formula = void 0;
 const base_js_1 = require("../base.js");
 const errors_js_1 = require("../errors.js");
+const evaluation_tree_js_1 = require("./evaluation-tree.js");
 /**
  * A formula consists of several evaluables. The values of the evaluables are concatenated to form the formula result.
  */
@@ -13,33 +14,22 @@ class Formula extends base_js_1.Evaluable {
         this.evaluables = evaluables;
     }
     evaluate(evalCtx) {
+        let result;
+        let parts = [];
         if (this.evaluables.length === 0) {
             // no evaluables in this formula, return empty string.
-            return new base_js_1.KodeValue("");
-        }
-        else if (this.evaluables.length === 1) {
-            try {
-                // there is only one evaluable, evaluate it and return the result.
-                return this.evaluables[0].evaluate(evalCtx);
-            }
-            catch (err) {
-                if (err instanceof errors_js_1.EvaluationError) {
-                    // add evaluation errors to context
-                    evalCtx.sideEffects.errors.push(err);
-                    return new base_js_1.KodeValue('', this.evaluables[0].source);
-                }
-                else {
-                    // rethrow all other errors (crashes)
-                    throw err;
-                }
-            }
+            result = new base_js_1.KodeValue("", this.source);
         }
         else {
             // mulitple evaluables, evaluate each one and concatenate the results.
             let output = '';
             for (var evaluable of this.evaluables) {
                 try {
-                    output += evaluable.evaluate(evalCtx).text;
+                    let partResult = evaluable.evaluate(evalCtx);
+                    if (evalCtx.buildEvaluationTree) {
+                        parts.push(evalCtx.sideEffects.lastEvaluationTreeNode);
+                    }
+                    output += partResult.text;
                 }
                 catch (err) {
                     if (err instanceof errors_js_1.EvaluationError) {
@@ -52,8 +42,12 @@ class Formula extends base_js_1.Evaluable {
                     }
                 }
             }
-            return new base_js_1.KodeValue(output);
+            result = new base_js_1.KodeValue(output, this.source);
         }
+        if (evalCtx.buildEvaluationTree) {
+            evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.FormulaEvaluationTree(parts, result);
+        }
+        return result;
     }
 }
 exports.Formula = Formula;

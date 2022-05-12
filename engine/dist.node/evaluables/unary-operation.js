@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UnaryOperation = void 0;
 const base_js_1 = require("../base.js");
+const evaluation_tree_js_1 = require("./evaluation-tree.js");
 /** An operation consisting of a unary operator and an evaluable argument. */
 class UnaryOperation extends base_js_1.Evaluable {
     /**
@@ -16,7 +17,18 @@ class UnaryOperation extends base_js_1.Evaluable {
         this.arg = arg;
     }
     evaluate(evalCtx) {
-        return this.operator.operation(evalCtx, this, this.arg.evaluate(evalCtx));
+        if (evalCtx.buildEvaluationTree) {
+            // we are building an evaluation tree
+            let argResult = this.arg.evaluate(evalCtx);
+            let argNode = evalCtx.sideEffects.lastEvaluationTreeNode;
+            let result = this.operator.operation(evalCtx, this, argResult);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedUnaryOperation(this, argNode, result);
+            return result;
+        }
+        else {
+            // we are not building an evaluation tree, simple call
+            return this.operator.operation(evalCtx, this, this.arg.evaluate(evalCtx));
+        }
     }
 }
 exports.UnaryOperation = UnaryOperation;

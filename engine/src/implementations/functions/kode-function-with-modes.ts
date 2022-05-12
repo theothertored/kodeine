@@ -92,7 +92,7 @@ export abstract class FunctionWithModes extends IKodeFunction {
      *      }
      * );
      */
-    mode(name: string, argumentPatterns: string[], implementationFunc: ModeImplementationFunction) {
+    protected mode(name: string, argumentPatterns: string[], implementationFunc: ModeImplementationFunction) {
         this._modes[name] = new FunctionMode(argumentPatterns, implementationFunc);
     }
 

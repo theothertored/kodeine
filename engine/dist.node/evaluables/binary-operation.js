@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BinaryOperation = void 0;
 const base_js_1 = require("../base.js");
+const evaluation_tree_js_1 = require("./evaluation-tree.js");
 /** An operation consisting of an binary operator and two evaluable arguments. */
 class BinaryOperation extends base_js_1.Evaluable {
     /**
@@ -19,7 +20,20 @@ class BinaryOperation extends base_js_1.Evaluable {
     }
     /** Evaluates both arguments and runs the operation using the resulting values. */
     evaluate(evalCtx) {
-        return this.operator.operation(evalCtx, this, this.argA.evaluate(evalCtx), this.argB.evaluate(evalCtx));
+        if (evalCtx.buildEvaluationTree) {
+            // we are building an evaluation tree
+            let argAResult = this.argA.evaluate(evalCtx);
+            let argANode = evalCtx.sideEffects.lastEvaluationTreeNode;
+            let argBResult = this.argB.evaluate(evalCtx);
+            let argBNode = evalCtx.sideEffects.lastEvaluationTreeNode;
+            let result = this.operator.operation(evalCtx, this, argAResult, argBResult);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedBinaryOperation(this, argANode, argBNode, result);
+            return result;
+        }
+        else {
+            // we are not building an evaluation tree, simple call
+            return this.operator.operation(evalCtx, this, this.argA.evaluate(evalCtx), this.argB.evaluate(evalCtx));
+        }
     }
 }
 exports.BinaryOperation = BinaryOperation;

@@ -173,14 +173,27 @@ export class KodeValue extends Evaluable {
 
     evaluate(evalCtx: EvaluationContext): KodeValue {
 
+        let result: KodeValue;
+
         if (evalCtx.iReplacement && this.isI)
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
-            return evalCtx.iReplacement;
+            result = evalCtx.iReplacement;
 
         else
             // return self by default
-            return this;
+            result = this;
+
+
+        if (evalCtx.buildEvaluationTree) {
+
+            evalCtx.sideEffects.lastEvaluationTreeNode = new Literal(
+                result
+            );
+
+        }
+
+        return result;
 
     }
 
@@ -201,6 +214,35 @@ export class KodeValue extends Evaluable {
         return new KodeValue(token.getValue(), new EvaluableSource(token));
     }
 }
+
+// #region moved here becuase circular dependency
+
+export abstract class FormulaEvaluationTreeNode {
+
+    public readonly result: KodeValue;
+
+    constructor(result: KodeValue) {
+        this.result = result;
+    }
+
+    abstract getDescription(): string;
+
+}
+
+export class Literal extends FormulaEvaluationTreeNode {
+
+    constructor(value: KodeValue) {
+        super(value);
+    }
+
+    getDescription(): string {
+        return this.result.isNumeric ? 'numeric value' : 'value';
+    }
+
+}
+
+// #endregion
+
 
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 export class EvaluableSource {

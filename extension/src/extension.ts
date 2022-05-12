@@ -3,8 +3,9 @@ import { ParsingContext, ParsingContextBuilder } from '../../engine/dist.node/ko
 import { KodeineParser } from '../../engine/dist.node/kodeine-parser/kodeine-parser.js';
 import { EvaluationContext } from '../../engine/dist.node/evaluables/evaluation-context.js';
 import { Formula } from '../../engine/dist.node/evaluables/formula.js';
-import { FormulaTreeDataProvider } from './formula-tree-data-provider.js';
+import { FormulaTreeDataProvider as EvaluationTreeDataProvider } from './evaluation-tree-data-provider.js';
 import { GlobalTreeDataProvider, TextDocumentGlobal } from './global-tree-data-provider.js';
+import { FormulaEvaluationTree } from '../../engine/dist.node/evaluables/evaluation-tree.js';
 
 let outChannel: vscode.OutputChannel;
 let diagColl: vscode.DiagnosticCollection;
@@ -17,19 +18,26 @@ let lastFormula: Formula | null;
 var docToGlobalNameMap: Map<vscode.TextDocument, string>;
 const globalChangeNotifTimeout: number = 5000;
 
-let formulaTreeDataProvider: FormulaTreeDataProvider;
+let evaluationTreeDataProvider: EvaluationTreeDataProvider;
 let globalTreeDataProvider: GlobalTreeDataProvider;
 
 
 /** Activates the extension. */
 export function activate(extCtx: vscode.ExtensionContext) {
 
+    // prepare kodeine engine
+    parsingCtx = ParsingContextBuilder.buildDefault();
+    parser = new KodeineParser(parsingCtx);
+    evalCtx = new EvaluationContext();
+
+    // enable evaluation tree building
+    evalCtx.buildEvaluationTree = true; 
+
+
     // create an output channel for formula results
     outChannel = vscode.window.createOutputChannel('Formula Result');
     extCtx.subscriptions.push(outChannel); // register it as disposable
-
-    // reveal the output channel in the UI
-    outChannel.show(true);
+    outChannel.show(true); // reveal the output channel in the UI
 
 
     // create a diagnostic collection for errors and warnings
@@ -38,21 +46,21 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
 
     // create and register the formula tree view data provider
-    formulaTreeDataProvider = new FormulaTreeDataProvider();
-    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', formulaTreeDataProvider));
+    evaluationTreeDataProvider = new EvaluationTreeDataProvider();
+    extCtx.subscriptions.push(
+        vscode.window.registerTreeDataProvider('formulaEvaluationTree', evaluationTreeDataProvider)
+    );
 
-    // create and register the global tree view data provider
-    // TODO: load previous set of globals before this point
-    globalTreeDataProvider = new GlobalTreeDataProvider([]);
-    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('globalList', globalTreeDataProvider));
 
     // prepare map to keep track of global documents
     docToGlobalNameMap = new Map<vscode.TextDocument, string>();
 
-    // prepare kodeine engine
-    parsingCtx = ParsingContextBuilder.buildDefault();
-    parser = new KodeineParser(parsingCtx);
-    evalCtx = new EvaluationContext();
+    // create and register the global tree view data provider
+    // TODO: load previous set of globals before this point
+    globalTreeDataProvider = new GlobalTreeDataProvider([]);
+    extCtx.subscriptions.push(
+        vscode.window.registerTreeDataProvider('globalList', globalTreeDataProvider)
+    );
 
 
     // check the language of the currently opened editor
@@ -85,6 +93,7 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
     }));
 
+    // listen to text documents being opened
     extCtx.subscriptions.push(vscode.workspace.onDidOpenTextDocument(doc => {
 
         if (doc.languageId === 'kode')
@@ -93,13 +102,13 @@ export function activate(extCtx: vscode.ExtensionContext) {
     }));
 
 
-    // listen to the command for opening the formula result window
+    // handle command showing opening the formula result window
     extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.formulaResult', () => {
         outChannel.show(true);
     }));
 
 
-    // global handling commands
+    // handle global related commands
     extCtx.subscriptions.push(
         vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal),
         vscode.commands.registerCommand('kodeine.removeGlobal', command_removeGlobal),
@@ -288,7 +297,7 @@ function evaluateToOutput(document: vscode.TextDocument) {
     diagColl.set(vscode.window.activeTextEditor!.document.uri, diags);
 
     // refresh formula tree view
-    formulaTreeDataProvider.setFormula(lastFormula);
+    evaluationTreeDataProvider.setEvaluationTree(evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
 }
 
 

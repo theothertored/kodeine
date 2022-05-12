@@ -1,6 +1,7 @@
 import { IBinaryOperator, Evaluable, KodeValue } from "../base.js";
 import { EvaluableSource } from "../base.js";
 import { EvaluationContext } from "./evaluation-context.js";
+import { EvaluatedBinaryOperation } from "./evaluation-tree.js";
 
 /** An operation consisting of an binary operator and two evaluable arguments. */
 export class BinaryOperation extends Evaluable {
@@ -31,8 +32,33 @@ export class BinaryOperation extends Evaluable {
     /** Evaluates both arguments and runs the operation using the resulting values. */
     evaluate(evalCtx: EvaluationContext): KodeValue {
 
-        return this.operator.operation(evalCtx, this, this.argA.evaluate(evalCtx), this.argB.evaluate(evalCtx));
-                    
+
+        if (evalCtx.buildEvaluationTree) {
+
+            // we are building an evaluation tree
+
+            let argAResult = this.argA.evaluate(evalCtx);
+            let argANode = evalCtx.sideEffects.lastEvaluationTreeNode!;
+
+            let argBResult = this.argB.evaluate(evalCtx);
+            let argBNode = evalCtx.sideEffects.lastEvaluationTreeNode!;
+
+            let result = this.operator.operation(evalCtx, this, argAResult, argBResult);
+
+            evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedBinaryOperation(
+                this, argANode, argBNode, result
+            );
+
+            return result;
+        }
+        else {
+
+            // we are not building an evaluation tree, simple call
+            return this.operator.operation(evalCtx, this, this.argA.evaluate(evalCtx), this.argB.evaluate(evalCtx));
+
+        }
+
+
     }
 
 }

@@ -1,4 +1,5 @@
 import { Evaluable } from "../base.js";
+import { EvaluatedExpression } from "./evaluation-tree.js";
 /**
  * An expression is a set of evaluables and operators.
  * The {@link Expression} class wraps an {@link evaluable}
@@ -20,7 +21,11 @@ export class Expression extends Evaluable {
         this.evaluable = evaluable;
     }
     evaluate(evalCtx) {
-        return this.evaluable.evaluate(evalCtx);
+        let result = this.evaluable.evaluate(evalCtx);
+        if (evalCtx.buildEvaluationTree) {
+            evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedExpression(evalCtx.sideEffects.lastEvaluationTreeNode, result);
+        }
+        return result;
     }
 }
 //# sourceMappingURL=expression.js.map

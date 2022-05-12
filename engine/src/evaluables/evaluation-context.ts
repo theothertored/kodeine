@@ -1,4 +1,4 @@
-import { Evaluable, KodeValue } from "../base.js";
+import { Evaluable, FormulaEvaluationTreeNode, KodeValue } from "../base.js";
 import { EvaluationError } from "../errors.js";
 import { Formula } from "./formula.js";
 import { UnaryOperation } from "./unary-operation.js";
@@ -6,19 +6,33 @@ import { UnaryOperation } from "./unary-operation.js";
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export class EvaluationContext {
 
+    /** Side effects produced during evaluation. Expected to be cleared using {@link clearSideEffects()} before each evaluation run. */
     public sideEffects: EvaluationSideEffects;
+
+    /** The value that should replace the value literal `i`. Intended to be used in `fl()`. */
     public iReplacement: KodeValue | null = null;
 
+    /** A map of global values and their corresponding formulas. */
     public globals: Map<string, Formula> = new Map<string, Formula>();
 
+    /** 
+     * If set to true, a formula evaluation tree should be built during evaluation.
+     * After evaluation, the tree can be accessed via `this.sideEffects.lastEvaluationTreeNode`.
+     * @see {@link FormulaEvaluationTree}
+     */
+    public buildEvaluationTree: boolean = false;
+
+    /** Constructs an empty {@link EvaluationContext}. */
     constructor() {
         this.sideEffects = new EvaluationSideEffects();
     }
 
+    /** Clears all {@link sideEffects} from the context. */
     clearSideEffects() {
         this.sideEffects = new EvaluationSideEffects();
     }
 
+    /** Creates a clone of the context with empty side effects. */
     clone(): EvaluationContext {
 
         let newCtx = new EvaluationContext();
@@ -42,6 +56,8 @@ export class EvaluationSideEffects {
     public errors: EvaluationError[] = [];
 
     public globalNameStack: string[] = [];
+
+    public lastEvaluationTreeNode: FormulaEvaluationTreeNode | null = null;
 
 }
 

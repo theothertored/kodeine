@@ -1,6 +1,7 @@
 import { Evaluable, KodeValue } from "../base.js";
 import { EvaluableSource } from "../base.js";
 import { EvaluationContext } from "./evaluation-context.js";
+import { EvaluatedExpression } from "./evaluation-tree.js";
 
 /** 
  * An expression is a set of evaluables and operators. 
@@ -28,7 +29,19 @@ export class Expression extends Evaluable {
     }
 
     evaluate(evalCtx: EvaluationContext): KodeValue {
-        return this.evaluable.evaluate(evalCtx);
+
+        let result = this.evaluable.evaluate(evalCtx);
+
+        if (evalCtx.buildEvaluationTree) {
+
+            evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedExpression(
+                evalCtx.sideEffects.lastEvaluationTreeNode!, result
+            );
+
+        } 
+        
+        return result;
+
     }
 
 }

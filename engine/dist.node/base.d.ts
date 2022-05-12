@@ -95,6 +95,15 @@ export declare class KodeValue extends Evaluable {
     equals(other: KodeValue): boolean;
     static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue;
 }
+export declare abstract class FormulaEvaluationTreeNode {
+    readonly result: KodeValue;
+    constructor(result: KodeValue);
+    abstract getDescription(): string;
+}
+export declare class Literal extends FormulaEvaluationTreeNode {
+    constructor(value: KodeValue);
+    getDescription(): string;
+}
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 export declare class EvaluableSource {
     readonly tokens: FormulaToken[];

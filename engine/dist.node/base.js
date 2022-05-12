@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluableSource = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.FormulaToken = void 0;
+exports.IFormulaStringParser = exports.ILexer = exports.ICharReader = exports.EvaluableSource = exports.Literal = exports.FormulaEvaluationTreeNode = exports.KodeValue = exports.Evaluable = exports.IKodeFunction = exports.IBinaryOperator = exports.IUnaryOperator = exports.IOperator = exports.FormulaToken = void 0;
 /** Represents a token emited by the lexer. */
 class FormulaToken {
     /** Get what this token should output in a plain text part. By default this returns the source text. */
@@ -78,13 +78,18 @@ class KodeValue extends Evaluable {
         }
     }
     evaluate(evalCtx) {
+        let result;
         if (evalCtx.iReplacement && this.isI)
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
-            return evalCtx.iReplacement;
+            result = evalCtx.iReplacement;
         else
             // return self by default
-            return this;
+            result = this;
+        if (evalCtx.buildEvaluationTree) {
+            evalCtx.sideEffects.lastEvaluationTreeNode = new Literal(result);
+        }
+        return result;
     }
     /** Checks whether this value is equal to another value. */
     equals(other) {
@@ -100,6 +105,23 @@ class KodeValue extends Evaluable {
     }
 }
 exports.KodeValue = KodeValue;
+// #region moved here becuase circular dependency
+class FormulaEvaluationTreeNode {
+    constructor(result) {
+        this.result = result;
+    }
+}
+exports.FormulaEvaluationTreeNode = FormulaEvaluationTreeNode;
+class Literal extends FormulaEvaluationTreeNode {
+    constructor(value) {
+        super(value);
+    }
+    getDescription() {
+        return this.result.isNumeric ? 'numeric value' : 'value';
+    }
+}
+exports.Literal = Literal;
+// #endregion
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 class EvaluableSource {
     constructor(...tokens) {

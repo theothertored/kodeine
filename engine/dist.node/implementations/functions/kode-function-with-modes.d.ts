@@ -55,7 +55,7 @@ export declare abstract class FunctionWithModes extends IKodeFunction {
      *      }
      * );
      */
-    mode(name: string, argumentPatterns: string[], implementationFunc: ModeImplementationFunction): void;
+    protected mode(name: string, argumentPatterns: string[], implementationFunc: ModeImplementationFunction): void;
     /**
      * Validates and convertes a {@link KodeValue} argument for a mode implementation call.
      * @param evalCtx The context of the evaluation.

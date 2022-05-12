@@ -1,5 +1,6 @@
 import { Evaluable, KodeValue } from "../base.js";
 import { EvaluationError } from "../errors.js";
+import { EvaluatedFunctionCall } from "./evaluation-tree.js";
 /** A function call, consisting of a kode function being called and arguments for the call. */
 export class FunctionCall extends Evaluable {
     /**
@@ -15,8 +16,22 @@ export class FunctionCall extends Evaluable {
     }
     evaluate(evalCtx) {
         try {
-            // call the function with an array of values acquired by evaluating all arguments
-            return this.func.call(evalCtx, this, this.args.map(a => a.evaluate(evalCtx)));
+            if (evalCtx.buildEvaluationTree) {
+                let argResults = [];
+                let argNodes = [];
+                for (let i = 0; i < this.args.length; i++) {
+                    const arg = this.args[i];
+                    argResults[i] = arg.evaluate(evalCtx);
+                    argNodes[i] = evalCtx.sideEffects.lastEvaluationTreeNode;
+                }
+                let funcResult = this.func.call(evalCtx, this, argResults);
+                evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedFunctionCall(this, argNodes, funcResult);
+                return funcResult;
+            }
+            else {
+                // call the function with an array of values acquired by evaluating all arguments
+                return this.func.call(evalCtx, this, this.args.map(a => a.evaluate(evalCtx)));
+            }
         }
         catch (err) {
             if (err instanceof EvaluationError) {

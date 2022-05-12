@@ -12,7 +12,7 @@ export declare enum KodeineLexerState {
 export declare class KodeineLexer implements FormulaTokenLexer {
     /** The source of characters for the lexer. */
     private readonly _charReader;
-    /** An array of all symbols to be considered operator symbols, ordered from longest to shrotest. */
+    /** An array of all symbols to be considered operator symbols, ordered from longest to shortest. */
     private readonly _operatorSymbols;
     /** The current state of the lexer. The lexer will only interpret certain characters as tokens if its in the {@link KodeineLexerState.Kode} state. */
     private _state;

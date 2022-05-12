@@ -1,15 +1,21 @@
 TODO:
-- display evaluation results for each object in the formula tree
+- consider applying the internal module pattern to deal with circular dependencies in a cleaner fashion
+- write doc comments for the evaluation tree
+- command to print evaluation steps (probably to virtual document)
+- clean up extension code by introducing a GlobalManager class instead of functions in extension.ts
 - persist text globals on vscode exit
-- handle clicking on globals with non-existent files
+- handle clicking on globals linked to non-existent files
 - implement df()
 - implement tf()
 - design an eval ctx editor
 
 MAYBE IN THE FUTURE:
-- step by step evaluation
+- ...
 
 DONE:
+- generate static evaluation tree with results for each step as a side effect of the evaluation
+- display evaluation results for each object in the formula tree
+- create a social banner for github, add short description and topics
 - write instructions on how to install in the browser
 - check if it really works in the browser
 - publish to the vcode marketplace as alpha

@@ -1,5 +1,6 @@
 import { Evaluable, IUnaryOperator, EvaluableSource, KodeValue } from "../base.js";
 import { EvaluationContext } from "./evaluation-context.js";
+import { EvaluatedUnaryOperation } from "./evaluation-tree.js";
 
 /** An operation consisting of a unary operator and an evaluable argument. */
 export class UnaryOperation extends Evaluable {
@@ -23,9 +24,29 @@ export class UnaryOperation extends Evaluable {
     }
 
     public evaluate(evalCtx: EvaluationContext): KodeValue {
-        
-        return this.operator.operation(evalCtx, this, this.arg.evaluate(evalCtx));
-        
+
+        if (evalCtx.buildEvaluationTree) {
+
+            // we are building an evaluation tree
+
+            let argResult = this.arg.evaluate(evalCtx);
+            let argNode = evalCtx.sideEffects.lastEvaluationTreeNode!;
+
+            let result = this.operator.operation(evalCtx, this, argResult);
+
+            evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedUnaryOperation(
+                this, argNode, result
+            );
+
+            return result;
+
+        } else {
+
+            // we are not building an evaluation tree, simple call
+            return this.operator.operation(evalCtx, this, this.arg.evaluate(evalCtx));
+
+        }
+
     }
 
 }

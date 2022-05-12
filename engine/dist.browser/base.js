@@ -70,13 +70,18 @@ export class KodeValue extends Evaluable {
         }
     }
     evaluate(evalCtx) {
+        let result;
         if (evalCtx.iReplacement && this.isI)
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
-            return evalCtx.iReplacement;
+            result = evalCtx.iReplacement;
         else
             // return self by default
-            return this;
+            result = this;
+        if (evalCtx.buildEvaluationTree) {
+            evalCtx.sideEffects.lastEvaluationTreeNode = new Literal(result);
+        }
+        return result;
     }
     /** Checks whether this value is equal to another value. */
     equals(other) {
@@ -91,6 +96,21 @@ export class KodeValue extends Evaluable {
         return new KodeValue(token.getValue(), new EvaluableSource(token));
     }
 }
+// #region moved here becuase circular dependency
+export class FormulaEvaluationTreeNode {
+    constructor(result) {
+        this.result = result;
+    }
+}
+export class Literal extends FormulaEvaluationTreeNode {
+    constructor(value) {
+        super(value);
+    }
+    getDescription() {
+        return this.result.isNumeric ? 'numeric value' : 'value';
+    }
+}
+// #endregion
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 export class EvaluableSource {
     constructor(...tokens) {

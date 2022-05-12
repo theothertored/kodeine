@@ -1,10 +1,15 @@
 import { Evaluable, KodeValue } from "../base";
+import { CouldNotBeEvaluated } from "./evaluation-tree";
 export class BrokenEvaluable extends Evaluable {
     constructor(source) {
         super(source);
     }
     evaluate(evalCtx) {
-        return new KodeValue('', this.source);
+        let result = new KodeValue('', this.source);
+        if (evalCtx.buildEvaluationTree) {
+            evalCtx.sideEffects.lastEvaluationTreeNode = new CouldNotBeEvaluated(result);
+        }
+        return result;
     }
 }
 //# sourceMappingURL=broken-evaluable.js.map

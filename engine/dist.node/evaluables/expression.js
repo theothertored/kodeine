@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Expression = void 0;
 const base_js_1 = require("../base.js");
+const evaluation_tree_js_1 = require("./evaluation-tree.js");
 /**
  * An expression is a set of evaluables and operators.
  * The {@link Expression} class wraps an {@link evaluable}
@@ -23,7 +24,11 @@ class Expression extends base_js_1.Evaluable {
         this.evaluable = evaluable;
     }
     evaluate(evalCtx) {
-        return this.evaluable.evaluate(evalCtx);
+        let result = this.evaluable.evaluate(evalCtx);
+        if (evalCtx.buildEvaluationTree) {
+            evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.EvaluatedExpression(evalCtx.sideEffects.lastEvaluationTreeNode, result);
+        }
+        return result;
     }
 }
 exports.Expression = Expression;
