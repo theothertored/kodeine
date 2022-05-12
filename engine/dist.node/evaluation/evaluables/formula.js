@@ -43,7 +43,7 @@ class Formula extends kodeine_js_1.Evaluable {
             result = new kodeine_js_1.KodeValue(output, this.source);
         }
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.FormulaEvaluationTree(parts, result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.FormulaEvaluationTree(this, parts, result);
         }
         return result;
     }

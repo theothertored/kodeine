@@ -75,7 +75,7 @@ export class Formula extends Evaluable {
         if (evalCtx.buildEvaluationTree) {
 
             evalCtx.sideEffects.lastEvaluationTreeNode = new FormulaEvaluationTree(
-                parts, result
+                this, parts, result
             );
 
         }

@@ -40,7 +40,7 @@ export class Formula extends Evaluable {
             result = new KodeValue(output, this.source);
         }
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new FormulaEvaluationTree(parts, result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new FormulaEvaluationTree(this, parts, result);
         }
         return result;
     }

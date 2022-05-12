@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KodeValue = void 0;
 const kodeine_js_1 = require("../../kodeine.js");
+const evaluation_tree_js_1 = require("../evaluation-tree.js");
 /** A concrete kode value. */
 class KodeValue extends kodeine_js_1.Evaluable {
     /**
@@ -44,18 +45,22 @@ class KodeValue extends kodeine_js_1.Evaluable {
         }
     }
     evaluate(evalCtx) {
-        let result;
-        if (evalCtx.iReplacement && this.isI)
+        let literal = new kodeine_js_1.Literal(this);
+        if (evalCtx.iReplacement && this.isI) {
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
-            result = evalCtx.iReplacement;
-        else
-            // return self by default
-            result = this;
-        if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.Literal(result);
+            if (evalCtx.buildEvaluationTree) {
+                evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.LiteralReplacement(evalCtx.iReplacement, literal);
+            }
+            return evalCtx.iReplacement;
         }
-        return result;
+        else {
+            // return self by default
+            if (evalCtx.buildEvaluationTree) {
+                evalCtx.sideEffects.lastEvaluationTreeNode = literal;
+            }
+            return this;
+        }
     }
     /** Checks whether this value is equal to another value. */
     equals(other) {

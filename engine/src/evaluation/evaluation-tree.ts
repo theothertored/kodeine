@@ -3,27 +3,54 @@ import {
     BinaryOperation,
     FunctionCall,
     KodeValue,
-    UnaryOperation
+    UnaryOperation,
+    Formula
 } from "../kodeine.js";
 
+// the evaluation tree is a structure representing a single evaluation run.
+// the leaves of the tree are literals, and every node is an object containing an evaluable and its evaluation result.
+
+// example formula:
+// $if(2 + 2 = 4, true, false)$
+
+// evaluation tree:
+// Formula -> true
+// -  Expression -> true
+// -  -  Function call "if()" -> true
+// -  -  -  Operator "=" -> 1
+// -  -  -  -  Operator "+" -> 4
+// -  -  -  -  -  Literal "2"
+// -  -  -  -  -  Literal "2"
+// -  -  -  -  Literal "4"
+// -  -  -  Literal "true"
+// -  -  -  Literal "false"
+
+
+/** Base class for all evaluation tree nodes. */
 export abstract class FormulaEvaluationTreeNode {
 
+    /** What evaluating this node resulted in. */
     public readonly result: KodeValue;
 
+    /** Constructs a {@link FormulaEvaluationTreeNode} with a given result. */
     constructor(result: KodeValue) {
         this.result = result;
     }
 
+    /** A human-readable description of this node. */
     abstract getDescription(): string;
 
 }
 
+/** A formula, what it evaluated to and nodes for its parts.  */
 export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
 
+    public readonly formula: Formula;
     public readonly parts: FormulaEvaluationTreeNode[];
 
-    constructor(parts: FormulaEvaluationTreeNode[], result: KodeValue) {
+    constructor(formula: Formula, parts: FormulaEvaluationTreeNode[], result: KodeValue) {
         super(result);
+        this.formula = formula;
         this.parts = parts;
     }
 
@@ -33,6 +60,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
 
 }
 
+/** An expression, what it evaluated to and a node for its child evaluable. */
 export class EvaluatedExpression extends FormulaEvaluationTreeNode {
 
     public readonly child: FormulaEvaluationTreeNode;
@@ -48,6 +76,7 @@ export class EvaluatedExpression extends FormulaEvaluationTreeNode {
 
 }
 
+/** A function call, what it evaluated to and nodes for its arguments. */
 export class EvaluatedFunctionCall extends FormulaEvaluationTreeNode {
 
     public readonly args: FormulaEvaluationTreeNode[];
@@ -75,11 +104,12 @@ export class EvaluatedFunctionCall extends FormulaEvaluationTreeNode {
 
 }
 
+/** A binary operation, what it evaluated to and nodes for its arguments. */
 export class EvaluatedBinaryOperation extends FormulaEvaluationTreeNode {
 
+    public readonly operation: BinaryOperation;
     public readonly argA: FormulaEvaluationTreeNode;
     public readonly argB: FormulaEvaluationTreeNode;
-    public readonly operation: BinaryOperation;
 
     constructor(operation: BinaryOperation, argA: FormulaEvaluationTreeNode, argB: FormulaEvaluationTreeNode, result: KodeValue) {
         super(result);
@@ -94,6 +124,7 @@ export class EvaluatedBinaryOperation extends FormulaEvaluationTreeNode {
 
 }
 
+/** A unary operation, what it evaluated to and a node for its argument. */
 export class EvaluatedUnaryOperation extends FormulaEvaluationTreeNode {
 
     public readonly arg: FormulaEvaluationTreeNode;
@@ -111,6 +142,23 @@ export class EvaluatedUnaryOperation extends FormulaEvaluationTreeNode {
 
 }
 
+/** A node denoting that a replacement took place (for example `i` being replaced with a value in `fl()`). */
+export class LiteralReplacement extends FormulaEvaluationTreeNode {
+
+    public readonly sourceLiteral: Literal;
+
+    constructor(replacementValue: KodeValue, sourceLiteral: Literal) {
+        super(replacementValue);
+        this.sourceLiteral = sourceLiteral;
+    }
+
+    getDescription(): string {
+        return `value replacement`;
+    }
+
+}
+
+/** A leaf node denoting a literal value that didn't need to be evaluated. */
 export class Literal extends FormulaEvaluationTreeNode {
 
     constructor(value: KodeValue) {
@@ -123,6 +171,7 @@ export class Literal extends FormulaEvaluationTreeNode {
 
 }
 
+/** A node denoting that an evaluable could not be evaluated. */
 export class CouldNotBeEvaluated extends FormulaEvaluationTreeNode {
 
     constructor(result: KodeValue) {

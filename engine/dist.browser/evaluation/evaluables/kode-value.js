@@ -1,4 +1,5 @@
 import { Evaluable, EvaluableSource, Literal } from "../../kodeine.js";
+import { LiteralReplacement } from "../evaluation-tree.js";
 /** A concrete kode value. */
 export class KodeValue extends Evaluable {
     /**
@@ -41,18 +42,22 @@ export class KodeValue extends Evaluable {
         }
     }
     evaluate(evalCtx) {
-        let result;
-        if (evalCtx.iReplacement && this.isI)
+        let literal = new Literal(this);
+        if (evalCtx.iReplacement && this.isI) {
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
-            result = evalCtx.iReplacement;
-        else
-            // return self by default
-            result = this;
-        if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new Literal(result);
+            if (evalCtx.buildEvaluationTree) {
+                evalCtx.sideEffects.lastEvaluationTreeNode = new LiteralReplacement(evalCtx.iReplacement, literal);
+            }
+            return evalCtx.iReplacement;
         }
-        return result;
+        else {
+            // return self by default
+            if (evalCtx.buildEvaluationTree) {
+                evalCtx.sideEffects.lastEvaluationTreeNode = literal;
+            }
+            return this;
+        }
     }
     /** Checks whether this value is equal to another value. */
     equals(other) {

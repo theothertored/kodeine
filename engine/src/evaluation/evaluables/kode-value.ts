@@ -1,11 +1,12 @@
-import { 
-    QuotedValueToken, 
+import {
+    QuotedValueToken,
     UnquotedValueToken,
-    Evaluable, 
+    Evaluable,
     EvaluableSource,
     EvaluationContext,
     Literal
 } from "../../kodeine.js";
+import { LiteralReplacement } from "../evaluation-tree.js";
 
 /** Describes a JS type that can be converted to a KodeValue. */
 export type ConvertibleToKodeValue = string | number | boolean | KodeValue;
@@ -75,27 +76,36 @@ export class KodeValue extends Evaluable {
 
     evaluate(evalCtx: EvaluationContext): KodeValue {
 
-        let result: KodeValue;
+        let literal = new Literal(this);
 
-        if (evalCtx.iReplacement && this.isI)
+        if (evalCtx.iReplacement && this.isI) {
+
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
-            result = evalCtx.iReplacement;
 
-        else
+            if (evalCtx.buildEvaluationTree) {
+
+                evalCtx.sideEffects.lastEvaluationTreeNode = new LiteralReplacement(
+                    evalCtx.iReplacement, literal
+                );
+
+            }
+
+            return evalCtx.iReplacement;
+
+        } else {
+
             // return self by default
-            result = this;
 
+            if (evalCtx.buildEvaluationTree) {
 
-        if (evalCtx.buildEvaluationTree) {
+                evalCtx.sideEffects.lastEvaluationTreeNode = literal;
 
-            evalCtx.sideEffects.lastEvaluationTreeNode = new Literal(
-                result
-            );
+            }
 
+            return this;
+            
         }
-
-        return result;
 
     }
 
@@ -110,10 +120,11 @@ export class KodeValue extends Evaluable {
 
         else
             return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
+
     }
 
     static fromToken(token: (QuotedValueToken | UnquotedValueToken)): KodeValue {
         return new KodeValue(token.getValue(), new EvaluableSource(token));
     }
-    
+
 }
