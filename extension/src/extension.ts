@@ -80,7 +80,7 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
         // register commands
         vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult),
-        vscode.commands.registerCommand('kodeine.printEvaluationSteps', command_printEvaluationSteps),
+        vscode.commands.registerCommand('kodeine.showEvaluationSteps', command_showEvaluationSteps),
 
         // register global related commands
         vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal),
@@ -123,7 +123,7 @@ function onSomethingDocumentRelated(document?: vscode.TextDocument) {
 function onTextDocumentClosed(document: vscode.TextDocument) {
 
     if (
-        document.uri.scheme === evaluationStepsTextDocContentProvider.scheme 
+        document.uri.scheme === evaluationStepsTextDocContentProvider.scheme
         && document.languageId === 'kode'
     ) {
         evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
@@ -219,6 +219,8 @@ function evaluateToOutput(document: vscode.TextDocument) {
             outChannel.replace(result.text);
 
         }
+
+        evaluationStepsTextDocContentProvider.notifyDocumentChanged(document.uri, evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
 
     } catch (err: any) {
 
@@ -317,18 +319,27 @@ function command_formulaResult() {
     outChannel.show(true);
 }
 
-function command_printEvaluationSteps() {
+function command_showEvaluationSteps() {
 
-    let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
+    if (vscode.window.activeTextEditor?.document.languageId === 'kode') {
 
-    if (evaluationTree instanceof FormulaEvaluationTree) {
+        let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
 
-        let uri = evaluationStepsTextDocContentProvider.registerEvaluationTree(evaluationTree);
-        vscode.workspace.openTextDocument(uri)
-            .then(doc => {
-                vscode.languages.setTextDocumentLanguage(doc, 'kode');
-                vscode.window.showTextDocument(doc);
-            });
+        if (evaluationTree instanceof FormulaEvaluationTree) {
+
+            let uri = evaluationStepsTextDocContentProvider.registerSource(vscode.window.activeTextEditor.document.uri, evaluationTree);
+
+            vscode.workspace.openTextDocument(uri)
+                .then(doc => {
+                    vscode.languages.setTextDocumentLanguage(doc, 'kode');
+                    vscode.window.showTextDocument(doc, {
+                        viewColumn: vscode.ViewColumn.Beside,
+                        preserveFocus: true,
+                        preview: false
+                    });
+                });
+
+        }
 
     }
 

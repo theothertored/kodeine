@@ -448,6 +448,9 @@ export class KodeineParser implements IFormulaStringParser {
                         // log parsing error as a side effect
                         this._parsingCtx.sideEffects.errors.push(err);
 
+                        // push the token that caused the error to buffer
+                        tokenBuffer.push(token);
+
                         if (token instanceof DollarSignToken) {
 
                             // error thrown when reading a dollar sign token
@@ -467,12 +470,12 @@ export class KodeineParser implements IFormulaStringParser {
                                 // consume a token
                                 nextToken = lexer.consume(1)[0];
 
-                                if (token) {
+                                if (nextToken) {
 
                                     // store in buffer
-                                    tokenBuffer.push(token);
+                                    tokenBuffer.push(nextToken);
 
-                                    if (token instanceof DollarSignToken) {
+                                    if (nextToken instanceof DollarSignToken) {
 
                                         // encountered a dollar sign token
                                         // switch state to default and continue parsing despite the parsing error
@@ -484,7 +487,7 @@ export class KodeineParser implements IFormulaStringParser {
                                 }
 
                             }
-                            while (!lexer.EOF() && token && !(token instanceof DollarSignToken))
+                            while (!lexer.EOF() && nextToken && !(nextToken instanceof DollarSignToken))
 
                         }
 

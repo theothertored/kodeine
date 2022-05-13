@@ -26,6 +26,8 @@ export declare class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
     constructor(formula: Formula, parts: FormulaEvaluationTreeNode[], result: KodeValue);
     getDescription(): string;
     addStepReplacementsTo(replacements: EvaluationStepReplacement[]): void;
+    private _replaceStringSection;
+    printEvaluationSteps(): string;
 }
 /** An expression, what it evaluated to and a node for its child evaluable. */
 export declare class EvaluatedExpression extends FormulaEvaluationTreeNode {

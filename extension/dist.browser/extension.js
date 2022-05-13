@@ -46,7 +46,7 @@ function activate(extCtx) {
     extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('globalList', globalTreeDataProvider));
     extCtx.subscriptions.push(
     // register commands
-    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), vscode.commands.registerCommand('kodeine.printEvaluationSteps', command_printEvaluationSteps), 
+    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), vscode.commands.registerCommand('kodeine.showEvaluationSteps', command_showEvaluationSteps), 
     // register global related commands
     vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal), vscode.commands.registerCommand('kodeine.removeGlobal', command_removeGlobal), vscode.commands.registerCommand('kodeine.clearGlobals', command_clearGlobals), vscode.commands.registerCommand('kodeine.openGlobalDocument', command_openGlobalDocument));
     // listen to document-related events
@@ -128,6 +128,7 @@ function evaluateToOutput(document) {
             // no errors encountered, simply output the result
             outChannel.replace(result.text);
         }
+        evaluationStepsTextDocContentProvider.notifyDocumentChanged(document.uri, evalCtx.sideEffects.lastEvaluationTreeNode);
     }
     catch (err) {
         // unexpected error, print to output
@@ -187,15 +188,21 @@ function evaluateToOutput(document) {
 function command_formulaResult() {
     outChannel.show(true);
 }
-function command_printEvaluationSteps() {
-    let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
-    if (evaluationTree instanceof kodeine_js_1.FormulaEvaluationTree) {
-        let uri = evaluationStepsTextDocContentProvider.registerEvaluationTree(evaluationTree);
-        vscode.workspace.openTextDocument(uri)
-            .then(doc => {
-            vscode.languages.setTextDocumentLanguage(doc, 'kode');
-            vscode.window.showTextDocument(doc);
-        });
+function command_showEvaluationSteps() {
+    if (vscode.window.activeTextEditor?.document.languageId === 'kode') {
+        let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
+        if (evaluationTree instanceof kodeine_js_1.FormulaEvaluationTree) {
+            let uri = evaluationStepsTextDocContentProvider.registerSource(vscode.window.activeTextEditor.document.uri, evaluationTree);
+            vscode.workspace.openTextDocument(uri)
+                .then(doc => {
+                vscode.languages.setTextDocumentLanguage(doc, 'kode');
+                vscode.window.showTextDocument(doc, {
+                    viewColumn: vscode.ViewColumn.Beside,
+                    preserveFocus: true,
+                    preview: false
+                });
+            });
+        }
     }
 }
 // #region global handling

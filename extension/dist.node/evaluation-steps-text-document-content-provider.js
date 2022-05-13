@@ -5,56 +5,40 @@ const vscode = require("vscode");
 class EvaluationStepsTextDocumentContentProvider {
     constructor() {
         this.scheme = 'formulaevaluationsteps';
-        this._pathPrefix = 'evaluation steps ';
+        this._path = 'evaluation steps ';
         this._onDidChangeEmitter = new vscode.EventEmitter();
         this.onDidChange = this._onDidChangeEmitter.event;
-        this._evaluationTrees = new Map();
-    }
-    _getTreeName(uri) {
-        return uri.path.replace(this._pathPrefix, '');
+        this._sourceUriToEvaluationTreeMap = new Map();
     }
     provideTextDocumentContent(uri, token) {
-        let name = this._getTreeName(uri);
-        let evaluationTree = this._evaluationTrees.get(name);
-        if (evaluationTree) {
-            let originalText = evaluationTree.formula.getSourceText();
-            // get source text replacements for evaluation steps
-            let stepReplacements = [];
-            evaluationTree.addStepReplacementsTo(stepReplacements);
-            let output = `-- formula text --\n\n${originalText}`;
-            let lastStepText = originalText;
-            for (let i = 0; i < stepReplacements.length; i++) {
-                const replacement = stepReplacements[i];
-                let startIndex = replacement.startIndex;
-                for (let j = 0; j < i; j++) {
-                    const prevReplacement = stepReplacements[j];
-                    if (prevReplacement.startIndex < replacement.startIndex) {
-                        startIndex = startIndex - prevReplacement.sourceLength + prevReplacement.replacementText.length;
-                    }
-                }
-                output += `\n\n-- step ${i + 1} --\n\n${lastStepText.substring(0, startIndex)}${replacement.replacementText}${lastStepText.substring(startIndex + replacement.sourceLength)}`;
-            }
-            output += `\n\n-- result --\n\n${evaluationTree.result.text}`;
-            return output;
+        let sourceUriString = vscode.Uri.parse(decodeURIComponent(uri.query.split('=')[1])).toString();
+        let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
+        return evaluationTree?.printEvaluationSteps() ?? '';
+    }
+    _getStepsDocumentUri(sourceUri) {
+        return vscode.Uri.parse(`${this.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+    }
+    registerSource(sourceUri, evaluationTree) {
+        if (this.isSourceRegistered(sourceUri)) {
+            this.notifyDocumentChanged(sourceUri, evaluationTree);
         }
         else {
-            return '';
+            this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
+            this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
+        }
+        return this._getStepsDocumentUri(sourceUri);
+    }
+    isSourceRegistered(sourceUri) {
+        return this._sourceUriToEvaluationTreeMap.has(sourceUri.toString());
+    }
+    notifyDocumentChanged(sourceUri, evaluationTree) {
+        if (this.isSourceRegistered(sourceUri)) {
+            this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
+            this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
         }
     }
-    registerEvaluationTree(evaluationTree) {
-        let index = this._evaluationTrees.entries.length;
-        while (this._evaluationTrees.has(index.toString())) {
-            index++;
-        }
-        this._evaluationTrees.set(index.toString(), evaluationTree);
-        return vscode.Uri.parse(`${this.scheme}:${this._pathPrefix}${index}`);
-    }
-    notifyChanged(uri) {
-        this._onDidChangeEmitter.fire(uri);
-    }
-    notifyDocumentClosed(uri) {
-        let name = this._getTreeName(uri);
-        this._evaluationTrees.delete(name);
+    notifyDocumentClosed(sourceUri) {
+        this._sourceUriToEvaluationTreeMap.delete(sourceUri.toString());
     }
 }
 exports.EvaluationStepsTextDocumentContentProvider = EvaluationStepsTextDocumentContentProvider;

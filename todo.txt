@@ -1,4 +1,5 @@
 TODO:
+- don't insert unnecessary quotation marks when an evaluated part is turned into a plain text part
 - find a way to react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
 - clean up extension code by introducing a GlobalManager class instead of functions in extension.ts
 - persist text globals on vscode exit
@@ -11,6 +12,8 @@ MAYBE IN THE FUTURE:
 - ...
 
 DONE:
+- replace in previous step with evaluated value of next step
+- link evaluation steps document with formula source document, refresh evaluation steps after evaluation
 - command to print evaluation steps (probably to virtual document)
 - properly add whitespace tokens to evaluable sources
 - write doc comments for the evaluation tree

@@ -67,8 +67,8 @@
                 "title": "Show formula result window"
             },
             {
-                "command": "kodeine.printEvaluationSteps",
-                "title": "Print formula evaluation steps"
+                "command": "kodeine.showEvaluationSteps",
+                "title": "Show formula evaluation steps beside active editor"
             },
             {
                 "command": "kodeine.addGlobal",
@@ -93,7 +93,7 @@
                     "when": "editorLangId == kode"
                 },
                 {
-                    "command": "kodeine.printEvaluationSteps",
+                    "command": "kodeine.showEvaluationSteps",
                     "when": "editorLangId == kode"
                 },
                 {

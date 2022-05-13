@@ -89,6 +89,97 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
 
     }
 
+    private _replaceStringSection(original: string, start: number, length: number, insertion: string): string {
+
+        let beforeReplacement = original.substring(0, start);
+        let afterReplacement = original.substring(start + length);
+        return `${beforeReplacement}${insertion}${afterReplacement}`;
+
+    }
+
+    printEvaluationSteps(): string {
+
+        type Range = { start: number, length: number };
+        type Change = { source: Range, relative: Range, replacementLength: number };
+
+        // get source text replacements for evaluation steps
+        let stepReplacements: EvaluationStepReplacement[] = [];
+        this.addStepReplacementsTo(stepReplacements);
+
+        let originalText = this.formula.getSourceText();
+        let output = `-- formula text --\n\n${originalText}`;
+
+        let lastStepText = originalText;
+        let changes: Change[] = [];
+
+        for (let i = 0; i < stepReplacements.length; i++) {
+
+            const replacement = stepReplacements[i];
+
+            // each Change is an EvaluationStepReplacement adjusted with regard to previous Changes
+            //
+            // 1. if the EvaluationStepReplacement replaces a section before the Change, the Change's start has to be offset
+            //      Example - when the Change replaces a function argument, when a previous argument has already been replaced:
+            //      fn(2 + 2, 3 + 3)    original
+            //      fn(4, 3 + 3)        1st change (2 + 2 -> 4) replacementLength = 1, source = relative = { start: 3, length: 5 }
+            //      fn(4, 6)            2nd change (3 + 3 -> 6) replacementLength = 1, source = { start: 10, length: 5 }, relative = { start: 6, length: 5 }
+            //      10                  3rd change (fn(4, 6) -> 10) replacementLength = 2, source = { start: 0, length: 16 }, relative = { start: 0, length: 8 }
+            //      
+            // 2. if the EvaluationStepReplacement replaces a section inside the Change, the Change's length has to change
+            //      Example - when the Change replaces a function call, when its arguments were already replaced
+            //      fn(2 + 2)           original
+            //      fn(4)               1st change (2 + 2 -> 4) replacementLength = 1, source = relative = { start: 3, length: 5 }
+            //      8                   2nd change (fn(4) -> 8) replacementLength = 1, source = { start: 0, length: 9 }, relative = { start: 0, length: 5 }
+            //
+            // 3. if the EvaluationStepReplacement replaces a section after the Change, the Change is not affected.
+
+            let change: Change = {
+                source: {
+                    start: replacement.startIndex,
+                    length: replacement.sourceLength
+                },
+                relative: {
+                    start: replacement.startIndex,
+                    length: replacement.sourceLength
+                },
+                replacementLength: replacement.replacementText.length
+            };
+
+            for (let j = 0; j < changes.length; j++) {
+                const prevChange = changes[j];
+
+                if (prevChange.source.start + prevChange.source.length <= change.source.start) {
+
+                    // case 1
+                    change.relative.start = change.relative.start - prevChange.relative.length + prevChange.replacementLength;
+
+                } else if (prevChange.source.start >= change.source.start && prevChange.source.start + prevChange.source.length <= change.source.start + change.source.length) {
+
+                    // case 2
+                    change.relative.length = change.relative.length - prevChange.relative.length + prevChange.replacementLength;
+
+                } else {
+
+                    // case 3 - do nothing
+
+                }
+
+            }
+
+            let replacing = lastStepText.substring(change.relative.start, change.relative.start + change.relative.length);
+
+            lastStepText = this._replaceStringSection(lastStepText, change.relative.start, change.relative.length, replacement.replacementText);
+            output += `\n\n-- step ${i + 1} --\n\n${lastStepText}`;
+
+            changes.push(change);
+        }
+
+        output += `\n\n-- result --\n\n${this.result.text}`;
+
+        return output;
+
+    }
+
 }
 
 /** An expression, what it evaluated to and a node for its child evaluable. */
@@ -235,7 +326,7 @@ export class Literal extends FormulaEvaluationTreeNode {
 
 /** A node denoting that an evaluable could not be evaluated. */
 export class CouldNotBeEvaluated extends FormulaEvaluationTreeNode {
-    
+
     public readonly evaluable: Evaluable;
 
     constructor(evaluable: Evaluable, result: KodeValue) {

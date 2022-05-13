@@ -240,6 +240,58 @@ var require_evaluation_tree = __commonJS({
         }
         replacements.push(new EvaluationStepReplacement(this.formula, this.result));
       }
+      _replaceStringSection(original, start, length, insertion) {
+        let beforeReplacement = original.substring(0, start);
+        let afterReplacement = original.substring(start + length);
+        return `${beforeReplacement}${insertion}${afterReplacement}`;
+      }
+      printEvaluationSteps() {
+        let stepReplacements = [];
+        this.addStepReplacementsTo(stepReplacements);
+        let originalText = this.formula.getSourceText();
+        let output = `-- formula text --
+
+${originalText}`;
+        let lastStepText = originalText;
+        let changes = [];
+        for (let i = 0; i < stepReplacements.length; i++) {
+          const replacement = stepReplacements[i];
+          let change = {
+            source: {
+              start: replacement.startIndex,
+              length: replacement.sourceLength
+            },
+            relative: {
+              start: replacement.startIndex,
+              length: replacement.sourceLength
+            },
+            replacementLength: replacement.replacementText.length
+          };
+          for (let j = 0; j < changes.length; j++) {
+            const prevChange = changes[j];
+            if (prevChange.source.start + prevChange.source.length <= change.source.start) {
+              change.relative.start = change.relative.start - prevChange.relative.length + prevChange.replacementLength;
+            } else if (prevChange.source.start >= change.source.start && prevChange.source.start + prevChange.source.length <= change.source.start + change.source.length) {
+              change.relative.length = change.relative.length - prevChange.relative.length + prevChange.replacementLength;
+            } else {
+            }
+          }
+          let replacing = lastStepText.substring(change.relative.start, change.relative.start + change.relative.length);
+          lastStepText = this._replaceStringSection(lastStepText, change.relative.start, change.relative.length, replacement.replacementText);
+          output += `
+
+-- step ${i + 1} --
+
+${lastStepText}`;
+          changes.push(change);
+        }
+        output += `
+
+-- result --
+
+${this.result.text}`;
+        return output;
+      }
     };
     exports.FormulaEvaluationTree = FormulaEvaluationTree4;
     var EvaluatedExpression3 = class extends FormulaEvaluationTreeNode4 {
@@ -7924,20 +7976,21 @@ var require_kodeine_parser = __commonJS({
             } catch (err) {
               if (err instanceof kodeine_js_1.KodeParsingError) {
                 this._parsingCtx.sideEffects.errors.push(err);
+                tokenBuffer.push(token);
                 if (token instanceof kodeine_js_1.DollarSignToken) {
                   state = KodeineParserState.Default;
                 } else {
                   let nextToken;
                   do {
                     nextToken = lexer.consume(1)[0];
-                    if (token) {
-                      tokenBuffer.push(token);
-                      if (token instanceof kodeine_js_1.DollarSignToken) {
+                    if (nextToken) {
+                      tokenBuffer.push(nextToken);
+                      if (nextToken instanceof kodeine_js_1.DollarSignToken) {
                         state = KodeineParserState.Default;
                         break;
                       }
                     }
-                  } while (!lexer.EOF() && token && !(token instanceof kodeine_js_1.DollarSignToken));
+                  } while (!lexer.EOF() && nextToken && !(nextToken instanceof kodeine_js_1.DollarSignToken));
                 }
                 formulaEvaluables.push(new kodeine_js_1.BrokenEvaluable(new kodeine_js_1.EvaluableSource(...tokenBuffer)));
                 tokenBuffer = [];
@@ -8169,64 +8222,40 @@ var vscode = __toESM(require("vscode"));
 var EvaluationStepsTextDocumentContentProvider = class {
   constructor() {
     this.scheme = "formulaevaluationsteps";
-    this._pathPrefix = "evaluation steps ";
+    this._path = "evaluation steps ";
     this._onDidChangeEmitter = new vscode.EventEmitter();
     this.onDidChange = this._onDidChangeEmitter.event;
-    this._evaluationTrees = /* @__PURE__ */ new Map();
-  }
-  _getTreeName(uri) {
-    return uri.path.replace(this._pathPrefix, "");
+    this._sourceUriToEvaluationTreeMap = /* @__PURE__ */ new Map();
   }
   provideTextDocumentContent(uri, token) {
-    let name = this._getTreeName(uri);
-    let evaluationTree = this._evaluationTrees.get(name);
-    if (evaluationTree) {
-      let originalText = evaluationTree.formula.getSourceText();
-      let stepReplacements = [];
-      evaluationTree.addStepReplacementsTo(stepReplacements);
-      let output = `-- formula text --
-
-${originalText}`;
-      let lastStepText = originalText;
-      for (let i = 0; i < stepReplacements.length; i++) {
-        const replacement = stepReplacements[i];
-        let startIndex = replacement.startIndex;
-        for (let j = 0; j < i; j++) {
-          const prevReplacement = stepReplacements[j];
-          if (prevReplacement.startIndex < replacement.startIndex) {
-            startIndex = startIndex - prevReplacement.sourceLength + prevReplacement.replacementText.length;
-          }
-        }
-        output += `
-
--- step ${i + 1} --
-
-${lastStepText.substring(0, startIndex)}${replacement.replacementText}${lastStepText.substring(startIndex + replacement.sourceLength)}`;
-      }
-      output += `
-
--- result --
-
-${evaluationTree.result.text}`;
-      return output;
+    var _a;
+    let sourceUriString = vscode.Uri.parse(decodeURIComponent(uri.query.split("=")[1])).toString();
+    let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
+    return (_a = evaluationTree == null ? void 0 : evaluationTree.printEvaluationSteps()) != null ? _a : "";
+  }
+  _getStepsDocumentUri(sourceUri) {
+    return vscode.Uri.parse(`${this.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+  }
+  registerSource(sourceUri, evaluationTree) {
+    if (this.isSourceRegistered(sourceUri)) {
+      this.notifyDocumentChanged(sourceUri, evaluationTree);
     } else {
-      return "";
+      this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
+      this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
+    }
+    return this._getStepsDocumentUri(sourceUri);
+  }
+  isSourceRegistered(sourceUri) {
+    return this._sourceUriToEvaluationTreeMap.has(sourceUri.toString());
+  }
+  notifyDocumentChanged(sourceUri, evaluationTree) {
+    if (this.isSourceRegistered(sourceUri)) {
+      this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
+      this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
     }
   }
-  registerEvaluationTree(evaluationTree) {
-    let index = this._evaluationTrees.entries.length;
-    while (this._evaluationTrees.has(index.toString())) {
-      index++;
-    }
-    this._evaluationTrees.set(index.toString(), evaluationTree);
-    return vscode.Uri.parse(`${this.scheme}:${this._pathPrefix}${index}`);
-  }
-  notifyChanged(uri) {
-    this._onDidChangeEmitter.fire(uri);
-  }
-  notifyDocumentClosed(uri) {
-    let name = this._getTreeName(uri);
-    this._evaluationTrees.delete(name);
+  notifyDocumentClosed(sourceUri) {
+    this._sourceUriToEvaluationTreeMap.delete(sourceUri.toString());
   }
 };
 
@@ -8333,7 +8362,7 @@ function activate(extCtx) {
   docToGlobalNameMap = /* @__PURE__ */ new Map();
   globalTreeDataProvider = new GlobalTreeDataProvider([]);
   extCtx.subscriptions.push(vscode4.window.registerTreeDataProvider("globalList", globalTreeDataProvider));
-  extCtx.subscriptions.push(vscode4.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode4.commands.registerCommand("kodeine.printEvaluationSteps", command_printEvaluationSteps), vscode4.commands.registerCommand("kodeine.addGlobal", command_addGlobal), vscode4.commands.registerCommand("kodeine.removeGlobal", command_removeGlobal), vscode4.commands.registerCommand("kodeine.clearGlobals", command_clearGlobals), vscode4.commands.registerCommand("kodeine.openGlobalDocument", command_openGlobalDocument));
+  extCtx.subscriptions.push(vscode4.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode4.commands.registerCommand("kodeine.showEvaluationSteps", command_showEvaluationSteps), vscode4.commands.registerCommand("kodeine.addGlobal", command_addGlobal), vscode4.commands.registerCommand("kodeine.removeGlobal", command_removeGlobal), vscode4.commands.registerCommand("kodeine.clearGlobals", command_clearGlobals), vscode4.commands.registerCommand("kodeine.openGlobalDocument", command_openGlobalDocument));
   extCtx.subscriptions.push(vscode4.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode4.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode4.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode4.workspace.onDidCloseTextDocument((doc) => onTextDocumentClosed(doc)));
   onSomethingDocumentRelated((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document);
 }
@@ -8384,6 +8413,7 @@ ${errorMessages.join("\n")}`);
     } else {
       outChannel.replace(result.text);
     }
+    evaluationStepsTextDocContentProvider.notifyDocumentChanged(document.uri, evalCtx.sideEffects.lastEvaluationTreeNode);
   } catch (err) {
     outChannel.replace("kodeine crashed: " + (err == null ? void 0 : err.toString()));
     lastFormula = null;
@@ -8438,14 +8468,21 @@ ${errorMessages.join("\n")}`);
 function command_formulaResult() {
   outChannel.show(true);
 }
-function command_printEvaluationSteps() {
-  let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
-  if (evaluationTree instanceof import_kodeine28.FormulaEvaluationTree) {
-    let uri = evaluationStepsTextDocContentProvider.registerEvaluationTree(evaluationTree);
-    vscode4.workspace.openTextDocument(uri).then((doc) => {
-      vscode4.languages.setTextDocumentLanguage(doc, "kode");
-      vscode4.window.showTextDocument(doc);
-    });
+function command_showEvaluationSteps() {
+  var _a;
+  if (((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode") {
+    let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
+    if (evaluationTree instanceof import_kodeine28.FormulaEvaluationTree) {
+      let uri = evaluationStepsTextDocContentProvider.registerSource(vscode4.window.activeTextEditor.document.uri, evaluationTree);
+      vscode4.workspace.openTextDocument(uri).then((doc) => {
+        vscode4.languages.setTextDocumentLanguage(doc, "kode");
+        vscode4.window.showTextDocument(doc, {
+          viewColumn: vscode4.ViewColumn.Beside,
+          preserveFocus: true,
+          preview: false
+        });
+      });
+    }
   }
 }
 function command_addGlobal() {

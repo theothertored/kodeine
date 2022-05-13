@@ -304,6 +304,8 @@ class KodeineParser {
                         // catch parsing errors thrown when parsing from current token
                         // log parsing error as a side effect
                         this._parsingCtx.sideEffects.errors.push(err);
+                        // push the token that caused the error to buffer
+                        tokenBuffer.push(token);
                         if (token instanceof kodeine_js_1.DollarSignToken) {
                             // error thrown when reading a dollar sign token
                             // switch state to default
@@ -317,17 +319,17 @@ class KodeineParser {
                             do {
                                 // consume a token
                                 nextToken = lexer.consume(1)[0];
-                                if (token) {
+                                if (nextToken) {
                                     // store in buffer
-                                    tokenBuffer.push(token);
-                                    if (token instanceof kodeine_js_1.DollarSignToken) {
+                                    tokenBuffer.push(nextToken);
+                                    if (nextToken instanceof kodeine_js_1.DollarSignToken) {
                                         // encountered a dollar sign token
                                         // switch state to default and continue parsing despite the parsing error
                                         state = KodeineParserState.Default;
                                         break;
                                     }
                                 }
-                            } while (!lexer.EOF() && token && !(token instanceof kodeine_js_1.DollarSignToken));
+                            } while (!lexer.EOF() && nextToken && !(nextToken instanceof kodeine_js_1.DollarSignToken));
                         }
                         // encountered either a dollar sign token or formula ended
                         // add a broken evaluable to the formula - it will print an empty string
