@@ -3,7 +3,7 @@ export declare class EvaluationStepReplacement {
     readonly startIndex: number;
     readonly sourceLength: number;
     readonly replacementText: string;
-    constructor(evaluable: Evaluable, result: KodeValue);
+    constructor(evaluable: Evaluable, result: KodeValue | string);
 }
 /** Base class for all evaluation tree nodes. */
 export declare abstract class FormulaEvaluationTreeNode {

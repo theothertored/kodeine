@@ -321,7 +321,10 @@ function command_formulaResult() {
 
 function command_showEvaluationSteps() {
 
-    if (vscode.window.activeTextEditor?.document.languageId === 'kode') {
+    if (
+        vscode.window.activeTextEditor?.document.languageId === 'kode' 
+        && vscode.window.activeTextEditor.document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme
+    ) {
 
         let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
 

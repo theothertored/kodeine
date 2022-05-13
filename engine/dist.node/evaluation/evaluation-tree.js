@@ -21,7 +21,10 @@ class EvaluationStepReplacement {
     constructor(evaluable, result) {
         this.startIndex = evaluable.source.getStartIndex();
         this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
-        this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        if (result instanceof kodeine_js_1.KodeValue)
+            this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        else
+            this.replacementText = result;
     }
 }
 exports.EvaluationStepReplacement = EvaluationStepReplacement;
@@ -47,7 +50,7 @@ class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
         for (const part of this.parts) {
             part.addStepReplacementsTo(replacements);
         }
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
     }
     _replaceStringSection(original, start, length, insertion) {
         let beforeReplacement = original.substring(0, start);
@@ -127,7 +130,11 @@ class EvaluatedExpression extends FormulaEvaluationTreeNode {
     }
     addStepReplacementsTo(replacements) {
         this.child.addStepReplacementsTo(replacements);
-        replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        // don't add evaluable part root expressions to steps since they look weird
+        // yea it's a janky solution but it works
+        if (!(this.expression.source.tokens[0] instanceof kodeine_js_1.DollarSignToken)) {
+            replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        }
     }
 }
 exports.EvaluatedExpression = EvaluatedExpression;

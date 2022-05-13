@@ -6,7 +6,8 @@ import {
     UnaryOperation,
     Formula,
     Evaluable,
-    Expression
+    Expression,
+    DollarSignToken
 } from "../kodeine.js";
 
 // the evaluation tree is a structure representing a single evaluation run.
@@ -33,10 +34,14 @@ export class EvaluationStepReplacement {
     public readonly sourceLength: number;
     public readonly replacementText: string;
 
-    constructor(evaluable: Evaluable, result: KodeValue) {
+    constructor(evaluable: Evaluable, result: KodeValue | string) {
         this.startIndex = evaluable.source!.getStartIndex();
         this.sourceLength = evaluable.source!.getEndIndex() - this.startIndex;
-        this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+
+        if (result instanceof KodeValue)
+            this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        else
+            this.replacementText = result;
     }
 
 }
@@ -85,7 +90,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
             part.addStepReplacementsTo(replacements);
         }
 
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
 
     }
 
@@ -200,7 +205,12 @@ export class EvaluatedExpression extends FormulaEvaluationTreeNode {
 
     addStepReplacementsTo(replacements: EvaluationStepReplacement[]): void {
         this.child.addStepReplacementsTo(replacements);
-        replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+
+        // don't add evaluable part root expressions to steps since they look weird
+        // yea it's a janky solution but it works
+        if (!(this.expression.source!.tokens[0] instanceof DollarSignToken)) {
+            replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-import { KodeFunctionWithModes } from "../kodeine.js";
+import { KodeFunctionWithModes, KodeValue, DollarSignToken } from "../kodeine.js";
 // the evaluation tree is a structure representing a single evaluation run.
 // the leaves of the tree are literals, and every node is an object containing an evaluable and its evaluation result.
 // example formula:
@@ -18,7 +18,10 @@ export class EvaluationStepReplacement {
     constructor(evaluable, result) {
         this.startIndex = evaluable.source.getStartIndex();
         this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
-        this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        if (result instanceof KodeValue)
+            this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        else
+            this.replacementText = result;
     }
 }
 /** Base class for all evaluation tree nodes. */
@@ -42,7 +45,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
         for (const part of this.parts) {
             part.addStepReplacementsTo(replacements);
         }
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
     }
     _replaceStringSection(original, start, length, insertion) {
         let beforeReplacement = original.substring(0, start);
@@ -121,7 +124,11 @@ export class EvaluatedExpression extends FormulaEvaluationTreeNode {
     }
     addStepReplacementsTo(replacements) {
         this.child.addStepReplacementsTo(replacements);
-        replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        // don't add evaluable part root expressions to steps since they look weird
+        // yea it's a janky solution but it works
+        if (!(this.expression.source.tokens[0] instanceof DollarSignToken)) {
+            replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        }
     }
 }
 /** A function call, what it evaluated to and nodes for its arguments. */

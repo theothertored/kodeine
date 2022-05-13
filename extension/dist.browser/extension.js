@@ -189,7 +189,8 @@ function command_formulaResult() {
     outChannel.show(true);
 }
 function command_showEvaluationSteps() {
-    if (vscode.window.activeTextEditor?.document.languageId === 'kode') {
+    if (vscode.window.activeTextEditor?.document.languageId === 'kode'
+        && vscode.window.activeTextEditor.document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme) {
         let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
         if (evaluationTree instanceof kodeine_js_1.FormulaEvaluationTree) {
             let uri = evaluationStepsTextDocContentProvider.registerSource(vscode.window.activeTextEditor.document.uri, evaluationTree);

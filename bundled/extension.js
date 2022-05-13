@@ -215,7 +215,10 @@ var require_evaluation_tree = __commonJS({
       constructor(evaluable, result) {
         this.startIndex = evaluable.source.getStartIndex();
         this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
-        this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        if (result instanceof kodeine_js_1.KodeValue)
+          this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+        else
+          this.replacementText = result;
       }
     };
     exports.EvaluationStepReplacement = EvaluationStepReplacement;
@@ -238,7 +241,7 @@ var require_evaluation_tree = __commonJS({
         for (const part of this.parts) {
           part.addStepReplacementsTo(replacements);
         }
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
       }
       _replaceStringSection(original, start, length, insertion) {
         let beforeReplacement = original.substring(0, start);
@@ -305,7 +308,9 @@ ${this.result.text}`;
       }
       addStepReplacementsTo(replacements) {
         this.child.addStepReplacementsTo(replacements);
-        replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        if (!(this.expression.source.tokens[0] instanceof kodeine_js_1.DollarSignToken)) {
+          replacements.push(new EvaluationStepReplacement(this.expression, this.result));
+        }
       }
     };
     exports.EvaluatedExpression = EvaluatedExpression3;
@@ -455,7 +460,7 @@ var require_kode_value = __commonJS({
     exports.KodeValue = void 0;
     var kodeine_js_1 = require_kodeine();
     var evaluation_tree_js_1 = require_evaluation_tree();
-    var KodeValue7 = class extends kodeine_js_1.Evaluable {
+    var KodeValue6 = class extends kodeine_js_1.Evaluable {
       constructor(value, source) {
         super(source);
         if (typeof value === "boolean") {
@@ -502,10 +507,10 @@ var require_kode_value = __commonJS({
           return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
       }
       static fromToken(token) {
-        return new KodeValue7(token.getValue(), new kodeine_js_1.EvaluableSource(token));
+        return new KodeValue6(token.getValue(), new kodeine_js_1.EvaluableSource(token));
       }
     };
-    exports.KodeValue = KodeValue7;
+    exports.KodeValue = KodeValue6;
   }
 });
 
@@ -8470,7 +8475,7 @@ function command_formulaResult() {
 }
 function command_showEvaluationSteps() {
   var _a;
-  if (((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode") {
+  if (((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode" && vscode4.window.activeTextEditor.document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme) {
     let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
     if (evaluationTree instanceof import_kodeine28.FormulaEvaluationTree) {
       let uri = evaluationStepsTextDocContentProvider.registerSource(vscode4.window.activeTextEditor.document.uri, evaluationTree);
