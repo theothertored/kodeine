@@ -65,9 +65,20 @@ function onSomethingDocumentRelated(document) {
     }
 }
 function onTextDocumentClosed(document) {
-    if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme
-        && document.languageId === 'kode') {
-        evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+    if (document.languageId === 'kode') {
+        if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+            // an evaluation steps document was closed, we can release the evaluation tree & steps
+            evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+        }
+        else if (docToGlobalNameMap.has(document) && document.isUntitled) {
+            // an untitled document backing a global was closed, delete the global and inform the user
+            let globalName = docToGlobalNameMap.get(document);
+            removeGlobal(globalName, document);
+            vscode.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
+                detail: `The untitled document gv(${globalName}) was linked to was closed.`,
+                modal: true
+            });
+        }
     }
 }
 /** Evaluates a given kode document to the formula result output channel. */
@@ -208,6 +219,10 @@ function command_showEvaluationSteps() {
 }
 // #region global handling
 function command_addGlobal() {
+    if (vscode.window.activeTextEditor?.document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+        // can't add a global from evaluation steps
+        return;
+    }
     vscode.window.showInputBox({
         title: 'Name the global',
         prompt: 'Remember that Kustom limits this name to 8 characters.',
@@ -281,7 +296,7 @@ function command_clearGlobals() {
     refreshGlobalList();
 }
 function command_openGlobalDocument(document) {
-    vscode.window.showTextDocument(document);
+    vscode.window.showTextDocument(document.uri);
 }
 function refreshGlobalList() {
     globalTreeDataProvider.notifyGlobalsChanged(Array.from(docToGlobalNameMap).map(e => ({

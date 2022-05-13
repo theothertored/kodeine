@@ -1,16 +1,18 @@
 TODO:
-- find a way to react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
 - clean up extension code by introducing a GlobalManager class instead of functions in extension.ts
-- persist text globals on vscode exit
-- handle clicking on globals linked to non-existent files
 - implement df()
 - implement tf()
-- design an eval ctx editor
+- design an eval ctx editor to prepare for more function implementations
 
 MAYBE IN THE FUTURE:
+- find a way to not remove a global when an untitled file gets saved
+- persist text globals on vscode exit
 - show evaluation steps when active editor changes and it is opened beside
+- react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
 
 DONE:
+- handle clicking on globals linked to non-existent files
+- prevent user from adding a global backed by evaluation steps
 - prevent user from opening evaluation steps for evaluation steps
 - don't insert unnecessary quotation marks when an evaluated part is turned into a plain text part
 - replace in previous step with evaluated value of next step

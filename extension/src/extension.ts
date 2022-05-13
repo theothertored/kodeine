@@ -122,11 +122,25 @@ function onSomethingDocumentRelated(document?: vscode.TextDocument) {
 
 function onTextDocumentClosed(document: vscode.TextDocument) {
 
-    if (
-        document.uri.scheme === evaluationStepsTextDocContentProvider.scheme
-        && document.languageId === 'kode'
-    ) {
-        evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+    if (document.languageId === 'kode') {
+
+        if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+
+            // an evaluation steps document was closed, we can release the evaluation tree & steps
+            evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+
+        } else if (docToGlobalNameMap.has(document) && document.isUntitled) {
+
+            // an untitled document backing a global was closed, delete the global and inform the user
+            let globalName = docToGlobalNameMap.get(document)!;
+            removeGlobal(globalName, document);
+
+            vscode.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
+                detail: `The untitled document gv(${globalName}) was linked to was closed.`,
+                modal: true
+            });
+
+        }
     }
 
 }
@@ -322,7 +336,7 @@ function command_formulaResult() {
 function command_showEvaluationSteps() {
 
     if (
-        vscode.window.activeTextEditor?.document.languageId === 'kode' 
+        vscode.window.activeTextEditor?.document.languageId === 'kode'
         && vscode.window.activeTextEditor.document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme
     ) {
 
@@ -352,6 +366,11 @@ function command_showEvaluationSteps() {
 
 
 function command_addGlobal() {
+
+    if (vscode.window.activeTextEditor?.document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+        // can't add a global from evaluation steps
+        return;
+    }
 
     vscode.window.showInputBox({
 
@@ -465,7 +484,7 @@ function command_clearGlobals() {
 
 
 function command_openGlobalDocument(document: vscode.TextDocument) {
-    vscode.window.showTextDocument(document);
+    vscode.window.showTextDocument(document.uri);
 }
 
 

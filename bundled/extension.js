@@ -8377,8 +8377,17 @@ function onSomethingDocumentRelated(document) {
   }
 }
 function onTextDocumentClosed(document) {
-  if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme && document.languageId === "kode") {
-    evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+  if (document.languageId === "kode") {
+    if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+      evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+    } else if (docToGlobalNameMap.has(document) && document.isUntitled) {
+      let globalName = docToGlobalNameMap.get(document);
+      removeGlobal(globalName, document);
+      vscode4.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
+        detail: `The untitled document gv(${globalName}) was linked to was closed.`,
+        modal: true
+      });
+    }
   }
 }
 function evaluateToOutput(document) {
@@ -8491,6 +8500,10 @@ function command_showEvaluationSteps() {
   }
 }
 function command_addGlobal() {
+  var _a;
+  if (((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document.uri.scheme) === evaluationStepsTextDocContentProvider.scheme) {
+    return;
+  }
   vscode4.window.showInputBox({
     title: "Name the global",
     prompt: "Remember that Kustom limits this name to 8 characters.",
@@ -8543,7 +8556,7 @@ function command_clearGlobals() {
   refreshGlobalList();
 }
 function command_openGlobalDocument(document) {
-  vscode4.window.showTextDocument(document);
+  vscode4.window.showTextDocument(document.uri);
 }
 function refreshGlobalList() {
   globalTreeDataProvider.notifyGlobalsChanged(Array.from(docToGlobalNameMap).map((e) => ({
