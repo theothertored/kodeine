@@ -14,6 +14,13 @@ import { KodeFunctionWithModes } from "../kodeine.js";
 // -  -  -  -  Literal "4"
 // -  -  -  Literal "true"
 // -  -  -  Literal "false"
+export class EvaluationStepReplacement {
+    constructor(evaluable, result) {
+        this.startIndex = evaluable.source.getStartIndex();
+        this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
+        this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+    }
+}
 /** Base class for all evaluation tree nodes. */
 export class FormulaEvaluationTreeNode {
     /** Constructs a {@link FormulaEvaluationTreeNode} with a given result. */
@@ -31,15 +38,26 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
     getDescription() {
         return 'formula';
     }
+    addStepReplacementsTo(replacements) {
+        for (const part of this.parts) {
+            part.addStepReplacementsTo(replacements);
+        }
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result));
+    }
 }
 /** An expression, what it evaluated to and a node for its child evaluable. */
 export class EvaluatedExpression extends FormulaEvaluationTreeNode {
-    constructor(child, result) {
+    constructor(expression, child, result) {
         super(result);
+        this.expression = expression;
         this.child = child;
     }
     getDescription() {
         return 'expression';
+    }
+    addStepReplacementsTo(replacements) {
+        this.child.addStepReplacementsTo(replacements);
+        replacements.push(new EvaluationStepReplacement(this.expression, this.result));
     }
 }
 /** A function call, what it evaluated to and nodes for its arguments. */
@@ -58,6 +76,10 @@ export class EvaluatedFunctionCall extends FormulaEvaluationTreeNode {
             return `${this.call.func.getName()}() call`;
         }
     }
+    addStepReplacementsTo(replacements) {
+        this.args.forEach(a => a.addStepReplacementsTo(replacements));
+        replacements.push(new EvaluationStepReplacement(this.call, this.result));
+    }
 }
 /** A binary operation, what it evaluated to and nodes for its arguments. */
 export class EvaluatedBinaryOperation extends FormulaEvaluationTreeNode {
@@ -70,6 +92,11 @@ export class EvaluatedBinaryOperation extends FormulaEvaluationTreeNode {
     getDescription() {
         return `${this.operation.operator.getSymbol()} operator`;
     }
+    addStepReplacementsTo(replacements) {
+        this.argA.addStepReplacementsTo(replacements);
+        this.argB.addStepReplacementsTo(replacements);
+        replacements.push(new EvaluationStepReplacement(this.operation, this.result));
+    }
 }
 /** A unary operation, what it evaluated to and a node for its argument. */
 export class EvaluatedUnaryOperation extends FormulaEvaluationTreeNode {
@@ -81,6 +108,10 @@ export class EvaluatedUnaryOperation extends FormulaEvaluationTreeNode {
     getDescription() {
         return `${this.operation.operator.getSymbol()} operator`;
     }
+    addStepReplacementsTo(replacements) {
+        this.arg.addStepReplacementsTo(replacements);
+        replacements.push(new EvaluationStepReplacement(this.operation, this.result));
+    }
 }
 /** A node denoting that a replacement took place (for example `i` being replaced with a value in `fl()`). */
 export class LiteralReplacement extends FormulaEvaluationTreeNode {
@@ -91,6 +122,9 @@ export class LiteralReplacement extends FormulaEvaluationTreeNode {
     getDescription() {
         return `value replacement`;
     }
+    addStepReplacementsTo(replacements) {
+        replacements.push(new EvaluationStepReplacement(this.sourceLiteral.result, this.result));
+    }
 }
 /** A leaf node denoting a literal value that didn't need to be evaluated. */
 export class Literal extends FormulaEvaluationTreeNode {
@@ -100,14 +134,21 @@ export class Literal extends FormulaEvaluationTreeNode {
     getDescription() {
         return this.result.isNumeric ? 'numeric value' : 'value';
     }
+    addStepReplacementsTo(replacements) {
+        // literals don't replace anything    
+    }
 }
 /** A node denoting that an evaluable could not be evaluated. */
 export class CouldNotBeEvaluated extends FormulaEvaluationTreeNode {
-    constructor(result) {
+    constructor(evaluable, result) {
         super(result);
+        this.evaluable = evaluable;
     }
     getDescription() {
         return `evaluation failed`;
+    }
+    addStepReplacementsTo(replacements) {
+        replacements.push(new EvaluationStepReplacement(this.evaluable, this.result));
     }
 }
 //# sourceMappingURL=evaluation-tree.js.map

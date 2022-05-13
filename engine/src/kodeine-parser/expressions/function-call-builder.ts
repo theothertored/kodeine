@@ -1,3 +1,4 @@
+import { WhitespaceToken } from "engine/src/kodeine-lexer/formula-tokens.js";
 import {
     Evaluable, EvaluableSource,
     FormulaToken,
@@ -60,6 +61,10 @@ export class FunctionCallBuilder extends IExpressionBuilder {
         this._currentArgumentBuilder.addOperator(token);
     }
 
+    addWhitespace(token: WhitespaceToken): void {
+        this._innerTokens.push(token);
+        this._currentArgumentBuilder.addWhitespace(token);
+    }
 
     /** 
      * Builds the current argument and prepares for the next one.

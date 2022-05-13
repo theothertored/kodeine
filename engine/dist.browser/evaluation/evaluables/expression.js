@@ -22,7 +22,7 @@ export class Expression extends Evaluable {
     evaluate(evalCtx) {
         let result = this.evaluable.evaluate(evalCtx);
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedExpression(evalCtx.sideEffects.lastEvaluationTreeNode, result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedExpression(this, evalCtx.sideEffects.lastEvaluationTreeNode, result);
         }
         return result;
     }

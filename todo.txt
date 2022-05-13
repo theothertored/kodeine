@@ -1,5 +1,5 @@
 TODO:
-- command to print evaluation steps (probably to virtual document)
+- find a way to react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
 - clean up extension code by introducing a GlobalManager class instead of functions in extension.ts
 - persist text globals on vscode exit
 - handle clicking on globals linked to non-existent files
@@ -11,6 +11,8 @@ MAYBE IN THE FUTURE:
 - ...
 
 DONE:
+- command to print evaluation steps (probably to virtual document)
+- properly add whitespace tokens to evaluable sources
 - write doc comments for the evaluation tree
 - consider applying the internal module pattern to deal with circular dependencies in a cleaner fashion (https://medium.com/visual-development/how-to-fix-nasty-circular-dependency-issues-once-and-for-all-in-javascript-typescript-a04c987cf0de)
 - generate static evaluation tree with results for each step as a side effect of the evaluation

@@ -1,3 +1,4 @@
+import { WhitespaceToken } from "engine/src/kodeine-lexer/formula-tokens.js";
 import { Evaluable, FormulaToken, OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine.js";
 /** Represents an expression builder that can be fed tokens and builds an evaluable. */
 export declare abstract class IExpressionBuilder {
@@ -21,6 +22,11 @@ export declare abstract class IExpressionBuilder {
      * @throws {KodeSyntaxError} Unrecognized operator.
      */
     abstract addOperator(token: OperatorToken): void;
+    /**
+     * Adds a whitespace token to the expression.
+     * @param token The whitespace token to be added to the expression's source.
+     */
+    abstract addWhitespace(token: WhitespaceToken): void;
     /**
      * Builds the expression.
      */

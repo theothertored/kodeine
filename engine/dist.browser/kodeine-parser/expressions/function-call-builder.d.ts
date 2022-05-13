@@ -1,3 +1,4 @@
+import { WhitespaceToken } from "engine/src/kodeine-lexer/formula-tokens.js";
 import { Evaluable, FormulaToken, CommaToken, ParsingContext, FunctionOccurence, IExpressionBuilder, OperatorToken, QuotedValueToken, UnquotedValueToken } from "../../kodeine.js";
 /** Parsing helper class that can be fed tokens and then builds a {@link FunctionCall} evaluable. */
 export declare class FunctionCallBuilder extends IExpressionBuilder {
@@ -20,6 +21,7 @@ export declare class FunctionCallBuilder extends IExpressionBuilder {
     addEvaluable(evaluable: Evaluable): void;
     addValue(token: (QuotedValueToken | UnquotedValueToken)): void;
     addOperator(token: OperatorToken): void;
+    addWhitespace(token: WhitespaceToken): void;
     /**
      * Builds the current argument and prepares for the next one.
      * @param comma The comma token that ended the current argument.

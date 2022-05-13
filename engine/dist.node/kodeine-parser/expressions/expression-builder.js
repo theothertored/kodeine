@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExpressionBuilder = void 0;
+const formula_tokens_js_1 = require("engine/src/kodeine-lexer/formula-tokens.js");
 const kodeine_js_1 = require("../../kodeine.js");
 /** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
-class ExpressionBuilder {
+class ExpressionBuilder extends kodeine_js_1.IExpressionBuilder {
     /**
      * Constructs an expression builder with a given parsing context.
      * @param parsingCtx The parsing context for this expression builder.
@@ -11,11 +12,13 @@ class ExpressionBuilder {
      * @param startingTokens The token or tokens that started the built expression.
      */
     constructor(parsingCtx, includeSurroundingTokens, ...startingTokens) {
+        super();
         /** Elements of the built expression. Expressions consist of evaluables and operators. */
         this._elements = [];
         this._parsingCtx = parsingCtx;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
+        this._innerTokens = [];
     }
     /** Returns the current last element of {@link _elements}. */
     _getLastElement() {
@@ -44,6 +47,8 @@ class ExpressionBuilder {
         }
         // create kode value and add as element
         this._elements.push(kodeine_js_1.KodeValue.fromToken(token));
+        // add token to inner tokens
+        this._innerTokens.push(token);
     }
     addEvaluable(evaluable) {
         // check the current last element
@@ -54,6 +59,8 @@ class ExpressionBuilder {
             throw new kodeine_js_1.KodeSyntaxError(evaluable.source.tokens[0], 'A value cannot follow another value.');
         }
         this._elements.push(evaluable);
+        // add evaluable source tokens to inner tokens
+        this._innerTokens.push(...evaluable.source.tokens);
     }
     addOperator(token) {
         let lastElement = this._getLastElement();
@@ -86,7 +93,14 @@ class ExpressionBuilder {
             let binaryOperator = this._parsingCtx.findBinaryOperator(token.getSymbol());
             if (binaryOperator) {
                 // found the binary operator
-                this._elements.push(new kodeine_js_1.BinaryOperatorOccurence(binaryOperator, token));
+                let binaryOperatorOccurence = new kodeine_js_1.BinaryOperatorOccurence(binaryOperator, token);
+                // find whitespace tokens between previous value token and this operator
+                let i = this._innerTokens.length - 1;
+                while (this._innerTokens[i] instanceof formula_tokens_js_1.WhitespaceToken) {
+                    binaryOperatorOccurence.precedingWhitespaceTokens.unshift(this._innerTokens[i]);
+                    i--;
+                }
+                this._elements.push(binaryOperatorOccurence);
             }
             else {
                 // binary operator not found
@@ -101,6 +115,16 @@ class ExpressionBuilder {
                 }
             }
         }
+        // add token to inner tokens
+        this._innerTokens.push(token);
+    }
+    addWhitespace(token) {
+        let lastElement = this._elements[this._elements.length - 1];
+        if (lastElement instanceof kodeine_js_1.UnaryOperatorOccurence || lastElement instanceof kodeine_js_1.BinaryOperatorOccurence) {
+            lastElement.followingWhitespaceTokens.push(token);
+        }
+        // add token to inner tokens
+        this._innerTokens.push(token);
     }
     /** Returns whether this expression has any elements. */
     getIsEmpty() {
@@ -153,7 +177,7 @@ class ExpressionBuilder {
                                     let unaryOpOccurence = unaryOpStack.pop();
                                     evaluable = new kodeine_js_1.UnaryOperation(unaryOpOccurence.operator, evaluable, 
                                     // TODO: make this not crash when the evaluable has no source 
-                                    new kodeine_js_1.EvaluableSource(unaryOpOccurence.token, ...evaluable.source.tokens));
+                                    new kodeine_js_1.EvaluableSource(unaryOpOccurence.token, ...unaryOpOccurence.followingWhitespaceTokens, ...evaluable.source.tokens));
                                 }
                                 // replace array elements from first unary operator to last + 1, meaning replace the value too
                                 this._elements.splice(firstElI, unaryOpCount + 1, evaluable);
@@ -202,7 +226,7 @@ class ExpressionBuilder {
                             let b = this._elements[maxPrecedenceI + 1];
                             let operation = new kodeine_js_1.BinaryOperation(opOccurence.operator, a, b, 
                             // TODO: make this not crash when the evaluables have no sources
-                            new kodeine_js_1.EvaluableSource(...a.source.tokens, opOccurence.token, ...b.source.tokens));
+                            new kodeine_js_1.EvaluableSource(...a.source.tokens, ...opOccurence.precedingWhitespaceTokens, opOccurence.token, ...opOccurence.followingWhitespaceTokens, ...b.source.tokens));
                             this._elements.splice(maxPrecedenceI - 1, 3, operation);
                             // reset i like this collapse never happened
                             i = maxPrecedenceI - 1;
@@ -219,7 +243,7 @@ class ExpressionBuilder {
                     // build it with surrounding tokens
                     return new kodeine_js_1.Expression(finalElement, 
                     // TODO: make this not crash when the evaluable has no source
-                    new kodeine_js_1.EvaluableSource(...this._startingTokens, ...finalElement.source.tokens, closingToken));
+                    new kodeine_js_1.EvaluableSource(...this._startingTokens, ...this._innerTokens, closingToken));
                 }
                 else {
                     // we are not including surrounding tokens, which means we don't need an expression object

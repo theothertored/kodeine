@@ -288,7 +288,7 @@ class KodeineParser {
                     }
                     else if (token instanceof kodeine_js_1.WhitespaceToken) {
                         // do nothing with whitespace, but don't throw UnrecognizedTokenError
-                        // TODO: put whitespace tokens in evaluable sources?
+                        peekLastExprBuilder().addWhitespace(token);
                     }
                     else {
                         // forgot to implement something, or the lexer produced an unexpected token

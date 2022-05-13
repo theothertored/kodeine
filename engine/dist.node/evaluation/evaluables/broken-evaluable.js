@@ -9,7 +9,7 @@ class BrokenEvaluable extends kodeine_js_1.Evaluable {
     evaluate(evalCtx) {
         let result = new kodeine_js_1.KodeValue('', this.source);
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.CouldNotBeEvaluated(result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.CouldNotBeEvaluated(this, result);
         }
         return result;
     }

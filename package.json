@@ -67,6 +67,10 @@
                 "title": "Show formula result window"
             },
             {
+                "command": "kodeine.printEvaluationSteps",
+                "title": "Print formula evaluation steps"
+            },
+            {
                 "command": "kodeine.addGlobal",
                 "title": "Add a text global from active document",
                 "icon": "$(plus)"
@@ -86,6 +90,10 @@
             "commandPalette": [
                 {
                     "command": "kodeine.formulaResult",
+                    "when": "editorLangId == kode"
+                },
+                {
+                    "command": "kodeine.printEvaluationSteps",
                     "when": "editorLangId == kode"
                 },
                 {
@@ -143,7 +151,7 @@
     "scripts": {
         "vscode:prepublish": "npm run esbuild-base -- --minify",
         "esbuild-base": "esbuild ./extension/src/extension.ts --bundle --outfile=./bundled/extension.js --external:vscode --format=cjs --platform=node",
-        "esbuild": "npm run esbuild-base -- --sourcemap & tsc -b"
+        "esbuild": "tsc -b && npm run esbuild-base -- --sourcemap"
     },
     "devDependencies": {
         "esbuild": "^0.14.38"

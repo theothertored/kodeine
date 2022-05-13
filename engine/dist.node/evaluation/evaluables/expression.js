@@ -25,7 +25,7 @@ class Expression extends kodeine_js_1.Evaluable {
     evaluate(evalCtx) {
         let result = this.evaluable.evaluate(evalCtx);
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedExpression(evalCtx.sideEffects.lastEvaluationTreeNode, result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.EvaluatedExpression(this, evalCtx.sideEffects.lastEvaluationTreeNode, result);
         }
         return result;
     }

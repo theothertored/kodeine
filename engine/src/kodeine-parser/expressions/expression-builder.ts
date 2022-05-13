@@ -1,3 +1,4 @@
+import { WhitespaceToken } from "engine/src/kodeine-lexer/formula-tokens.js";
 import {
     Evaluable,
     EvaluableSource,
@@ -11,11 +12,12 @@ import {
     ParsingContext,
     UnaryOperatorOccurence,
     QuotedValueToken, UnquotedValueToken,
-    BinaryOperatorOccurence
+    BinaryOperatorOccurence,
+    IExpressionBuilder
 } from "../../kodeine.js";
 
 /** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
-export class ExpressionBuilder {
+export class ExpressionBuilder extends IExpressionBuilder {
 
     /** The parsing context. Contains information on what functions and operators exist and ties their names/symbols to implementations. */
     protected readonly _parsingCtx: ParsingContext;
@@ -29,6 +31,8 @@ export class ExpressionBuilder {
     /** The token or tokens that started this expression (opening parenthesis, dollar sign, function name + opening parenthesis etc.). */
     protected readonly _startingTokens: FormulaToken[];
 
+    protected readonly _innerTokens: FormulaToken[];
+
     /**
      * Constructs an expression builder with a given parsing context.
      * @param parsingCtx The parsing context for this expression builder.
@@ -36,9 +40,11 @@ export class ExpressionBuilder {
      * @param startingTokens The token or tokens that started the built expression.
      */
     constructor(parsingCtx: ParsingContext, includeSurroundingTokens: boolean, ...startingTokens: FormulaToken[]) {
+        super();
         this._parsingCtx = parsingCtx;
         this._includeSurroundingTokens = includeSurroundingTokens;
         this._startingTokens = startingTokens;
+        this._innerTokens = [];
     }
 
     /** Elements of the built expression. Expressions consist of evaluables and operators. */
@@ -91,6 +97,10 @@ export class ExpressionBuilder {
 
         // create kode value and add as element
         this._elements.push(KodeValue.fromToken(token));
+
+        // add token to inner tokens
+        this._innerTokens.push(token);
+
     }
 
     addEvaluable(evaluable: Evaluable) {
@@ -106,6 +116,9 @@ export class ExpressionBuilder {
         }
 
         this._elements.push(evaluable);
+
+        // add evaluable source tokens to inner tokens
+        this._innerTokens.push(...evaluable.source!.tokens);
 
     }
 
@@ -156,7 +169,16 @@ export class ExpressionBuilder {
             if (binaryOperator) {
 
                 // found the binary operator
-                this._elements.push(new BinaryOperatorOccurence(binaryOperator, token));
+                let binaryOperatorOccurence = new BinaryOperatorOccurence(binaryOperator, token);
+
+                // find whitespace tokens between previous value token and this operator
+                let i = this._innerTokens.length - 1;
+                while (this._innerTokens[i] instanceof WhitespaceToken) {
+                    binaryOperatorOccurence.precedingWhitespaceTokens.unshift(this._innerTokens[i] as WhitespaceToken);
+                    i--;
+                }
+
+                this._elements.push(binaryOperatorOccurence);
 
             } else {
 
@@ -178,6 +200,25 @@ export class ExpressionBuilder {
             }
 
         }
+
+        // add token to inner tokens
+        this._innerTokens.push(token);
+
+    }
+
+    addWhitespace(token: WhitespaceToken): void {
+
+        let lastElement = this._elements[this._elements.length - 1];
+
+        if (lastElement instanceof UnaryOperatorOccurence || lastElement instanceof BinaryOperatorOccurence) {
+
+            lastElement.followingWhitespaceTokens.push(token);
+
+        }
+
+        // add token to inner tokens
+        this._innerTokens.push(token);
+
     }
 
     /** Returns whether this expression has any elements. */
@@ -253,7 +294,7 @@ export class ExpressionBuilder {
                                     evaluable = new UnaryOperation(
                                         unaryOpOccurence.operator, evaluable,
                                         // TODO: make this not crash when the evaluable has no source 
-                                        new EvaluableSource(unaryOpOccurence.token, ...evaluable.source!.tokens)
+                                        new EvaluableSource(unaryOpOccurence.token, ...unaryOpOccurence.followingWhitespaceTokens, ...evaluable.source!.tokens)
                                     );
 
                                 }
@@ -335,7 +376,13 @@ export class ExpressionBuilder {
                                 a,
                                 b,
                                 // TODO: make this not crash when the evaluables have no sources
-                                new EvaluableSource(...a.source!.tokens, opOccurence.token, ...b.source!.tokens)
+                                new EvaluableSource(
+                                    ...a.source!.tokens,
+                                    ...opOccurence.precedingWhitespaceTokens,
+                                    opOccurence.token,
+                                    ...opOccurence.followingWhitespaceTokens,
+                                    ...b.source!.tokens
+                                )
                             );
 
                             this._elements.splice(maxPrecedenceI - 1, 3, operation);
@@ -363,7 +410,7 @@ export class ExpressionBuilder {
                     return new Expression(
                         finalElement,
                         // TODO: make this not crash when the evaluable has no source
-                        new EvaluableSource(...this._startingTokens, ...finalElement.source!.tokens, closingToken)
+                        new EvaluableSource(...this._startingTokens, ...this._innerTokens, closingToken)
                     );
 
                 } else {

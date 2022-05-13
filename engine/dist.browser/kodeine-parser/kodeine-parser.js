@@ -285,7 +285,7 @@ export class KodeineParser {
                     }
                     else if (token instanceof WhitespaceToken) {
                         // do nothing with whitespace, but don't throw UnrecognizedTokenError
-                        // TODO: put whitespace tokens in evaluable sources?
+                        peekLastExprBuilder().addWhitespace(token);
                     }
                     else {
                         // forgot to implement something, or the lexer produced an unexpected token

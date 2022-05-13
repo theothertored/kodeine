@@ -8,7 +8,7 @@ class Evaluable {
         this.source = source;
     }
     getSourceText() {
-        return this.source?.tokens.map(t => t.getSourceText()).toString();
+        return this.source.tokens.map(t => t.getSourceText()).join('');
     }
 }
 exports.Evaluable = Evaluable;

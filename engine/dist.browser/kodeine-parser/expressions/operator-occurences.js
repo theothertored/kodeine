@@ -10,6 +10,7 @@ export class UnaryOperatorOccurence extends OperatorOccurence {
     constructor(operator, token) {
         super(token);
         this.operator = operator;
+        this.followingWhitespaceTokens = [];
     }
 }
 /** Represents a binary operator in an expression. */
@@ -18,6 +19,8 @@ export class BinaryOperatorOccurence extends OperatorOccurence {
     constructor(operator, token) {
         super(token);
         this.operator = operator;
+        this.precedingWhitespaceTokens = [];
+        this.followingWhitespaceTokens = [];
     }
 }
 //# sourceMappingURL=operator-occurences.js.map

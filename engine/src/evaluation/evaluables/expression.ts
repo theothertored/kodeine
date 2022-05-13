@@ -38,7 +38,7 @@ export class Expression extends Evaluable {
         if (evalCtx.buildEvaluationTree) {
 
             evalCtx.sideEffects.lastEvaluationTreeNode = new EvaluatedExpression(
-                evalCtx.sideEffects.lastEvaluationTreeNode!, result
+                this, evalCtx.sideEffects.lastEvaluationTreeNode!, result
             );
 
         }

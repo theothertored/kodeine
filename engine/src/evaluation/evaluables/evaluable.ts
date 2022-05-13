@@ -22,7 +22,7 @@ export abstract class Evaluable {
     abstract evaluate(evalCtx: EvaluationContext): KodeValue;
 
     getSourceText() {
-        return this.source?.tokens.map(t => t.getSourceText()).toString();
+        return this.source!.tokens.map(t => t.getSourceText()).join('');
     }
 
 }

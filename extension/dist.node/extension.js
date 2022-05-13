@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = void 0;
 const vscode = require("vscode");
 const kodeine_js_1 = require("../../engine/dist.node/kodeine.js");
+const evaluation_steps_text_document_content_provider_js_1 = require("./evaluation-steps-text-document-content-provider.js");
 const evaluation_tree_data_provider_js_1 = require("./evaluation-tree-data-provider.js");
 const global_tree_data_provider_js_1 = require("./global-tree-data-provider.js");
 let outChannel;
@@ -11,17 +12,18 @@ let parsingCtx;
 let parser;
 let evalCtx;
 let lastFormula;
-var docToGlobalNameMap;
+let docToGlobalNameMap;
 const globalChangeNotifTimeout = 5000;
 let evaluationTreeDataProvider;
 let globalTreeDataProvider;
+let evaluationStepsTextDocContentProvider;
 /** Activates the extension. */
 function activate(extCtx) {
     // prepare kodeine engine
     parsingCtx = kodeine_js_1.ParsingContextBuilder.buildDefault();
     parser = new kodeine_js_1.KodeineParser(parsingCtx);
     evalCtx = new kodeine_js_1.EvaluationContext();
-    // enable evaluation tree building
+    // enable evaluation tree building in the context
     evalCtx.buildEvaluationTree = true;
     // create an output channel for formula results
     outChannel = vscode.window.createOutputChannel('Formula Result');
@@ -33,44 +35,41 @@ function activate(extCtx) {
     // create and register the formula tree view data provider
     evaluationTreeDataProvider = new evaluation_tree_data_provider_js_1.EvaluationTreeDataProvider();
     extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', evaluationTreeDataProvider));
+    // create and register evaluation steps text document content provider
+    evaluationStepsTextDocContentProvider = new evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider();
+    extCtx.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(evaluationStepsTextDocContentProvider.scheme, evaluationStepsTextDocContentProvider));
     // prepare map to keep track of global documents
     docToGlobalNameMap = new Map();
     // create and register the global tree view data provider
     // TODO: load previous set of globals before this point
     globalTreeDataProvider = new global_tree_data_provider_js_1.GlobalTreeDataProvider([]);
     extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('globalList', globalTreeDataProvider));
-    // check the language of the currently opened editor
-    if (vscode.window.activeTextEditor?.document.languageId === 'kode') {
-        // the user is currently editing kode, evaluate the current content of the document
-        evaluateToOutput(vscode.window.activeTextEditor.document);
-    }
-    else {
-        // the user is not editing kode, inform (this should not happen, since the activation event is onLanguage:kode)
-        outChannel.replace('Activate a text editor with its language set to kode to see live evaluation results.');
-    }
-    // listen to active editor changes
-    extCtx.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(ev => {
-        if (ev?.document?.languageId === 'kode')
-            evaluateToOutput(ev.document);
-    }));
-    // listen to text document changes
-    extCtx.subscriptions.push(vscode.workspace.onDidChangeTextDocument(ev => {
-        if (ev?.document?.languageId === 'kode')
-            evaluateToOutput(ev.document);
-    }));
-    // listen to text documents being opened
-    extCtx.subscriptions.push(vscode.workspace.onDidOpenTextDocument(doc => {
-        if (doc.languageId === 'kode')
-            evaluateToOutput(doc);
-    }));
-    // handle command showing opening the formula result window
-    extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.formulaResult', () => {
-        outChannel.show(true);
-    }));
-    // handle global related commands
-    extCtx.subscriptions.push(vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal), vscode.commands.registerCommand('kodeine.removeGlobal', command_removeGlobal), vscode.commands.registerCommand('kodeine.clearGlobals', command_clearGlobals), vscode.commands.registerCommand('kodeine.openGlobalDocument', command_openGlobalDocument));
+    extCtx.subscriptions.push(
+    // register commands
+    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), vscode.commands.registerCommand('kodeine.printEvaluationSteps', command_printEvaluationSteps), 
+    // register global related commands
+    vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal), vscode.commands.registerCommand('kodeine.removeGlobal', command_removeGlobal), vscode.commands.registerCommand('kodeine.clearGlobals', command_clearGlobals), vscode.commands.registerCommand('kodeine.openGlobalDocument', command_openGlobalDocument));
+    // listen to document-related events
+    extCtx.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)), vscode.workspace.onDidCloseTextDocument(doc => onTextDocumentClosed(doc)));
+    // initialize with active editor
+    onSomethingDocumentRelated(vscode.window.activeTextEditor?.document);
 }
 exports.activate = activate;
+/** Should be called when a text document changes, is opened, is activated etc. */
+function onSomethingDocumentRelated(document) {
+    if (document
+        && document.languageId === 'kode' // only evaluate kode documents
+        && document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme // don't evaluate evaluation steps
+    ) {
+        evaluateToOutput(document);
+    }
+}
+function onTextDocumentClosed(document) {
+    if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme
+        && document.languageId === 'kode') {
+        evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
+    }
+}
 /** Evaluates a given kode document to the formula result output channel. */
 function evaluateToOutput(document) {
     // create a list of diagnostics (warnings, errors etc.) that will replace the current list for the evaluated document
@@ -184,6 +183,20 @@ function evaluateToOutput(document) {
     diagColl.set(vscode.window.activeTextEditor.document.uri, diags);
     // refresh formula tree view
     evaluationTreeDataProvider.setEvaluationTree(evalCtx.sideEffects.lastEvaluationTreeNode);
+}
+function command_formulaResult() {
+    outChannel.show(true);
+}
+function command_printEvaluationSteps() {
+    let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
+    if (evaluationTree instanceof kodeine_js_1.FormulaEvaluationTree) {
+        let uri = evaluationStepsTextDocContentProvider.registerEvaluationTree(evaluationTree);
+        vscode.workspace.openTextDocument(uri)
+            .then(doc => {
+            vscode.languages.setTextDocumentLanguage(doc, 'kode');
+            vscode.window.showTextDocument(doc);
+        });
+    }
 }
 // #region global handling
 function command_addGlobal() {

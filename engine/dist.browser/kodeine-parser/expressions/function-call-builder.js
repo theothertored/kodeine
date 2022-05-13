@@ -29,6 +29,10 @@ export class FunctionCallBuilder extends IExpressionBuilder {
         this._innerTokens.push(token);
         this._currentArgumentBuilder.addOperator(token);
     }
+    addWhitespace(token) {
+        this._innerTokens.push(token);
+        this._currentArgumentBuilder.addWhitespace(token);
+    }
     /**
      * Builds the current argument and prepares for the next one.
      * @param comma The comma token that ended the current argument.

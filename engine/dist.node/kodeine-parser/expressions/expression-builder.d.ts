@@ -1,6 +1,7 @@
-import { Evaluable, FormulaToken, OperatorToken, ParsingContext, QuotedValueToken, UnquotedValueToken } from "../../kodeine.js";
+import { WhitespaceToken } from "engine/src/kodeine-lexer/formula-tokens.js";
+import { Evaluable, FormulaToken, OperatorToken, ParsingContext, QuotedValueToken, UnquotedValueToken, IExpressionBuilder } from "../../kodeine.js";
 /** Parsing helper class that can be fed tokens and then builds an evaluable tree. */
-export declare class ExpressionBuilder {
+export declare class ExpressionBuilder extends IExpressionBuilder {
     /** The parsing context. Contains information on what functions and operators exist and ties their names/symbols to implementations. */
     protected readonly _parsingCtx: ParsingContext;
     /**
@@ -10,6 +11,7 @@ export declare class ExpressionBuilder {
     protected readonly _includeSurroundingTokens: boolean;
     /** The token or tokens that started this expression (opening parenthesis, dollar sign, function name + opening parenthesis etc.). */
     protected readonly _startingTokens: FormulaToken[];
+    protected readonly _innerTokens: FormulaToken[];
     /**
      * Constructs an expression builder with a given parsing context.
      * @param parsingCtx The parsing context for this expression builder.
@@ -24,6 +26,7 @@ export declare class ExpressionBuilder {
     addValue(token: (QuotedValueToken | UnquotedValueToken)): void;
     addEvaluable(evaluable: Evaluable): void;
     addOperator(token: OperatorToken): void;
+    addWhitespace(token: WhitespaceToken): void;
     /** Returns whether this expression has any elements. */
     getIsEmpty(): boolean;
     /**

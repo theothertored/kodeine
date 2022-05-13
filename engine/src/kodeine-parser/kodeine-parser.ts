@@ -423,7 +423,7 @@ export class KodeineParser implements IFormulaStringParser {
                     } else if (token instanceof WhitespaceToken) {
 
                         // do nothing with whitespace, but don't throw UnrecognizedTokenError
-                        // TODO: put whitespace tokens in evaluable sources?
+                        peekLastExprBuilder().addWhitespace(token);
 
                     } else {
 

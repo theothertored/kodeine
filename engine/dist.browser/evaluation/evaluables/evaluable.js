@@ -5,8 +5,7 @@ export class Evaluable {
         this.source = source;
     }
     getSourceText() {
-        var _a;
-        return (_a = this.source) === null || _a === void 0 ? void 0 : _a.tokens.map(t => t.getSourceText()).toString();
+        return this.source.tokens.map(t => t.getSourceText()).join('');
     }
 }
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */

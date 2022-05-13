@@ -14,6 +14,7 @@ class UnaryOperatorOccurence extends OperatorOccurence {
     constructor(operator, token) {
         super(token);
         this.operator = operator;
+        this.followingWhitespaceTokens = [];
     }
 }
 exports.UnaryOperatorOccurence = UnaryOperatorOccurence;
@@ -23,6 +24,8 @@ class BinaryOperatorOccurence extends OperatorOccurence {
     constructor(operator, token) {
         super(token);
         this.operator = operator;
+        this.precedingWhitespaceTokens = [];
+        this.followingWhitespaceTokens = [];
     }
 }
 exports.BinaryOperatorOccurence = BinaryOperatorOccurence;

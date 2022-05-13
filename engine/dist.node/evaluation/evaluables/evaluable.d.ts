@@ -10,7 +10,7 @@ export declare abstract class Evaluable {
      * @param evalCtx The context in which this evaluation is taking place.
      */
     abstract evaluate(evalCtx: EvaluationContext): KodeValue;
-    getSourceText(): string | undefined;
+    getSourceText(): string;
 }
 /** A set of information tying an evaluable to a part of the formula source text and tokens. */
 export declare class EvaluableSource {

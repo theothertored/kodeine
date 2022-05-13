@@ -6,7 +6,7 @@ export class BrokenEvaluable extends Evaluable {
     evaluate(evalCtx) {
         let result = new KodeValue('', this.source);
         if (evalCtx.buildEvaluationTree) {
-            evalCtx.sideEffects.lastEvaluationTreeNode = new CouldNotBeEvaluated(result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new CouldNotBeEvaluated(this, result);
         }
         return result;
     }

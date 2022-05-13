@@ -17,7 +17,7 @@ export class BrokenEvaluable extends Evaluable {
 
         if (evalCtx.buildEvaluationTree) {
 
-            evalCtx.sideEffects.lastEvaluationTreeNode = new CouldNotBeEvaluated(result);
+            evalCtx.sideEffects.lastEvaluationTreeNode = new CouldNotBeEvaluated(this, result);
 
         }
 
