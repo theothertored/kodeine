@@ -4,7 +4,6 @@ exports.EvaluationStepsTextDocumentContentProvider = void 0;
 const vscode = require("vscode");
 class EvaluationStepsTextDocumentContentProvider {
     constructor() {
-        this.scheme = 'formulaevaluationsteps';
         this._path = 'evaluation steps ';
         this._onDidChangeEmitter = new vscode.EventEmitter();
         this.onDidChange = this._onDidChangeEmitter.event;
@@ -16,7 +15,7 @@ class EvaluationStepsTextDocumentContentProvider {
         return evaluationTree?.printEvaluationSteps() ?? '';
     }
     _getStepsDocumentUri(sourceUri) {
-        return vscode.Uri.parse(`${this.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+        return vscode.Uri.parse(`${EvaluationStepsTextDocumentContentProvider.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
     }
     registerSource(sourceUri, evaluationTree) {
         if (this.isSourceRegistered(sourceUri)) {
@@ -42,4 +41,5 @@ class EvaluationStepsTextDocumentContentProvider {
     }
 }
 exports.EvaluationStepsTextDocumentContentProvider = EvaluationStepsTextDocumentContentProvider;
+EvaluationStepsTextDocumentContentProvider.scheme = 'formulaevaluationsteps';
 //# sourceMappingURL=evaluation-steps-text-document-content-provider.js.map

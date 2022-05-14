@@ -4,7 +4,7 @@ import { FormulaEvaluationTree } from '../../engine/dist.node/kodeine.js';
 
 export class EvaluationStepsTextDocumentContentProvider implements vscode.TextDocumentContentProvider {
 
-    public readonly scheme: string = 'formulaevaluationsteps';
+    static readonly scheme: string = 'formulaevaluationsteps';
 
     private readonly _path = 'evaluation steps ';
 
@@ -32,7 +32,7 @@ export class EvaluationStepsTextDocumentContentProvider implements vscode.TextDo
 
     private _getStepsDocumentUri(sourceUri: vscode.Uri) {
 
-        return vscode.Uri.parse(`${this.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+        return vscode.Uri.parse(`${EvaluationStepsTextDocumentContentProvider.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
 
     }
 

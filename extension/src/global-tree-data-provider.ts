@@ -1,52 +1,46 @@
 import * as vscode from 'vscode';
+import { BidirectionalMap } from './bidirectional-map';
+import { GlobalDocument } from './global-document-manager';
 
-export class TextDocumentGlobal {
+export class GlobalTreeDataProvider implements vscode.TreeDataProvider<GlobalDocument> {
 
-    public readonly name: string;
-    public readonly document: vscode.TextDocument;
+    private readonly openGlobalDocumentCommand = 'kodeine.openGlobalDocument';
+    private readonly openGlobalDocumentCommandTitle = 'Open global document';
 
-    constructor(name: string, document: vscode.TextDocument) {
-        this.name = name;
-        this.document = document;
+    private _globalDocuments: GlobalDocument[];
+
+    private _onDidChangeTreeData: vscode.EventEmitter<GlobalDocument | undefined | void> = new vscode.EventEmitter<GlobalDocument | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<GlobalDocument | undefined | void> = this._onDidChangeTreeData.event;
+
+    constructor() {
+        this._globalDocuments = [];
     }
 
-}
-
-export class GlobalTreeDataProvider implements vscode.TreeDataProvider<TextDocumentGlobal> {
-
-    private _onDidChangeTreeData: vscode.EventEmitter<TextDocumentGlobal | undefined | void> = new vscode.EventEmitter<TextDocumentGlobal | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<TextDocumentGlobal | undefined | void> = this._onDidChangeTreeData.event;
-
-    private _globals: TextDocumentGlobal[];
-
-    constructor(globalNames: TextDocumentGlobal[]) {
-        this._globals = globalNames;
-    }
-
-    getTreeItem(element: TextDocumentGlobal): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    getTreeItem(element: GlobalDocument): vscode.TreeItem | Thenable<vscode.TreeItem> {
         return {
-            label: element.name,
-            description: element.document.uri.toString(),
+            label: element.globalName,
+            description: decodeURIComponent(element.doc.uri.toString()),
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             command: {
-                title: 'Open global document',
-                command: 'kodeine.openGlobalDocument',
-                arguments: [element.document.uri]
+                title: this.openGlobalDocumentCommandTitle,
+                command: this.openGlobalDocumentCommand,
+                arguments: [element.doc.uri]
             }
         };
     }
 
-    getChildren(element?: TextDocumentGlobal): vscode.ProviderResult<TextDocumentGlobal[]> {
+    getChildren(element?: GlobalDocument): vscode.ProviderResult<GlobalDocument[]> {
 
-        if (element)
-            return undefined;
+        if (!element)
+            return this._globalDocuments;
         else
-            return this._globals;
+            return undefined;
 
     }
 
-    notifyGlobalsChanged(globalNames: TextDocumentGlobal[]) {
-        this._globals = globalNames;
+    updateGlobalDocuments(globalDocuments: GlobalDocument[]) {
+        this._globalDocuments = globalDocuments;
         this._onDidChangeTreeData.fire(undefined);
     }
+
 }

@@ -8219,14 +8219,13 @@ __export(extension_exports, {
   activate: () => activate
 });
 module.exports = __toCommonJS(extension_exports);
-var vscode4 = __toESM(require("vscode"));
+var vscode5 = __toESM(require("vscode"));
 var import_kodeine28 = __toESM(require_kodeine());
 
 // extension/src/evaluation-steps-text-document-content-provider.ts
 var vscode = __toESM(require("vscode"));
-var EvaluationStepsTextDocumentContentProvider = class {
+var _EvaluationStepsTextDocumentContentProvider = class {
   constructor() {
-    this.scheme = "formulaevaluationsteps";
     this._path = "evaluation steps ";
     this._onDidChangeEmitter = new vscode.EventEmitter();
     this.onDidChange = this._onDidChangeEmitter.event;
@@ -8239,7 +8238,7 @@ var EvaluationStepsTextDocumentContentProvider = class {
     return (_a = evaluationTree == null ? void 0 : evaluationTree.printEvaluationSteps()) != null ? _a : "";
   }
   _getStepsDocumentUri(sourceUri) {
-    return vscode.Uri.parse(`${this.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+    return vscode.Uri.parse(`${_EvaluationStepsTextDocumentContentProvider.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
   }
   registerSource(sourceUri, evaluationTree) {
     if (this.isSourceRegistered(sourceUri)) {
@@ -8263,6 +8262,8 @@ var EvaluationStepsTextDocumentContentProvider = class {
     this._sourceUriToEvaluationTreeMap.delete(sourceUri.toString());
   }
 };
+var EvaluationStepsTextDocumentContentProvider = _EvaluationStepsTextDocumentContentProvider;
+EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode2 = __toESM(require("vscode"));
@@ -8305,37 +8306,251 @@ var EvaluationTreeDataProvider = class {
   }
 };
 
+// extension/src/global-document-manager.ts
+var vscode4 = __toESM(require("vscode"));
+
+// extension/src/bidirectional-map.ts
+var BidirectionalMap = class {
+  constructor() {
+    this._AToBMap = /* @__PURE__ */ new Map();
+    this._BToAMap = /* @__PURE__ */ new Map();
+  }
+  clear() {
+    this._AToBMap.clear();
+    this._BToAMap.clear();
+  }
+  deleteByA(a) {
+    let b = this._AToBMap.get(a);
+    if (b) {
+      this._AToBMap.delete(a);
+      this._BToAMap.delete(b);
+      return true;
+    } else {
+      return false;
+    }
+  }
+  deleteByB(b) {
+    let a = this._BToAMap.get(b);
+    if (a) {
+      this._AToBMap.delete(a);
+      this._BToAMap.delete(b);
+      return true;
+    } else {
+      return false;
+    }
+  }
+  forEachA(callbackfn, thisArg) {
+    this._AToBMap.forEach(callbackfn);
+  }
+  forEachB(callbackfn, thisArg) {
+    this._BToAMap.forEach(callbackfn);
+  }
+  getByA(a) {
+    return this._AToBMap.get(a);
+  }
+  getByB(b) {
+    return this._BToAMap.get(b);
+  }
+  hasA(a) {
+    return this._AToBMap.has(a);
+  }
+  hasB(b) {
+    return this._BToAMap.has(b);
+  }
+  set(a, b) {
+    this.deleteByA(a);
+    this.deleteByB(b);
+    this._AToBMap.set(a, b);
+    this._BToAMap.set(b, a);
+    return this;
+  }
+  get size() {
+    return this._AToBMap.size;
+  }
+  entries() {
+    return this._AToBMap.entries();
+  }
+  aEntries() {
+    return this._AToBMap.keys();
+  }
+  bEntries() {
+    return this._AToBMap.values();
+  }
+  [Symbol.iterator]() {
+    return this.entries();
+  }
+  get [Symbol.toStringTag]() {
+    return "BidirectionalMap";
+  }
+};
+
 // extension/src/global-tree-data-provider.ts
 var vscode3 = __toESM(require("vscode"));
 var GlobalTreeDataProvider = class {
-  constructor(globalNames) {
+  constructor() {
+    this.openGlobalDocumentCommand = "kodeine.openGlobalDocument";
+    this.openGlobalDocumentCommandTitle = "Open global document";
     this._onDidChangeTreeData = new vscode3.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-    this._globals = globalNames;
+    this._globalDocuments = [];
   }
   getTreeItem(element) {
     return {
-      label: element.name,
-      description: element.document.uri.toString(),
+      label: element.globalName,
+      description: decodeURIComponent(element.doc.uri.toString()),
       collapsibleState: vscode3.TreeItemCollapsibleState.None,
       command: {
-        title: "Open global document",
-        command: "kodeine.openGlobalDocument",
-        arguments: [element.document.uri]
+        title: this.openGlobalDocumentCommandTitle,
+        command: this.openGlobalDocumentCommand,
+        arguments: [element.doc.uri]
       }
     };
   }
   getChildren(element) {
-    if (element)
-      return void 0;
+    if (!element)
+      return this._globalDocuments;
     else
-      return this._globals;
+      return void 0;
   }
-  notifyGlobalsChanged(globalNames) {
-    this._globals = globalNames;
+  updateGlobalDocuments(globalDocuments) {
+    this._globalDocuments = globalDocuments;
     this._onDidChangeTreeData.fire(void 0);
   }
 };
+
+// extension/src/global-document-manager.ts
+var _GlobalDocumentManager = class {
+  constructor(extCtx) {
+    this._globalsMap = new BidirectionalMap();
+    this._globalTreeDataProvider = new GlobalTreeDataProvider();
+    this._onGlobalRemoved = new vscode4.EventEmitter();
+    this.onGlobalRemoved = this._onGlobalRemoved.event;
+    this._onGlobalAdded = new vscode4.EventEmitter();
+    this.onGlobalAdded = this._onGlobalAdded.event;
+    this._onGlobalsCleared = new vscode4.EventEmitter();
+    this.onGlobalsCleared = this._onGlobalsCleared.event;
+    this._commands = {
+      addGlobal: () => {
+        var _a;
+        if (!this.getIsValidGlobalDocument((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document)) {
+          return;
+        }
+        vscode4.window.showInputBox({
+          title: "Name the global",
+          prompt: "Remember that Kustom limits this name to 8 characters.",
+          validateInput: (text) => {
+            if (!text) {
+              return "Global name cannot be empty.";
+            } else if (text.length === 2) {
+              return "Kustom doesn't really like two letter global names because it confuses them with function names.";
+            } else {
+              return null;
+            }
+          }
+        }).then((globalName) => {
+          if (globalName) {
+            globalName = globalName.trim().toLowerCase();
+            this.addGlobal(globalName, vscode4.window.activeTextEditor.document);
+            vscode4.window.setStatusBarMessage(`gv(${globalName}) has been added.`, _GlobalDocumentManager.statusBarMessageTimeout);
+          }
+        });
+      },
+      removeGlobal: (globalDocument) => {
+        if (globalDocument) {
+          this.removeGlobal(globalDocument.globalName);
+        } else {
+          vscode4.window.showQuickPick(this.getGlobalDocuments().map((globalDocument2) => ({
+            label: globalDocument2.globalName,
+            description: globalDocument2.doc.uri.toString(),
+            globalDocument: globalDocument2
+          }))).then((pickedItem) => {
+            if (pickedItem) {
+              this.removeGlobal(pickedItem.globalDocument.globalName);
+              vscode4.window.setStatusBarMessage(`gv(${pickedItem.globalDocument.globalName}) has been removed.`, _GlobalDocumentManager.statusBarMessageTimeout);
+            }
+          });
+        }
+      },
+      clearGlobals: () => {
+        this.clearGlobals();
+        vscode4.window.setStatusBarMessage(`All globals have been removed.`, _GlobalDocumentManager.statusBarMessageTimeout);
+      },
+      openGlobalDocument: (uri) => {
+        vscode4.window.showTextDocument(uri);
+      }
+    };
+    this.initGlobalsMap(extCtx);
+    this.initCommands(extCtx);
+    this.initGlobalListUI(extCtx);
+    this.initEvents(extCtx);
+  }
+  initGlobalsMap(extCtx) {
+  }
+  initCommands(extCtx) {
+    for (const commandName in this._commands) {
+      extCtx.subscriptions.push(vscode4.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
+    }
+  }
+  initGlobalListUI(extCtx) {
+    this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
+    extCtx.subscriptions.push(vscode4.window.registerTreeDataProvider(_GlobalDocumentManager.globalListViewId, this._globalTreeDataProvider));
+  }
+  initEvents(extCtx) {
+    extCtx.subscriptions.push(vscode4.workspace.onDidCloseTextDocument((doc) => this.onDidCloseTextDocument(doc)));
+  }
+  onDidCloseTextDocument(doc) {
+    if (doc.isUntitled && doc.languageId === "kode" && this._globalsMap.hasB(doc)) {
+      let globalName = this.getGlobalNameFor(doc);
+      this.removeGlobal(doc);
+      vscode4.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
+        detail: `The untitled document gv(${globalName}) was linked to was closed.`,
+        modal: true
+      });
+    }
+  }
+  getGlobalNameFor(doc) {
+    return this._globalsMap.getByB(doc);
+  }
+  getGlobalDocuments() {
+    return Array.from(this._globalsMap.entries()).map((e) => ({ globalName: e[0], doc: e[1] }));
+  }
+  getIsValidGlobalDocument(doc) {
+    return !!doc && doc.languageId === "kode" && doc.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme;
+  }
+  addGlobal(globalName, doc) {
+    this._globalsMap.set(globalName, doc);
+    this._onGlobalAdded.fire({ globalName, doc });
+    this.notifyGlobalsChanged();
+  }
+  removeGlobal(globalNameOrDoc) {
+    if (typeof globalNameOrDoc === "string") {
+      let doc = this._globalsMap.getByA(globalNameOrDoc);
+      if (doc) {
+        this._globalsMap.deleteByA(globalNameOrDoc);
+        this._onGlobalRemoved.fire({ globalName: globalNameOrDoc, doc });
+        this.notifyGlobalsChanged();
+      }
+    } else {
+      let globalName = this._globalsMap.getByB(globalNameOrDoc);
+      if (globalName) {
+        this._globalsMap.deleteByB(globalNameOrDoc);
+        this._onGlobalRemoved.fire({ globalName, doc: globalNameOrDoc });
+        this.notifyGlobalsChanged();
+      }
+    }
+  }
+  clearGlobals() {
+    this._globalsMap.clear();
+    this._onGlobalsCleared.fire();
+    this.notifyGlobalsChanged();
+  }
+  notifyGlobalsChanged() {
+    this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
+  }
+};
+var GlobalDocumentManager = _GlobalDocumentManager;
+GlobalDocumentManager.statusBarMessageTimeout = 5e3;
+GlobalDocumentManager.globalListViewId = "globalList";
 
 // extension/src/extension.ts
 var outChannel;
@@ -8344,10 +8559,8 @@ var parsingCtx;
 var parser;
 var evalCtx;
 var lastFormula;
-var docToGlobalNameMap;
-var globalChangeNotifTimeout = 5e3;
+var globalDocManager;
 var evaluationTreeDataProvider;
-var globalTreeDataProvider;
 var evaluationStepsTextDocContentProvider;
 function activate(extCtx) {
   var _a;
@@ -8355,38 +8568,32 @@ function activate(extCtx) {
   parser = new import_kodeine28.KodeineParser(parsingCtx);
   evalCtx = new import_kodeine28.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
-  outChannel = vscode4.window.createOutputChannel("Formula Result");
+  outChannel = vscode5.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
   outChannel.show(true);
-  diagColl = vscode4.languages.createDiagnosticCollection("Formula diagnostics");
+  diagColl = vscode5.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
+  globalDocManager = new GlobalDocumentManager(extCtx);
+  globalDocManager.onGlobalAdded((globalDocument) => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
+  globalDocManager.onGlobalRemoved((globalDocument) => evalCtx.globals.delete(globalDocument.globalName));
+  globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());
   evaluationTreeDataProvider = new EvaluationTreeDataProvider();
-  extCtx.subscriptions.push(vscode4.window.registerTreeDataProvider("formulaEvaluationTree", evaluationTreeDataProvider));
+  extCtx.subscriptions.push(vscode5.window.registerTreeDataProvider("formulaEvaluationTree", evaluationTreeDataProvider));
   evaluationStepsTextDocContentProvider = new EvaluationStepsTextDocumentContentProvider();
-  extCtx.subscriptions.push(vscode4.workspace.registerTextDocumentContentProvider(evaluationStepsTextDocContentProvider.scheme, evaluationStepsTextDocContentProvider));
-  docToGlobalNameMap = /* @__PURE__ */ new Map();
-  globalTreeDataProvider = new GlobalTreeDataProvider([]);
-  extCtx.subscriptions.push(vscode4.window.registerTreeDataProvider("globalList", globalTreeDataProvider));
-  extCtx.subscriptions.push(vscode4.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode4.commands.registerCommand("kodeine.showEvaluationSteps", command_showEvaluationSteps), vscode4.commands.registerCommand("kodeine.addGlobal", command_addGlobal), vscode4.commands.registerCommand("kodeine.removeGlobal", command_removeGlobal), vscode4.commands.registerCommand("kodeine.clearGlobals", command_clearGlobals), vscode4.commands.registerCommand("kodeine.openGlobalDocument", command_openGlobalDocument));
-  extCtx.subscriptions.push(vscode4.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode4.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode4.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode4.workspace.onDidCloseTextDocument((doc) => onTextDocumentClosed(doc)));
-  onSomethingDocumentRelated((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document);
+  extCtx.subscriptions.push(vscode5.workspace.registerTextDocumentContentProvider(EvaluationStepsTextDocumentContentProvider.scheme, evaluationStepsTextDocContentProvider));
+  extCtx.subscriptions.push(vscode5.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode5.commands.registerCommand("kodeine.showEvaluationSteps", command_showEvaluationSteps));
+  extCtx.subscriptions.push(vscode5.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode5.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode5.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode5.workspace.onDidCloseTextDocument((doc) => onTextDocumentClosed(doc)));
+  onSomethingDocumentRelated((_a = vscode5.window.activeTextEditor) == null ? void 0 : _a.document);
 }
 function onSomethingDocumentRelated(document) {
-  if (document && document.languageId === "kode" && document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme) {
+  if (document && document.languageId === "kode" && document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
     evaluateToOutput(document);
   }
 }
 function onTextDocumentClosed(document) {
   if (document.languageId === "kode") {
-    if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+    if (document.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme) {
       evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
-    } else if (docToGlobalNameMap.has(document) && document.isUntitled) {
-      let globalName = docToGlobalNameMap.get(document);
-      removeGlobal(globalName, document);
-      vscode4.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
-        detail: `The untitled document gv(${globalName}) was linked to was closed.`,
-        modal: true
-      });
     }
   }
 }
@@ -8396,7 +8603,7 @@ function evaluateToOutput(document) {
   try {
     lastFormula = parser.parse(formulaText);
     evalCtx.clearSideEffects();
-    let globalName = docToGlobalNameMap.get(document);
+    let globalName = globalDocManager.getGlobalNameFor(document);
     if (globalName) {
       evalCtx.sideEffects.globalNameStack.push(globalName);
       evalCtx.globals.set(globalName, lastFormula);
@@ -8435,8 +8642,8 @@ ${errorMessages.join("\n")}`);
   if (parsingCtx.sideEffects.warnings.length > 0) {
     parsingCtx.sideEffects.warnings.forEach((warning) => {
       diags.push({
-        severity: vscode4.DiagnosticSeverity.Warning,
-        range: new vscode4.Range(document.positionAt(warning.tokens[0].getStartIndex()), document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())),
+        severity: vscode5.DiagnosticSeverity.Warning,
+        range: new vscode5.Range(document.positionAt(warning.tokens[0].getStartIndex()), document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())),
         message: warning.message,
         code: "",
         source: ""
@@ -8446,8 +8653,8 @@ ${errorMessages.join("\n")}`);
   if (parsingCtx.sideEffects.errors.length > 0) {
     parsingCtx.sideEffects.errors.forEach((error) => {
       diags.push({
-        severity: vscode4.DiagnosticSeverity.Error,
-        range: new vscode4.Range(document.positionAt(error.token.getStartIndex()), document.positionAt(error.token.getEndIndex())),
+        severity: vscode5.DiagnosticSeverity.Error,
+        range: new vscode5.Range(document.positionAt(error.token.getStartIndex()), document.positionAt(error.token.getEndIndex())),
         message: error.message,
         code: "",
         source: ""
@@ -8457,8 +8664,8 @@ ${errorMessages.join("\n")}`);
   if (evalCtx.sideEffects.warnings.length > 0) {
     evalCtx.sideEffects.warnings.forEach((warning) => {
       diags.push({
-        severity: vscode4.DiagnosticSeverity.Warning,
-        range: new vscode4.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
+        severity: vscode5.DiagnosticSeverity.Warning,
+        range: new vscode5.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
         message: warning.message,
         code: "",
         source: ""
@@ -8468,15 +8675,15 @@ ${errorMessages.join("\n")}`);
   if (evalCtx.sideEffects.errors.length > 0) {
     evalCtx.sideEffects.errors.forEach((error) => {
       diags.push({
-        severity: vscode4.DiagnosticSeverity.Error,
-        range: new vscode4.Range(document.positionAt(error.evaluable.source.getStartIndex()), document.positionAt(error.evaluable.source.getEndIndex())),
+        severity: vscode5.DiagnosticSeverity.Error,
+        range: new vscode5.Range(document.positionAt(error.evaluable.source.getStartIndex()), document.positionAt(error.evaluable.source.getEndIndex())),
         message: error.message,
         code: "",
         source: ""
       });
     });
   }
-  diagColl.set(vscode4.window.activeTextEditor.document.uri, diags);
+  diagColl.set(vscode5.window.activeTextEditor.document.uri, diags);
   evaluationTreeDataProvider.setEvaluationTree(evalCtx.sideEffects.lastEvaluationTreeNode);
 }
 function command_formulaResult() {
@@ -8484,85 +8691,20 @@ function command_formulaResult() {
 }
 function command_showEvaluationSteps() {
   var _a;
-  if (((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode" && vscode4.window.activeTextEditor.document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme) {
+  if (((_a = vscode5.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode" && vscode5.window.activeTextEditor.document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
     let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
     if (evaluationTree instanceof import_kodeine28.FormulaEvaluationTree) {
-      let uri = evaluationStepsTextDocContentProvider.registerSource(vscode4.window.activeTextEditor.document.uri, evaluationTree);
-      vscode4.workspace.openTextDocument(uri).then((doc) => {
-        vscode4.languages.setTextDocumentLanguage(doc, "kode");
-        vscode4.window.showTextDocument(doc, {
-          viewColumn: vscode4.ViewColumn.Beside,
+      let uri = evaluationStepsTextDocContentProvider.registerSource(vscode5.window.activeTextEditor.document.uri, evaluationTree);
+      vscode5.workspace.openTextDocument(uri).then((doc) => {
+        vscode5.languages.setTextDocumentLanguage(doc, "kode");
+        vscode5.window.showTextDocument(doc, {
+          viewColumn: vscode5.ViewColumn.Beside,
           preserveFocus: true,
           preview: false
         });
       });
     }
   }
-}
-function command_addGlobal() {
-  var _a;
-  if (((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document.uri.scheme) === evaluationStepsTextDocContentProvider.scheme) {
-    return;
-  }
-  vscode4.window.showInputBox({
-    title: "Name the global",
-    prompt: "Remember that Kustom limits this name to 8 characters.",
-    validateInput: (text) => {
-      if (!text) {
-        return "Global name cannot be empty.";
-      } else if (text.length === 2) {
-        return "Kustom doesn't really like two letter global names because it confuses them with function names.";
-      } else {
-        return null;
-      }
-    }
-  }).then((globalName) => {
-    if (globalName) {
-      globalName = globalName.trim().toLowerCase();
-      Array.from(docToGlobalNameMap.entries()).filter((e) => e[1] === globalName).forEach((e) => docToGlobalNameMap.delete(e[0]));
-      docToGlobalNameMap.set(vscode4.window.activeTextEditor.document, globalName);
-      evalCtx.globals.set(globalName, lastFormula);
-      vscode4.window.setStatusBarMessage(`gv(${globalName}) has been added.`, globalChangeNotifTimeout);
-      refreshGlobalList();
-    }
-  });
-}
-function command_removeGlobal(global) {
-  if (global) {
-    removeGlobal(global.name, global.document);
-  } else {
-    vscode4.window.showQuickPick(Array.from(docToGlobalNameMap).map((e) => ({
-      label: e[1],
-      description: e[0].uri.toString(),
-      globalName: e[1],
-      document: e[0]
-    }))).then((pickedItem) => {
-      if (pickedItem) {
-        removeGlobal(pickedItem.globalName, pickedItem.document);
-      }
-    });
-  }
-}
-function removeGlobal(globalName, document) {
-  docToGlobalNameMap.delete(document);
-  evalCtx.globals.delete(globalName);
-  vscode4.window.setStatusBarMessage(`gv(${globalName}) has been removed.`, globalChangeNotifTimeout);
-  refreshGlobalList();
-}
-function command_clearGlobals() {
-  docToGlobalNameMap.clear();
-  evalCtx.globals.clear();
-  vscode4.window.setStatusBarMessage(`All globals have been removed.`, globalChangeNotifTimeout);
-  refreshGlobalList();
-}
-function command_openGlobalDocument(document) {
-  vscode4.window.showTextDocument(document.uri);
-}
-function refreshGlobalList() {
-  globalTreeDataProvider.notifyGlobalsChanged(Array.from(docToGlobalNameMap).map((e) => ({
-    name: e[1],
-    document: e[0]
-  })));
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

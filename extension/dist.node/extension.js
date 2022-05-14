@@ -5,17 +5,15 @@ const vscode = require("vscode");
 const kodeine_js_1 = require("../../engine/dist.node/kodeine.js");
 const evaluation_steps_text_document_content_provider_js_1 = require("./evaluation-steps-text-document-content-provider.js");
 const evaluation_tree_data_provider_js_1 = require("./evaluation-tree-data-provider.js");
-const global_tree_data_provider_js_1 = require("./global-tree-data-provider.js");
+const global_document_manager_js_1 = require("./global-document-manager.js");
 let outChannel;
 let diagColl;
 let parsingCtx;
 let parser;
 let evalCtx;
 let lastFormula;
-let docToGlobalNameMap;
-const globalChangeNotifTimeout = 5000;
+let globalDocManager;
 let evaluationTreeDataProvider;
-let globalTreeDataProvider;
 let evaluationStepsTextDocContentProvider;
 /** Activates the extension. */
 function activate(extCtx) {
@@ -32,23 +30,21 @@ function activate(extCtx) {
     // create a diagnostic collection for errors and warnings
     diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     extCtx.subscriptions.push(diagColl); // register it as disposable
+    // initialize a global document manager to handle globals
+    globalDocManager = new global_document_manager_js_1.GlobalDocumentManager(extCtx);
+    // react to globals changing
+    globalDocManager.onGlobalAdded(globalDocument => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
+    globalDocManager.onGlobalRemoved(globalDocument => evalCtx.globals.delete(globalDocument.globalName));
+    globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());
     // create and register the formula tree view data provider
     evaluationTreeDataProvider = new evaluation_tree_data_provider_js_1.EvaluationTreeDataProvider();
     extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('formulaEvaluationTree', evaluationTreeDataProvider));
     // create and register evaluation steps text document content provider
     evaluationStepsTextDocContentProvider = new evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider();
-    extCtx.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(evaluationStepsTextDocContentProvider.scheme, evaluationStepsTextDocContentProvider));
-    // prepare map to keep track of global documents
-    docToGlobalNameMap = new Map();
-    // create and register the global tree view data provider
-    // TODO: load previous set of globals before this point
-    globalTreeDataProvider = new global_tree_data_provider_js_1.GlobalTreeDataProvider([]);
-    extCtx.subscriptions.push(vscode.window.registerTreeDataProvider('globalList', globalTreeDataProvider));
+    extCtx.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider.scheme, evaluationStepsTextDocContentProvider));
     extCtx.subscriptions.push(
     // register commands
-    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), vscode.commands.registerCommand('kodeine.showEvaluationSteps', command_showEvaluationSteps), 
-    // register global related commands
-    vscode.commands.registerCommand('kodeine.addGlobal', command_addGlobal), vscode.commands.registerCommand('kodeine.removeGlobal', command_removeGlobal), vscode.commands.registerCommand('kodeine.clearGlobals', command_clearGlobals), vscode.commands.registerCommand('kodeine.openGlobalDocument', command_openGlobalDocument));
+    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), vscode.commands.registerCommand('kodeine.showEvaluationSteps', command_showEvaluationSteps));
     // listen to document-related events
     extCtx.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)), vscode.workspace.onDidCloseTextDocument(doc => onTextDocumentClosed(doc)));
     // initialize with active editor
@@ -59,25 +55,16 @@ exports.activate = activate;
 function onSomethingDocumentRelated(document) {
     if (document
         && document.languageId === 'kode' // only evaluate kode documents
-        && document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme // don't evaluate evaluation steps
+        && document.uri.scheme !== evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider.scheme // don't evaluate evaluation steps
     ) {
         evaluateToOutput(document);
     }
 }
 function onTextDocumentClosed(document) {
     if (document.languageId === 'kode') {
-        if (document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
+        if (document.uri.scheme === evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider.scheme) {
             // an evaluation steps document was closed, we can release the evaluation tree & steps
             evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
-        }
-        else if (docToGlobalNameMap.has(document) && document.isUntitled) {
-            // an untitled document backing a global was closed, delete the global and inform the user
-            let globalName = docToGlobalNameMap.get(document);
-            removeGlobal(globalName, document);
-            vscode.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
-                detail: `The untitled document gv(${globalName}) was linked to was closed.`,
-                modal: true
-            });
         }
     }
 }
@@ -93,7 +80,7 @@ function evaluateToOutput(document) {
         // clear eval side effects first
         evalCtx.clearSideEffects();
         // try to get a global for the current document
-        let globalName = docToGlobalNameMap.get(document);
+        let globalName = globalDocManager.getGlobalNameFor(document);
         if (globalName) {
             // we are evaluating a document that is a global
             // add this global's name to the global name chain
@@ -201,7 +188,7 @@ function command_formulaResult() {
 }
 function command_showEvaluationSteps() {
     if (vscode.window.activeTextEditor?.document.languageId === 'kode'
-        && vscode.window.activeTextEditor.document.uri.scheme !== evaluationStepsTextDocContentProvider.scheme) {
+        && vscode.window.activeTextEditor.document.uri.scheme !== evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider.scheme) {
         let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
         if (evaluationTree instanceof kodeine_js_1.FormulaEvaluationTree) {
             let uri = evaluationStepsTextDocContentProvider.registerSource(vscode.window.activeTextEditor.document.uri, evaluationTree);
@@ -217,92 +204,4 @@ function command_showEvaluationSteps() {
         }
     }
 }
-// #region global handling
-function command_addGlobal() {
-    if (vscode.window.activeTextEditor?.document.uri.scheme === evaluationStepsTextDocContentProvider.scheme) {
-        // can't add a global from evaluation steps
-        return;
-    }
-    vscode.window.showInputBox({
-        title: 'Name the global',
-        prompt: 'Remember that Kustom limits this name to 8 characters.',
-        validateInput: text => {
-            if (!text) {
-                return 'Global name cannot be empty.';
-            }
-            else if (text.length === 2) {
-                return 'Kustom doesn\'t really like two letter global names because it confuses them with function names.';
-            }
-            else {
-                return null;
-            }
-        }
-    }).then(globalName => {
-        if (globalName) {
-            // normalize global name
-            globalName = globalName.trim().toLowerCase();
-            // find any globals with this name and remove them
-            Array.from(docToGlobalNameMap.entries())
-                .filter(e => e[1] === globalName)
-                .forEach(e => docToGlobalNameMap.delete(e[0]));
-            // associate the document with the global name
-            docToGlobalNameMap.set(vscode.window.activeTextEditor.document, globalName);
-            // update the global in the evaluation context
-            evalCtx.globals.set(globalName, lastFormula);
-            // notify the user in the way vscode wants us to (notifications can't auto-dismiss)
-            vscode.window.setStatusBarMessage(`gv(${globalName}) has been added.`, globalChangeNotifTimeout);
-            // refresh UI showing the current list of globals
-            refreshGlobalList();
-        }
-    });
-}
-function command_removeGlobal(global) {
-    if (global) {
-        // a global to remove was given (global list icon click)
-        removeGlobal(global.name, global.document);
-    }
-    else {
-        // a global to remove was not given, let the user pick from a list
-        vscode.window.showQuickPick(Array.from(docToGlobalNameMap)
-            .map(e => ({
-            label: e[1],
-            description: e[0].uri.toString(),
-            globalName: e[1],
-            document: e[0]
-        }))).then(pickedItem => {
-            if (pickedItem) {
-                removeGlobal(pickedItem.globalName, pickedItem.document);
-            }
-        });
-    }
-}
-function removeGlobal(globalName, document) {
-    // remove association
-    docToGlobalNameMap.delete(document);
-    // remove global from the evaluation context
-    evalCtx.globals.delete(globalName);
-    // notify the user in the way vscode wants us to (notifications can't auto-dismiss)
-    vscode.window.setStatusBarMessage(`gv(${globalName}) has been removed.`, globalChangeNotifTimeout);
-    // refresh UI showing the current list of globals
-    refreshGlobalList();
-}
-function command_clearGlobals() {
-    // clear associations
-    docToGlobalNameMap.clear();
-    // clear globals
-    evalCtx.globals.clear();
-    vscode.window.setStatusBarMessage(`All globals have been removed.`, globalChangeNotifTimeout);
-    // refresh UI
-    refreshGlobalList();
-}
-function command_openGlobalDocument(document) {
-    vscode.window.showTextDocument(document.uri);
-}
-function refreshGlobalList() {
-    globalTreeDataProvider.notifyGlobalsChanged(Array.from(docToGlobalNameMap).map(e => ({
-        name: e[1],
-        document: e[0]
-    })));
-}
-//#endregion
 //# sourceMappingURL=extension.js.map

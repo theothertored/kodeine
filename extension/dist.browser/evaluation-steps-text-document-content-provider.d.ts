@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { FormulaEvaluationTree } from '../../engine/dist.node/kodeine.js';
 export declare class EvaluationStepsTextDocumentContentProvider implements vscode.TextDocumentContentProvider {
-    readonly scheme: string;
+    static readonly scheme: string;
     private readonly _path;
     onDidChange?: vscode.Event<vscode.Uri> | undefined;
     private _onDidChangeEmitter;
