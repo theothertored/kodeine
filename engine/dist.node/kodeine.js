@@ -37,6 +37,7 @@ __exportStar(require("./evaluation/implementations/functions/gv-function.js"), e
 __exportStar(require("./evaluation/implementations/functions/if-function.js"), exports);
 __exportStar(require("./evaluation/implementations/functions/mu-function.js"), exports);
 __exportStar(require("./evaluation/implementations/functions/tc-function.js"), exports);
+__exportStar(require("./evaluation/implementations/functions/df-function.js"), exports);
 __exportStar(require("./evaluation/implementations/operators/unary-operators.js"), exports);
 __exportStar(require("./evaluation/implementations/base/two-mode-binary-operator.js"), exports);
 __exportStar(require("./evaluation/implementations/operators/binary-operators.js"), exports);

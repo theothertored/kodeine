@@ -97,12 +97,6 @@ export class BrFunction extends IKodeFunction {
         throw new EvaluationError(call, 'This function isn\'t implemented yet.');
     }
 }
-export class DfFunction extends IKodeFunction {
-    getName() { return 'df'; }
-    call(evalCtx, call, args) {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
 export class MiFunction extends IKodeFunction {
     getName() { return 'mi'; }
     call(evalCtx, call, args) {

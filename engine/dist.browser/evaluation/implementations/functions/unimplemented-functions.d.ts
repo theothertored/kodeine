@@ -63,10 +63,6 @@ export declare class BrFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
 }
-export declare class DfFunction extends IKodeFunction {
-    getName(): string;
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;
-}
 export declare class MiFunction extends IKodeFunction {
     getName(): string;
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue;

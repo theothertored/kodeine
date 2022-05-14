@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TuFunction = exports.DpFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.DfFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+exports.TuFunction = exports.DpFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
 const kodeine_js_1 = require("../../../kodeine.js");
 // this file contains classes for functions that have not been implemented yet.
 // they should be moved to separate files after they are implemented.
@@ -116,13 +116,6 @@ class BrFunction extends kodeine_js_1.IKodeFunction {
     }
 }
 exports.BrFunction = BrFunction;
-class DfFunction extends kodeine_js_1.IKodeFunction {
-    getName() { return 'df'; }
-    call(evalCtx, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-exports.DfFunction = DfFunction;
 class MiFunction extends kodeine_js_1.IKodeFunction {
     getName() { return 'mi'; }
     call(evalCtx, call, args) {

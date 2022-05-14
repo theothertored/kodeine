@@ -161,7 +161,7 @@ var require_evaluation_context = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = void 0;
-    var EvaluationContext17 = class {
+    var EvaluationContext18 = class {
       constructor() {
         this.iReplacement = null;
         this.globals = /* @__PURE__ */ new Map();
@@ -172,13 +172,13 @@ var require_evaluation_context = __commonJS({
         this.sideEffects = new EvaluationSideEffects();
       }
       clone() {
-        let newCtx = new EvaluationContext17();
+        let newCtx = new EvaluationContext18();
         newCtx.iReplacement = this.iReplacement;
         newCtx.globals = new Map(this.globals);
         return newCtx;
       }
     };
-    exports.EvaluationContext = EvaluationContext17;
+    exports.EvaluationContext = EvaluationContext18;
     var EvaluationSideEffects = class {
       constructor() {
         this.warnings = [];
@@ -460,7 +460,7 @@ var require_kode_value = __commonJS({
     exports.KodeValue = void 0;
     var kodeine_js_1 = require_kodeine();
     var evaluation_tree_js_1 = require_evaluation_tree();
-    var KodeValue6 = class extends kodeine_js_1.Evaluable {
+    var KodeValue7 = class extends kodeine_js_1.Evaluable {
       constructor(value, source) {
         super(source);
         if (typeof value === "boolean") {
@@ -507,10 +507,10 @@ var require_kode_value = __commonJS({
           return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
       }
       static fromToken(token) {
-        return new KodeValue6(token.getValue(), new kodeine_js_1.EvaluableSource(token));
+        return new KodeValue7(token.getValue(), new kodeine_js_1.EvaluableSource(token));
       }
     };
-    exports.KodeValue = KodeValue6;
+    exports.KodeValue = KodeValue7;
   }
 });
 
@@ -582,7 +582,7 @@ var require_function_call = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FunctionCall = void 0;
     var kodeine_js_1 = require_kodeine();
-    var FunctionCall9 = class extends kodeine_js_1.Evaluable {
+    var FunctionCall10 = class extends kodeine_js_1.Evaluable {
       constructor(func, args, source) {
         super(source);
         this.func = func;
@@ -614,7 +614,7 @@ var require_function_call = __commonJS({
         }
       }
     };
-    exports.FunctionCall = FunctionCall9;
+    exports.FunctionCall = FunctionCall10;
   }
 });
 
@@ -831,7 +831,7 @@ var require_unimplemented_functions = __commonJS({
   "engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TuFunction = exports.DpFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.DfFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+    exports.TuFunction = exports.DpFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var LiFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
@@ -977,15 +977,6 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.BrFunction = BrFunction2;
-    var DfFunction2 = class extends kodeine_js_1.IKodeFunction {
-      getName() {
-        return "df";
-      }
-      call(evalCtx2, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.DfFunction = DfFunction2;
     var MiFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "mi";
@@ -4066,6 +4057,25 @@ var require_tc_function = __commonJS({
       }
     };
     exports.TcFunction = TcFunction2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/df-function.js
+var require_df_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/df-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DfFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var DfFunction2 = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "df";
+      }
+      call(evalCtx2, call, args) {
+        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+      }
+    };
+    exports.DfFunction = DfFunction2;
   }
 });
 
@@ -7269,6 +7279,13 @@ var init_tc_function = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/functions/df-function.ts
+var init_df_function = __esm({
+  "engine/src/evaluation/implementations/functions/df-function.ts"() {
+    init_kodeine();
+  }
+});
+
 // engine/src/evaluation/implementations/operators/unary-operators.ts
 var init_unary_operators = __esm({
   "engine/src/evaluation/implementations/operators/unary-operators.ts"() {
@@ -7379,6 +7396,7 @@ var init_kodeine = __esm({
     init_if_function();
     init_mu_function();
     init_tc_function();
+    init_df_function();
     init_unary_operators();
     init_two_mode_binary_operator();
     init_binary_operators();
@@ -8197,6 +8215,7 @@ var require_kodeine = __commonJS({
     __exportStar(require_if_function(), exports);
     __exportStar(require_mu_function(), exports);
     __exportStar(require_tc_function(), exports);
+    __exportStar(require_df_function(), exports);
     __exportStar(require_unary_operators(), exports);
     __exportStar(require_two_mode_binary_operator(), exports);
     __exportStar(require_binary_operators(), exports);
@@ -8220,7 +8239,7 @@ __export(extension_exports, {
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode6 = __toESM(require("vscode"));
-var import_kodeine28 = __toESM(require_kodeine());
+var import_kodeine29 = __toESM(require_kodeine());
 
 // extension/src/evaluation-tree-document-manager.ts
 var vscode3 = __toESM(require("vscode"));
@@ -8258,7 +8277,7 @@ EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode2 = __toESM(require("vscode"));
-var import_kodeine27 = __toESM(require_kodeine());
+var import_kodeine28 = __toESM(require_kodeine());
 var EvaluationTreeDataProvider = class {
   constructor() {
     this._evaluationTree = null;
@@ -8272,22 +8291,22 @@ var EvaluationTreeDataProvider = class {
       } else {
         return void 0;
       }
-    } else if (element instanceof import_kodeine27.FormulaEvaluationTree) {
+    } else if (element instanceof import_kodeine28.FormulaEvaluationTree) {
       return element.parts;
-    } else if (element instanceof import_kodeine27.EvaluatedUnaryOperation) {
+    } else if (element instanceof import_kodeine28.EvaluatedUnaryOperation) {
       return [element.arg];
-    } else if (element instanceof import_kodeine27.EvaluatedBinaryOperation) {
+    } else if (element instanceof import_kodeine28.EvaluatedBinaryOperation) {
       return [element.argA, element.argB];
-    } else if (element instanceof import_kodeine27.EvaluatedFunctionCall) {
+    } else if (element instanceof import_kodeine28.EvaluatedFunctionCall) {
       return element.args;
-    } else if (element instanceof import_kodeine27.EvaluatedExpression) {
+    } else if (element instanceof import_kodeine28.EvaluatedExpression) {
       return [element.child];
     } else {
       return void 0;
     }
   }
   getTreeItem(element) {
-    let treeItem = new vscode2.TreeItem(`${element.result.text}`, element instanceof import_kodeine27.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
+    let treeItem = new vscode2.TreeItem(`${element.result.text}`, element instanceof import_kodeine28.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
     treeItem.description = element.getDescription();
     return treeItem;
   }
@@ -8611,9 +8630,9 @@ var globalDocManager;
 var evalTreeDocManager;
 function activate(extCtx) {
   var _a;
-  parsingCtx = import_kodeine28.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine28.KodeineParser(parsingCtx);
-  evalCtx = new import_kodeine28.EvaluationContext();
+  parsingCtx = import_kodeine29.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine29.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine29.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
   outChannel = vscode6.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);

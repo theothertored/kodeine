@@ -1,5 +1,6 @@
 TODO:
-- extension cleanup - add comments
+- smarter global name x function name collision prevention
+- produce a parsing error when an unquoted value collides with a function name
 - implement df()
 - implement dp()
 - implement tf()
@@ -16,6 +17,7 @@ MAYBE IN THE FUTURE:
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- extension cleanup - add comments
 - extension cleanup - EvaluationStepsDocumentManager
 - extension cleanup - GlobalDocumentManager class
 - handle clicking on globals linked to non-existent files
