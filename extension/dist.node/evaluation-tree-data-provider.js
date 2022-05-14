@@ -3,11 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EvaluationTreeDataProvider = void 0;
 const vscode = require("vscode");
 const kodeine_js_1 = require("../../engine/dist.node/kodeine.js");
+/** An adapter between a {@link FormulaEvaluationTree} and vscode's tree view. */
 class EvaluationTreeDataProvider {
     constructor() {
+        /** The evaluation tree currently being displayed. */
+        this._evaluationTree = null;
+        /** An event emitter for {@link onDidChangeTreeData}. */
         this._onDidChangeTreeData = new vscode.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-        this._evaluationTree = null;
     }
     getChildren(element) {
         if (!element) {
@@ -44,6 +47,7 @@ class EvaluationTreeDataProvider {
         treeItem.description = element.getDescription();
         return treeItem;
     }
+    /** Sets the evaluation tree to be displayed and notifies vscode that it should update the tree view. */
     setEvaluationTree(evaluationTree) {
         this._evaluationTree = evaluationTree;
         this._onDidChangeTreeData.fire(undefined);

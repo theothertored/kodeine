@@ -1,25 +1,23 @@
 import * as vscode from 'vscode';
-import { 
-    FormulaEvaluationTreeNode, 
+import {
+    FormulaEvaluationTreeNode,
     Literal,
-    FormulaEvaluationTree, 
-    EvaluatedUnaryOperation, 
-    EvaluatedBinaryOperation, 
-    EvaluatedFunctionCall, 
+    FormulaEvaluationTree,
+    EvaluatedUnaryOperation,
+    EvaluatedBinaryOperation,
+    EvaluatedFunctionCall,
     EvaluatedExpression
 } from '../../engine/dist.node/kodeine.js';
 
-
+/** An adapter between a {@link FormulaEvaluationTree} and vscode's tree view. */
 export class EvaluationTreeDataProvider implements vscode.TreeDataProvider<FormulaEvaluationTreeNode> {
 
-    private _evaluationTree: FormulaEvaluationTree | null;
+    /** The evaluation tree currently being displayed. */
+    private _evaluationTree: FormulaEvaluationTree | null = null;
 
-    private _onDidChangeTreeData: vscode.EventEmitter<FormulaEvaluationTreeNode | undefined | void> = new vscode.EventEmitter<FormulaEvaluationTreeNode | undefined | void>();
-    readonly onDidChangeTreeData: vscode.Event<FormulaEvaluationTreeNode | undefined | void> = this._onDidChangeTreeData.event;
-
-    constructor() {
-        this._evaluationTree = null;
-    }
+    /** An event emitter for {@link onDidChangeTreeData}. */
+    private _onDidChangeTreeData = new vscode.EventEmitter<FormulaEvaluationTreeNode | undefined | void>();
+    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     getChildren(element?: FormulaEvaluationTreeNode): vscode.ProviderResult<FormulaEvaluationTreeNode[]> {
 
@@ -77,7 +75,7 @@ export class EvaluationTreeDataProvider implements vscode.TreeDataProvider<Formu
         return treeItem;
     }
 
-
+    /** Sets the evaluation tree to be displayed and notifies vscode that it should update the tree view. */
     setEvaluationTree(evaluationTree: FormulaEvaluationTree) {
         this._evaluationTree = evaluationTree;
         this._onDidChangeTreeData.fire(undefined);

@@ -29,18 +29,19 @@ function activate(extCtx) {
     // create a diagnostic collection for errors and warnings
     diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     extCtx.subscriptions.push(diagColl); // register it as disposable
+    extCtx.subscriptions.push(
+    // register commands
+    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), 
+    // listen to document-related events
+    vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)));
     // initialize a global document manager to handle globals
     globalDocManager = new global_document_manager_js_1.GlobalDocumentManager(extCtx);
     // react to globals changing
     globalDocManager.onGlobalAdded(globalDocument => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
     globalDocManager.onGlobalRemoved(globalDocument => evalCtx.globals.delete(globalDocument.globalName));
     globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());
+    // initialize an evaluation tree document manager to handle evaluation trees
     evalTreeDocManager = new evaluation_tree_document_manager_js_1.EvaluationTreeDocumentManager(extCtx);
-    extCtx.subscriptions.push(
-    // register commands
-    vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult));
-    // listen to document-related events
-    extCtx.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)));
     // initialize with active editor
     onSomethingDocumentRelated(vscode.window.activeTextEditor?.document);
 }

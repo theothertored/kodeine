@@ -8252,9 +8252,6 @@ var _EvaluationStepsTextDocumentContentProvider = class {
   removeEvaluationTreeFor(sourceDoc) {
     this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
   }
-  notifyDocumentClosed(sourceDoc) {
-    this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
-  }
 };
 var EvaluationStepsTextDocumentContentProvider = _EvaluationStepsTextDocumentContentProvider;
 EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
@@ -8264,9 +8261,9 @@ var vscode2 = __toESM(require("vscode"));
 var import_kodeine27 = __toESM(require_kodeine());
 var EvaluationTreeDataProvider = class {
   constructor() {
+    this._evaluationTree = null;
     this._onDidChangeTreeData = new vscode2.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-    this._evaluationTree = null;
   }
   getChildren(element) {
     if (!element) {
@@ -8408,7 +8405,7 @@ var BidirectionalMap = class {
   hasB(b) {
     return this._BToAMap.has(b);
   }
-  set(a, b) {
+  add(a, b) {
     this.deleteByA(a);
     this.deleteByB(b);
     this._AToBMap.set(a, b);
@@ -8441,9 +8438,9 @@ var GlobalTreeDataProvider = class {
   constructor() {
     this.openGlobalDocumentCommand = "kodeine.openGlobalDocument";
     this.openGlobalDocumentCommandTitle = "Open global document";
+    this._globalDocuments = [];
     this._onDidChangeTreeData = new vscode4.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
-    this._globalDocuments = [];
   }
   getTreeItem(element) {
     return {
@@ -8569,9 +8566,9 @@ var _GlobalDocumentManager = class {
     return !!doc && doc.languageId === "kode" && doc.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme;
   }
   addGlobal(globalName, doc) {
-    this._globalsMap.set(globalName, doc);
+    this._globalsMap.add(globalName, doc);
     this._onGlobalAdded.fire({ globalName, doc });
-    this.notifyGlobalsChanged();
+    this._notifyGlobalsChanged();
   }
   removeGlobal(globalNameOrDoc) {
     if (typeof globalNameOrDoc === "string") {
@@ -8579,23 +8576,23 @@ var _GlobalDocumentManager = class {
       if (doc) {
         this._globalsMap.deleteByA(globalNameOrDoc);
         this._onGlobalRemoved.fire({ globalName: globalNameOrDoc, doc });
-        this.notifyGlobalsChanged();
+        this._notifyGlobalsChanged();
       }
     } else {
       let globalName = this._globalsMap.getByB(globalNameOrDoc);
       if (globalName) {
         this._globalsMap.deleteByB(globalNameOrDoc);
         this._onGlobalRemoved.fire({ globalName, doc: globalNameOrDoc });
-        this.notifyGlobalsChanged();
+        this._notifyGlobalsChanged();
       }
     }
   }
   clearGlobals() {
     this._globalsMap.clear();
     this._onGlobalsCleared.fire();
-    this.notifyGlobalsChanged();
+    this._notifyGlobalsChanged();
   }
-  notifyGlobalsChanged() {
+  _notifyGlobalsChanged() {
     this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
   }
 };
@@ -8623,13 +8620,12 @@ function activate(extCtx) {
   outChannel.show(true);
   diagColl = vscode6.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
+  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)));
   globalDocManager = new GlobalDocumentManager(extCtx);
   globalDocManager.onGlobalAdded((globalDocument) => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
   globalDocManager.onGlobalRemoved((globalDocument) => evalCtx.globals.delete(globalDocument.globalName));
   globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());
   evalTreeDocManager = new EvaluationTreeDocumentManager(extCtx);
-  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult));
-  extCtx.subscriptions.push(vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)));
   onSomethingDocumentRelated((_a = vscode6.window.activeTextEditor) == null ? void 0 : _a.document);
 }
 function onSomethingDocumentRelated(document) {

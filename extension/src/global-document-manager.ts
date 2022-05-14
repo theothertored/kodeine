@@ -3,23 +3,35 @@ import { BidirectionalMap } from './bidirectional-map.js';
 import { EvaluationStepsTextDocumentContentProvider } from './evaluation-steps-text-document-content-provider.js';
 import { GlobalTreeDataProvider } from './global-tree-data-provider.js';
 
+/** A helper type containing a related global name and its source document. */
 export type GlobalDocument = { globalName: string, doc: vscode.TextDocument };
 
+/** Keeps track of global variables and their source documents. */
 export class GlobalDocumentManager {
 
+    /** Duration of a status bar message, in ms. */
     public static readonly statusBarMessageTimeout = 5000;
+    /** The id of the view to register the {@link _globalTreeDataProvider} in. */
     public static readonly globalListViewId = 'globalList';
 
+    /** A two-way map between global names and their source document. */
     private readonly _globalsMap = new BidirectionalMap<string, vscode.TextDocument>();
+    /** A {@link vscode.TreeDataProvider} for displaying the global list UI. */
     private readonly _globalTreeDataProvider: GlobalTreeDataProvider = new GlobalTreeDataProvider();
 
+    /** An event emitter for {@link onGlobalRemoved}. */
     private readonly _onGlobalRemoved = new vscode.EventEmitter<GlobalDocument>();
+    /** An event fired when a global is removed. */
     public readonly onGlobalRemoved = this._onGlobalRemoved.event;
-
+    
+    /** An event emitter for {@link onGlobalAdded}. */
     private readonly _onGlobalAdded = new vscode.EventEmitter<GlobalDocument>();
+    /** An event fired when a global is added. */
     public readonly onGlobalAdded = this._onGlobalAdded.event;
-
+    
+    /** An event emitter for {@link onGlobalsCleared}. */
     private readonly _onGlobalsCleared = new vscode.EventEmitter<void>();
+    /** An event fired when all globals are cleared. */
     public readonly onGlobalsCleared = this._onGlobalsCleared.event;
 
     constructor(extCtx: vscode.ExtensionContext) {
@@ -108,9 +120,9 @@ export class GlobalDocumentManager {
 
     addGlobal(globalName: string, doc: vscode.TextDocument) {
 
-        this._globalsMap.set(globalName, doc);
+        this._globalsMap.add(globalName, doc);
         this._onGlobalAdded.fire({ globalName, doc })
-        this.notifyGlobalsChanged();
+        this._notifyGlobalsChanged();
 
     }
 
@@ -123,7 +135,7 @@ export class GlobalDocumentManager {
             if (doc) {
                 this._globalsMap.deleteByA(globalNameOrDoc);
                 this._onGlobalRemoved.fire({ globalName: globalNameOrDoc, doc });
-                this.notifyGlobalsChanged();
+                this._notifyGlobalsChanged();
             }
 
 
@@ -134,7 +146,7 @@ export class GlobalDocumentManager {
             if (globalName) {
                 this._globalsMap.deleteByB(globalNameOrDoc);
                 this._onGlobalRemoved.fire({ globalName, doc: globalNameOrDoc });
-                this.notifyGlobalsChanged();
+                this._notifyGlobalsChanged();
             }
         }
 
@@ -145,14 +157,14 @@ export class GlobalDocumentManager {
 
         this._globalsMap.clear();
         this._onGlobalsCleared.fire();
-        this.notifyGlobalsChanged();
+        this._notifyGlobalsChanged();
 
     }
 
 
     // NOTIFY
 
-    notifyGlobalsChanged(): void {
+    private _notifyGlobalsChanged(): void {
         this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
     }
 

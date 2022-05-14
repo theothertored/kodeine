@@ -5,15 +5,24 @@ const vscode = require("vscode");
 const bidirectional_map_js_1 = require("./bidirectional-map.js");
 const evaluation_steps_text_document_content_provider_js_1 = require("./evaluation-steps-text-document-content-provider.js");
 const global_tree_data_provider_js_1 = require("./global-tree-data-provider.js");
+/** Keeps track of global variables and their source documents. */
 class GlobalDocumentManager {
     constructor(extCtx) {
+        /** A two-way map between global names and their source document. */
         this._globalsMap = new bidirectional_map_js_1.BidirectionalMap();
+        /** A {@link vscode.TreeDataProvider} for displaying the global list UI. */
         this._globalTreeDataProvider = new global_tree_data_provider_js_1.GlobalTreeDataProvider();
+        /** An event emitter for {@link onGlobalRemoved}. */
         this._onGlobalRemoved = new vscode.EventEmitter();
+        /** An event fired when a global is removed. */
         this.onGlobalRemoved = this._onGlobalRemoved.event;
+        /** An event emitter for {@link onGlobalAdded}. */
         this._onGlobalAdded = new vscode.EventEmitter();
+        /** An event fired when a global is added. */
         this.onGlobalAdded = this._onGlobalAdded.event;
+        /** An event emitter for {@link onGlobalsCleared}. */
         this._onGlobalsCleared = new vscode.EventEmitter();
+        /** An event fired when all globals are cleared. */
         this.onGlobalsCleared = this._onGlobalsCleared.event;
         // COMMANDS
         this._commands = {
@@ -124,9 +133,9 @@ class GlobalDocumentManager {
     }
     // ADD, REMOVE, CLEAR
     addGlobal(globalName, doc) {
-        this._globalsMap.set(globalName, doc);
+        this._globalsMap.add(globalName, doc);
         this._onGlobalAdded.fire({ globalName, doc });
-        this.notifyGlobalsChanged();
+        this._notifyGlobalsChanged();
     }
     removeGlobal(globalNameOrDoc) {
         if (typeof globalNameOrDoc === 'string') {
@@ -134,7 +143,7 @@ class GlobalDocumentManager {
             if (doc) {
                 this._globalsMap.deleteByA(globalNameOrDoc);
                 this._onGlobalRemoved.fire({ globalName: globalNameOrDoc, doc });
-                this.notifyGlobalsChanged();
+                this._notifyGlobalsChanged();
             }
         }
         else {
@@ -142,21 +151,23 @@ class GlobalDocumentManager {
             if (globalName) {
                 this._globalsMap.deleteByB(globalNameOrDoc);
                 this._onGlobalRemoved.fire({ globalName, doc: globalNameOrDoc });
-                this.notifyGlobalsChanged();
+                this._notifyGlobalsChanged();
             }
         }
     }
     clearGlobals() {
         this._globalsMap.clear();
         this._onGlobalsCleared.fire();
-        this.notifyGlobalsChanged();
+        this._notifyGlobalsChanged();
     }
     // NOTIFY
-    notifyGlobalsChanged() {
+    _notifyGlobalsChanged() {
         this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
     }
 }
 exports.GlobalDocumentManager = GlobalDocumentManager;
+/** Duration of a status bar message, in ms. */
 GlobalDocumentManager.statusBarMessageTimeout = 5000;
+/** The id of the view to register the {@link _globalTreeDataProvider} in. */
 GlobalDocumentManager.globalListViewId = 'globalList';
 //# sourceMappingURL=global-document-manager.js.map

@@ -4,10 +4,14 @@ exports.EvaluationTreeDocumentManager = void 0;
 const vscode = require("vscode");
 const evaluation_steps_text_document_content_provider_js_1 = require("./evaluation-steps-text-document-content-provider.js");
 const evaluation_tree_data_provider_js_1 = require("./evaluation-tree-data-provider.js");
+/** Keeps track of evaluation trees for formula source documents. */
 class EvaluationTreeDocumentManager {
     constructor(extCtx) {
+        /** A map between source documents and their latest evaluation trees. */
         this._sourceDocToEvalTreeMap = new Map();
+        /** A {@link vscode.TreeDataProvider} for displaying the evaluation tree view UI. */
         this._evalTreeDataProvider = new evaluation_tree_data_provider_js_1.EvaluationTreeDataProvider();
+        /** A {@link vscode.TextDocumentContentProvider} for displaying virtual documents with evaluation steps. */
         this._evalStepsTextDocContentProvider = new evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider();
         // COMMANDS
         this._commands = {
@@ -55,16 +59,26 @@ class EvaluationTreeDocumentManager {
         }
     }
     // KEEPING TRACK OF EVALUATION TREES
+    /**
+     * Updates the evaluation tree for a given source document.
+     * Also updates evaluation steps documents and the evaluation steps tree view.
+     */
     updateEvaluationTreeFor(doc, tree) {
         this._sourceDocToEvalTreeMap.set(doc, tree);
         this._evalStepsTextDocContentProvider.updateEvaluationTreeFor(doc, tree);
         this._evalTreeDataProvider.setEvaluationTree(tree);
     }
+    /**
+     * Removes the evaluation tree for a given source document.
+     * Also removes the evaluation tree from the {@link _evalStepsTextDocContentProvider}.
+     * Intended to be used after the formula source document was closed and keeping the evaluation tree is no longer necessary.
+     */
     removeEvaluationTreeFor(doc) {
         this._sourceDocToEvalTreeMap.delete(doc);
         this._evalStepsTextDocContentProvider.removeEvaluationTreeFor(doc);
     }
 }
 exports.EvaluationTreeDocumentManager = EvaluationTreeDocumentManager;
+/** The id of the view to register the {@link _evalTreeDataProvider} in. */
 EvaluationTreeDocumentManager.evalTreeViewId = 'formulaEvaluationTree';
 //# sourceMappingURL=evaluation-tree-document-manager.js.map
