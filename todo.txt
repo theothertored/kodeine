@@ -1,6 +1,5 @@
 TODO:
-- extension cleanup - EvaluationStepsDocumentManager
-- general extension cleanup and adding comments
+- extension cleanup - add comments
 - implement df()
 - implement dp()
 - implement tf()
@@ -12,10 +11,12 @@ TODO:
 MAYBE IN THE FUTURE:
 - find a way to not remove a global when an untitled file gets saved
 - persist text globals on vscode exit
-- show evaluation steps when active editor changes and it is opened beside
+- show evaluation steps tab when active editor changes and it is opened beside
 - react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
+- option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- extension cleanup - EvaluationStepsDocumentManager
 - extension cleanup - GlobalDocumentManager class
 - handle clicking on globals linked to non-existent files
 - prevent user from adding a global backed by evaluation steps

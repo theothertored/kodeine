@@ -8219,47 +8219,41 @@ __export(extension_exports, {
   activate: () => activate
 });
 module.exports = __toCommonJS(extension_exports);
-var vscode5 = __toESM(require("vscode"));
+var vscode6 = __toESM(require("vscode"));
 var import_kodeine28 = __toESM(require_kodeine());
+
+// extension/src/evaluation-tree-document-manager.ts
+var vscode3 = __toESM(require("vscode"));
 
 // extension/src/evaluation-steps-text-document-content-provider.ts
 var vscode = __toESM(require("vscode"));
 var _EvaluationStepsTextDocumentContentProvider = class {
   constructor() {
-    this._path = "evaluation steps ";
     this._onDidChangeEmitter = new vscode.EventEmitter();
     this.onDidChange = this._onDidChangeEmitter.event;
     this._sourceUriToEvaluationTreeMap = /* @__PURE__ */ new Map();
   }
-  provideTextDocumentContent(uri, token) {
+  _getSourceDocUriFrom(stepsUri) {
+    return vscode.Uri.parse(decodeURIComponent(stepsUri.query.split("=")[1]));
+  }
+  provideTextDocumentContent(stepsUri, token) {
     var _a;
-    let sourceUriString = vscode.Uri.parse(decodeURIComponent(uri.query.split("=")[1])).toString();
+    let sourceUriString = this._getSourceDocUriFrom(stepsUri).toString();
     let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
     return (_a = evaluationTree == null ? void 0 : evaluationTree.printEvaluationSteps()) != null ? _a : "";
   }
-  _getStepsDocumentUri(sourceUri) {
-    return vscode.Uri.parse(`${_EvaluationStepsTextDocumentContentProvider.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+  getStepsDocumentUriFor(sourceDoc) {
+    return vscode.Uri.parse(`${_EvaluationStepsTextDocumentContentProvider.scheme}:${sourceDoc.fileName}.steps?for=${encodeURIComponent(sourceDoc.uri.toString())}`);
   }
-  registerSource(sourceUri, evaluationTree) {
-    if (this.isSourceRegistered(sourceUri)) {
-      this.notifyDocumentChanged(sourceUri, evaluationTree);
-    } else {
-      this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
-      this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
-    }
-    return this._getStepsDocumentUri(sourceUri);
+  updateEvaluationTreeFor(sourceDoc, tree) {
+    this._sourceUriToEvaluationTreeMap.set(sourceDoc.uri.toString(), tree);
+    this._onDidChangeEmitter.fire(this.getStepsDocumentUriFor(sourceDoc));
   }
-  isSourceRegistered(sourceUri) {
-    return this._sourceUriToEvaluationTreeMap.has(sourceUri.toString());
+  removeEvaluationTreeFor(sourceDoc) {
+    this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
   }
-  notifyDocumentChanged(sourceUri, evaluationTree) {
-    if (this.isSourceRegistered(sourceUri)) {
-      this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
-      this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
-    }
-  }
-  notifyDocumentClosed(sourceUri) {
-    this._sourceUriToEvaluationTreeMap.delete(sourceUri.toString());
+  notifyDocumentClosed(sourceDoc) {
+    this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
   }
 };
 var EvaluationStepsTextDocumentContentProvider = _EvaluationStepsTextDocumentContentProvider;
@@ -8306,8 +8300,65 @@ var EvaluationTreeDataProvider = class {
   }
 };
 
+// extension/src/evaluation-tree-document-manager.ts
+var _EvaluationTreeDocumentManager = class {
+  constructor(extCtx) {
+    this._sourceDocToEvalTreeMap = /* @__PURE__ */ new Map();
+    this._evalTreeDataProvider = new EvaluationTreeDataProvider();
+    this._evalStepsTextDocContentProvider = new EvaluationStepsTextDocumentContentProvider();
+    this._commands = {
+      showEvaluationSteps: () => {
+        var _a;
+        if (((_a = vscode3.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode" && vscode3.window.activeTextEditor.document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
+          let sourceDoc = vscode3.window.activeTextEditor.document;
+          let stepsUri = this._evalStepsTextDocContentProvider.getStepsDocumentUriFor(sourceDoc);
+          vscode3.workspace.openTextDocument(stepsUri).then((doc) => vscode3.languages.setTextDocumentLanguage(doc, "kode")).then((doc) => vscode3.window.showTextDocument(doc, {
+            viewColumn: vscode3.ViewColumn.Beside,
+            preserveFocus: true,
+            preview: false
+          }));
+        }
+      }
+    };
+    this.initCommands(extCtx);
+    this.initEvalTreeView(extCtx);
+    this.initEvalStepsTextDocContentProvider(extCtx);
+    this.initEvents(extCtx);
+  }
+  initCommands(extCtx) {
+    for (const commandName in this._commands) {
+      extCtx.subscriptions.push(vscode3.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
+    }
+  }
+  initEvalTreeView(extCtx) {
+    extCtx.subscriptions.push(vscode3.window.registerTreeDataProvider(_EvaluationTreeDocumentManager.evalTreeViewId, this._evalTreeDataProvider));
+  }
+  initEvalStepsTextDocContentProvider(extCtx) {
+    extCtx.subscriptions.push(vscode3.workspace.registerTextDocumentContentProvider(EvaluationStepsTextDocumentContentProvider.scheme, this._evalStepsTextDocContentProvider));
+  }
+  initEvents(extCtx) {
+    extCtx.subscriptions.push(vscode3.workspace.onDidCloseTextDocument((doc) => this.onDidCloseTextDocument(doc)));
+  }
+  onDidCloseTextDocument(doc) {
+    if (doc.languageId === "kode" && doc.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme) {
+      this.removeEvaluationTreeFor(doc);
+    }
+  }
+  updateEvaluationTreeFor(doc, tree) {
+    this._sourceDocToEvalTreeMap.set(doc, tree);
+    this._evalStepsTextDocContentProvider.updateEvaluationTreeFor(doc, tree);
+    this._evalTreeDataProvider.setEvaluationTree(tree);
+  }
+  removeEvaluationTreeFor(doc) {
+    this._sourceDocToEvalTreeMap.delete(doc);
+    this._evalStepsTextDocContentProvider.removeEvaluationTreeFor(doc);
+  }
+};
+var EvaluationTreeDocumentManager = _EvaluationTreeDocumentManager;
+EvaluationTreeDocumentManager.evalTreeViewId = "formulaEvaluationTree";
+
 // extension/src/global-document-manager.ts
-var vscode4 = __toESM(require("vscode"));
+var vscode5 = __toESM(require("vscode"));
 
 // extension/src/bidirectional-map.ts
 var BidirectionalMap = class {
@@ -8385,12 +8436,12 @@ var BidirectionalMap = class {
 };
 
 // extension/src/global-tree-data-provider.ts
-var vscode3 = __toESM(require("vscode"));
+var vscode4 = __toESM(require("vscode"));
 var GlobalTreeDataProvider = class {
   constructor() {
     this.openGlobalDocumentCommand = "kodeine.openGlobalDocument";
     this.openGlobalDocumentCommandTitle = "Open global document";
-    this._onDidChangeTreeData = new vscode3.EventEmitter();
+    this._onDidChangeTreeData = new vscode4.EventEmitter();
     this.onDidChangeTreeData = this._onDidChangeTreeData.event;
     this._globalDocuments = [];
   }
@@ -8398,7 +8449,7 @@ var GlobalTreeDataProvider = class {
     return {
       label: element.globalName,
       description: decodeURIComponent(element.doc.uri.toString()),
-      collapsibleState: vscode3.TreeItemCollapsibleState.None,
+      collapsibleState: vscode4.TreeItemCollapsibleState.None,
       command: {
         title: this.openGlobalDocumentCommandTitle,
         command: this.openGlobalDocumentCommand,
@@ -8423,19 +8474,19 @@ var _GlobalDocumentManager = class {
   constructor(extCtx) {
     this._globalsMap = new BidirectionalMap();
     this._globalTreeDataProvider = new GlobalTreeDataProvider();
-    this._onGlobalRemoved = new vscode4.EventEmitter();
+    this._onGlobalRemoved = new vscode5.EventEmitter();
     this.onGlobalRemoved = this._onGlobalRemoved.event;
-    this._onGlobalAdded = new vscode4.EventEmitter();
+    this._onGlobalAdded = new vscode5.EventEmitter();
     this.onGlobalAdded = this._onGlobalAdded.event;
-    this._onGlobalsCleared = new vscode4.EventEmitter();
+    this._onGlobalsCleared = new vscode5.EventEmitter();
     this.onGlobalsCleared = this._onGlobalsCleared.event;
     this._commands = {
       addGlobal: () => {
         var _a;
-        if (!this.getIsValidGlobalDocument((_a = vscode4.window.activeTextEditor) == null ? void 0 : _a.document)) {
+        if (!this.getIsValidGlobalDocument((_a = vscode5.window.activeTextEditor) == null ? void 0 : _a.document)) {
           return;
         }
-        vscode4.window.showInputBox({
+        vscode5.window.showInputBox({
           title: "Name the global",
           prompt: "Remember that Kustom limits this name to 8 characters.",
           validateInput: (text) => {
@@ -8450,8 +8501,8 @@ var _GlobalDocumentManager = class {
         }).then((globalName) => {
           if (globalName) {
             globalName = globalName.trim().toLowerCase();
-            this.addGlobal(globalName, vscode4.window.activeTextEditor.document);
-            vscode4.window.setStatusBarMessage(`gv(${globalName}) has been added.`, _GlobalDocumentManager.statusBarMessageTimeout);
+            this.addGlobal(globalName, vscode5.window.activeTextEditor.document);
+            vscode5.window.setStatusBarMessage(`gv(${globalName}) has been added.`, _GlobalDocumentManager.statusBarMessageTimeout);
           }
         });
       },
@@ -8459,24 +8510,24 @@ var _GlobalDocumentManager = class {
         if (globalDocument) {
           this.removeGlobal(globalDocument.globalName);
         } else {
-          vscode4.window.showQuickPick(this.getGlobalDocuments().map((globalDocument2) => ({
+          vscode5.window.showQuickPick(this.getGlobalDocuments().map((globalDocument2) => ({
             label: globalDocument2.globalName,
             description: globalDocument2.doc.uri.toString(),
             globalDocument: globalDocument2
           }))).then((pickedItem) => {
             if (pickedItem) {
               this.removeGlobal(pickedItem.globalDocument.globalName);
-              vscode4.window.setStatusBarMessage(`gv(${pickedItem.globalDocument.globalName}) has been removed.`, _GlobalDocumentManager.statusBarMessageTimeout);
+              vscode5.window.setStatusBarMessage(`gv(${pickedItem.globalDocument.globalName}) has been removed.`, _GlobalDocumentManager.statusBarMessageTimeout);
             }
           });
         }
       },
       clearGlobals: () => {
         this.clearGlobals();
-        vscode4.window.setStatusBarMessage(`All globals have been removed.`, _GlobalDocumentManager.statusBarMessageTimeout);
+        vscode5.window.setStatusBarMessage(`All globals have been removed.`, _GlobalDocumentManager.statusBarMessageTimeout);
       },
       openGlobalDocument: (uri) => {
-        vscode4.window.showTextDocument(uri);
+        vscode5.window.showTextDocument(uri);
       }
     };
     this.initGlobalsMap(extCtx);
@@ -8488,21 +8539,21 @@ var _GlobalDocumentManager = class {
   }
   initCommands(extCtx) {
     for (const commandName in this._commands) {
-      extCtx.subscriptions.push(vscode4.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
+      extCtx.subscriptions.push(vscode5.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
     }
   }
   initGlobalListUI(extCtx) {
     this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
-    extCtx.subscriptions.push(vscode4.window.registerTreeDataProvider(_GlobalDocumentManager.globalListViewId, this._globalTreeDataProvider));
+    extCtx.subscriptions.push(vscode5.window.registerTreeDataProvider(_GlobalDocumentManager.globalListViewId, this._globalTreeDataProvider));
   }
   initEvents(extCtx) {
-    extCtx.subscriptions.push(vscode4.workspace.onDidCloseTextDocument((doc) => this.onDidCloseTextDocument(doc)));
+    extCtx.subscriptions.push(vscode5.workspace.onDidCloseTextDocument((doc) => this.onDidCloseTextDocument(doc)));
   }
   onDidCloseTextDocument(doc) {
     if (doc.isUntitled && doc.languageId === "kode" && this._globalsMap.hasB(doc)) {
       let globalName = this.getGlobalNameFor(doc);
       this.removeGlobal(doc);
-      vscode4.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
+      vscode5.window.showWarningMessage(`gv(${globalName}) has been removed.`, {
         detail: `The untitled document gv(${globalName}) was linked to was closed.`,
         modal: true
       });
@@ -8560,41 +8611,30 @@ var parser;
 var evalCtx;
 var lastFormula;
 var globalDocManager;
-var evaluationTreeDataProvider;
-var evaluationStepsTextDocContentProvider;
+var evalTreeDocManager;
 function activate(extCtx) {
   var _a;
   parsingCtx = import_kodeine28.ParsingContextBuilder.buildDefault();
   parser = new import_kodeine28.KodeineParser(parsingCtx);
   evalCtx = new import_kodeine28.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
-  outChannel = vscode5.window.createOutputChannel("Formula Result");
+  outChannel = vscode6.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
   outChannel.show(true);
-  diagColl = vscode5.languages.createDiagnosticCollection("Formula diagnostics");
+  diagColl = vscode6.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
   globalDocManager = new GlobalDocumentManager(extCtx);
   globalDocManager.onGlobalAdded((globalDocument) => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
   globalDocManager.onGlobalRemoved((globalDocument) => evalCtx.globals.delete(globalDocument.globalName));
   globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());
-  evaluationTreeDataProvider = new EvaluationTreeDataProvider();
-  extCtx.subscriptions.push(vscode5.window.registerTreeDataProvider("formulaEvaluationTree", evaluationTreeDataProvider));
-  evaluationStepsTextDocContentProvider = new EvaluationStepsTextDocumentContentProvider();
-  extCtx.subscriptions.push(vscode5.workspace.registerTextDocumentContentProvider(EvaluationStepsTextDocumentContentProvider.scheme, evaluationStepsTextDocContentProvider));
-  extCtx.subscriptions.push(vscode5.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode5.commands.registerCommand("kodeine.showEvaluationSteps", command_showEvaluationSteps));
-  extCtx.subscriptions.push(vscode5.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode5.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode5.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode5.workspace.onDidCloseTextDocument((doc) => onTextDocumentClosed(doc)));
-  onSomethingDocumentRelated((_a = vscode5.window.activeTextEditor) == null ? void 0 : _a.document);
+  evalTreeDocManager = new EvaluationTreeDocumentManager(extCtx);
+  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult));
+  extCtx.subscriptions.push(vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)));
+  onSomethingDocumentRelated((_a = vscode6.window.activeTextEditor) == null ? void 0 : _a.document);
 }
 function onSomethingDocumentRelated(document) {
   if (document && document.languageId === "kode" && document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
     evaluateToOutput(document);
-  }
-}
-function onTextDocumentClosed(document) {
-  if (document.languageId === "kode") {
-    if (document.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme) {
-      evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
-    }
   }
 }
 function evaluateToOutput(document) {
@@ -8634,7 +8674,6 @@ ${errorMessages.join("\n")}`);
     } else {
       outChannel.replace(result.text);
     }
-    evaluationStepsTextDocContentProvider.notifyDocumentChanged(document.uri, evalCtx.sideEffects.lastEvaluationTreeNode);
   } catch (err) {
     outChannel.replace("kodeine crashed: " + (err == null ? void 0 : err.toString()));
     lastFormula = null;
@@ -8642,8 +8681,8 @@ ${errorMessages.join("\n")}`);
   if (parsingCtx.sideEffects.warnings.length > 0) {
     parsingCtx.sideEffects.warnings.forEach((warning) => {
       diags.push({
-        severity: vscode5.DiagnosticSeverity.Warning,
-        range: new vscode5.Range(document.positionAt(warning.tokens[0].getStartIndex()), document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())),
+        severity: vscode6.DiagnosticSeverity.Warning,
+        range: new vscode6.Range(document.positionAt(warning.tokens[0].getStartIndex()), document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())),
         message: warning.message,
         code: "",
         source: ""
@@ -8653,8 +8692,8 @@ ${errorMessages.join("\n")}`);
   if (parsingCtx.sideEffects.errors.length > 0) {
     parsingCtx.sideEffects.errors.forEach((error) => {
       diags.push({
-        severity: vscode5.DiagnosticSeverity.Error,
-        range: new vscode5.Range(document.positionAt(error.token.getStartIndex()), document.positionAt(error.token.getEndIndex())),
+        severity: vscode6.DiagnosticSeverity.Error,
+        range: new vscode6.Range(document.positionAt(error.token.getStartIndex()), document.positionAt(error.token.getEndIndex())),
         message: error.message,
         code: "",
         source: ""
@@ -8664,8 +8703,8 @@ ${errorMessages.join("\n")}`);
   if (evalCtx.sideEffects.warnings.length > 0) {
     evalCtx.sideEffects.warnings.forEach((warning) => {
       diags.push({
-        severity: vscode5.DiagnosticSeverity.Warning,
-        range: new vscode5.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
+        severity: vscode6.DiagnosticSeverity.Warning,
+        range: new vscode6.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
         message: warning.message,
         code: "",
         source: ""
@@ -8675,36 +8714,19 @@ ${errorMessages.join("\n")}`);
   if (evalCtx.sideEffects.errors.length > 0) {
     evalCtx.sideEffects.errors.forEach((error) => {
       diags.push({
-        severity: vscode5.DiagnosticSeverity.Error,
-        range: new vscode5.Range(document.positionAt(error.evaluable.source.getStartIndex()), document.positionAt(error.evaluable.source.getEndIndex())),
+        severity: vscode6.DiagnosticSeverity.Error,
+        range: new vscode6.Range(document.positionAt(error.evaluable.source.getStartIndex()), document.positionAt(error.evaluable.source.getEndIndex())),
         message: error.message,
         code: "",
         source: ""
       });
     });
   }
-  diagColl.set(vscode5.window.activeTextEditor.document.uri, diags);
-  evaluationTreeDataProvider.setEvaluationTree(evalCtx.sideEffects.lastEvaluationTreeNode);
+  diagColl.set(vscode6.window.activeTextEditor.document.uri, diags);
+  evalTreeDocManager.updateEvaluationTreeFor(document, evalCtx.sideEffects.lastEvaluationTreeNode);
 }
 function command_formulaResult() {
   outChannel.show(true);
-}
-function command_showEvaluationSteps() {
-  var _a;
-  if (((_a = vscode5.window.activeTextEditor) == null ? void 0 : _a.document.languageId) === "kode" && vscode5.window.activeTextEditor.document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
-    let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
-    if (evaluationTree instanceof import_kodeine28.FormulaEvaluationTree) {
-      let uri = evaluationStepsTextDocContentProvider.registerSource(vscode5.window.activeTextEditor.document.uri, evaluationTree);
-      vscode5.workspace.openTextDocument(uri).then((doc) => {
-        vscode5.languages.setTextDocumentLanguage(doc, "kode");
-        vscode5.window.showTextDocument(doc, {
-          viewColumn: vscode5.ViewColumn.Beside,
-          preserveFocus: true,
-          preview: false
-        });
-      });
-    }
-  }
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

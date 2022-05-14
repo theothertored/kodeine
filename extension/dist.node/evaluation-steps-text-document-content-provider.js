@@ -4,40 +4,30 @@ exports.EvaluationStepsTextDocumentContentProvider = void 0;
 const vscode = require("vscode");
 class EvaluationStepsTextDocumentContentProvider {
     constructor() {
-        this._path = 'evaluation steps ';
         this._onDidChangeEmitter = new vscode.EventEmitter();
         this.onDidChange = this._onDidChangeEmitter.event;
         this._sourceUriToEvaluationTreeMap = new Map();
     }
-    provideTextDocumentContent(uri, token) {
-        let sourceUriString = vscode.Uri.parse(decodeURIComponent(uri.query.split('=')[1])).toString();
+    _getSourceDocUriFrom(stepsUri) {
+        return vscode.Uri.parse(decodeURIComponent(stepsUri.query.split('=')[1]));
+    }
+    provideTextDocumentContent(stepsUri, token) {
+        let sourceUriString = this._getSourceDocUriFrom(stepsUri).toString();
         let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
         return evaluationTree?.printEvaluationSteps() ?? '';
     }
-    _getStepsDocumentUri(sourceUri) {
-        return vscode.Uri.parse(`${EvaluationStepsTextDocumentContentProvider.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
+    getStepsDocumentUriFor(sourceDoc) {
+        return vscode.Uri.parse(`${EvaluationStepsTextDocumentContentProvider.scheme}:${sourceDoc.fileName}.steps?for=${encodeURIComponent(sourceDoc.uri.toString())}`);
     }
-    registerSource(sourceUri, evaluationTree) {
-        if (this.isSourceRegistered(sourceUri)) {
-            this.notifyDocumentChanged(sourceUri, evaluationTree);
-        }
-        else {
-            this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
-            this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
-        }
-        return this._getStepsDocumentUri(sourceUri);
+    updateEvaluationTreeFor(sourceDoc, tree) {
+        this._sourceUriToEvaluationTreeMap.set(sourceDoc.uri.toString(), tree);
+        this._onDidChangeEmitter.fire(this.getStepsDocumentUriFor(sourceDoc));
     }
-    isSourceRegistered(sourceUri) {
-        return this._sourceUriToEvaluationTreeMap.has(sourceUri.toString());
+    removeEvaluationTreeFor(sourceDoc) {
+        this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
     }
-    notifyDocumentChanged(sourceUri, evaluationTree) {
-        if (this.isSourceRegistered(sourceUri)) {
-            this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
-            this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
-        }
-    }
-    notifyDocumentClosed(sourceUri) {
-        this._sourceUriToEvaluationTreeMap.delete(sourceUri.toString());
+    notifyDocumentClosed(sourceDoc) {
+        this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
     }
 }
 exports.EvaluationStepsTextDocumentContentProvider = EvaluationStepsTextDocumentContentProvider;

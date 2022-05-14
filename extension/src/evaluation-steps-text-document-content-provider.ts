@@ -3,10 +3,8 @@ import * as vscode from 'vscode';
 import { FormulaEvaluationTree } from '../../engine/dist.node/kodeine.js';
 
 export class EvaluationStepsTextDocumentContentProvider implements vscode.TextDocumentContentProvider {
-
+    
     static readonly scheme: string = 'formulaevaluationsteps';
-
-    private readonly _path = 'evaluation steps ';
 
     public onDidChange?: vscode.Event<vscode.Uri> | undefined;
     private _onDidChangeEmitter: vscode.EventEmitter<vscode.Uri>;
@@ -20,9 +18,13 @@ export class EvaluationStepsTextDocumentContentProvider implements vscode.TextDo
         this._sourceUriToEvaluationTreeMap = new Map<string, FormulaEvaluationTree>();
     }
 
-    provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string> {
+    private _getSourceDocUriFrom(stepsUri: vscode.Uri): vscode.Uri {
+        return vscode.Uri.parse(decodeURIComponent(stepsUri.query.split('=')[1]))
+    }
 
-        let sourceUriString = vscode.Uri.parse(decodeURIComponent(uri.query.split('=')[1])).toString();
+    provideTextDocumentContent(stepsUri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string> {
+
+        let sourceUriString = this._getSourceDocUriFrom(stepsUri).toString();
 
         let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
 
@@ -30,42 +32,26 @@ export class EvaluationStepsTextDocumentContentProvider implements vscode.TextDo
 
     }
 
-    private _getStepsDocumentUri(sourceUri: vscode.Uri) {
+    getStepsDocumentUriFor(sourceDoc: vscode.TextDocument): vscode.Uri {
 
-        return vscode.Uri.parse(`${EvaluationStepsTextDocumentContentProvider.scheme}:${this._path}?for=${encodeURIComponent(sourceUri.toString())}`);
-
-    }
-
-    registerSource(sourceUri: vscode.Uri, evaluationTree: FormulaEvaluationTree) {
-
-        if (this.isSourceRegistered(sourceUri)) {
-            this.notifyDocumentChanged(sourceUri, evaluationTree);
-        } else {
-            this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
-            this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
-        }
-
-        return this._getStepsDocumentUri(sourceUri);
+        return vscode.Uri.parse(`${EvaluationStepsTextDocumentContentProvider.scheme}:${sourceDoc.fileName}.steps?for=${encodeURIComponent(sourceDoc.uri.toString())}`);
 
     }
 
-    isSourceRegistered(sourceUri: vscode.Uri) {
-        return this._sourceUriToEvaluationTreeMap.has(sourceUri.toString());
-    }
+    updateEvaluationTreeFor(sourceDoc: vscode.TextDocument, tree: FormulaEvaluationTree): void {
 
-    notifyDocumentChanged(sourceUri: vscode.Uri, evaluationTree: FormulaEvaluationTree) {
-
-        if (this.isSourceRegistered(sourceUri)) {
-
-            this._sourceUriToEvaluationTreeMap.set(sourceUri.toString(), evaluationTree);
-            this._onDidChangeEmitter.fire(this._getStepsDocumentUri(sourceUri));
-
-        }
+        this._sourceUriToEvaluationTreeMap.set(sourceDoc.uri.toString(), tree);
+        this._onDidChangeEmitter.fire(this.getStepsDocumentUriFor(sourceDoc));
 
     }
 
-    notifyDocumentClosed(sourceUri: vscode.Uri) {
-        this._sourceUriToEvaluationTreeMap.delete(sourceUri.toString());
+    removeEvaluationTreeFor(sourceDoc: vscode.TextDocument) {
+        this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
+    }
+
+
+    notifyDocumentClosed(sourceDoc: vscode.TextDocument): void {
+        this._sourceUriToEvaluationTreeMap.delete(sourceDoc.uri.toString());
     }
 
 }

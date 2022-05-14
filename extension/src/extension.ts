@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-
 import {
     ParsingContext, ParsingContextBuilder,
     KodeineParser,
@@ -7,7 +6,7 @@ import {
     Formula,
     FormulaEvaluationTree
 } from '../../engine/dist.node/kodeine.js';
-
+import { EvaluationTreeDocumentManager } from './evaluation-tree-document-manager.js';
 import { EvaluationStepsTextDocumentContentProvider } from './evaluation-steps-text-document-content-provider.js';
 import { EvaluationTreeDataProvider } from './evaluation-tree-data-provider.js';
 import { GlobalDocumentManager } from './global-document-manager.js';
@@ -21,9 +20,7 @@ let evalCtx: EvaluationContext;
 let lastFormula: Formula | null;
 
 let globalDocManager: GlobalDocumentManager;
-let evaluationTreeDataProvider: EvaluationTreeDataProvider;
-let evaluationStepsTextDocContentProvider: EvaluationStepsTextDocumentContentProvider;
-
+let evalTreeDocManager: EvaluationTreeDocumentManager;
 
 /** Activates the extension. */
 export function activate(extCtx: vscode.ExtensionContext) {
@@ -57,24 +54,12 @@ export function activate(extCtx: vscode.ExtensionContext) {
     globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());
 
 
-    // create and register the formula tree view data provider
-    evaluationTreeDataProvider = new EvaluationTreeDataProvider();
-    extCtx.subscriptions.push(
-        vscode.window.registerTreeDataProvider('formulaEvaluationTree', evaluationTreeDataProvider)
-    );
-
-
-    // create and register evaluation steps text document content provider
-    evaluationStepsTextDocContentProvider = new EvaluationStepsTextDocumentContentProvider();
-    extCtx.subscriptions.push(
-        vscode.workspace.registerTextDocumentContentProvider(EvaluationStepsTextDocumentContentProvider.scheme, evaluationStepsTextDocContentProvider),
-    );
+    evalTreeDocManager = new EvaluationTreeDocumentManager(extCtx);
 
     extCtx.subscriptions.push(
 
         // register commands
         vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult),
-        vscode.commands.registerCommand('kodeine.showEvaluationSteps', command_showEvaluationSteps),
 
     );
 
@@ -84,8 +69,7 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
         vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)),
         vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)),
-        vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)),
-        vscode.workspace.onDidCloseTextDocument(doc => onTextDocumentClosed(doc))
+        vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc))
 
     );
 
@@ -106,21 +90,6 @@ function onSomethingDocumentRelated(document?: vscode.TextDocument) {
         evaluateToOutput(document);
 
     }
-}
-
-function onTextDocumentClosed(document: vscode.TextDocument) {
-
-    if (document.languageId === 'kode') {
-
-        if (document.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme) {
-
-            // an evaluation steps document was closed, we can release the evaluation tree & steps
-            evaluationStepsTextDocContentProvider.notifyDocumentClosed(document.uri);
-
-        } 
-
-    }
-
 }
 
 /** Evaluates a given kode document to the formula result output channel. */
@@ -212,8 +181,6 @@ function evaluateToOutput(document: vscode.TextDocument) {
 
         }
 
-        evaluationStepsTextDocContentProvider.notifyDocumentChanged(document.uri, evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
-
     } catch (err: any) {
 
         // unexpected error, print to output
@@ -303,39 +270,11 @@ function evaluateToOutput(document: vscode.TextDocument) {
     // apply the created list to the problems panel
     diagColl.set(vscode.window.activeTextEditor!.document.uri, diags);
 
-    // refresh formula tree view
-    evaluationTreeDataProvider.setEvaluationTree(evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
+    // refresh evaluation tree
+    evalTreeDocManager.updateEvaluationTreeFor(document, evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
+
 }
 
 function command_formulaResult() {
     outChannel.show(true);
-}
-
-function command_showEvaluationSteps() {
-
-    if (
-        vscode.window.activeTextEditor?.document.languageId === 'kode'
-        && vscode.window.activeTextEditor.document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme
-    ) {
-
-        let evaluationTree = evalCtx.sideEffects.lastEvaluationTreeNode;
-
-        if (evaluationTree instanceof FormulaEvaluationTree) {
-
-            let uri = evaluationStepsTextDocContentProvider.registerSource(vscode.window.activeTextEditor.document.uri, evaluationTree);
-
-            vscode.workspace.openTextDocument(uri)
-                .then(doc => {
-                    vscode.languages.setTextDocumentLanguage(doc, 'kode');
-                    vscode.window.showTextDocument(doc, {
-                        viewColumn: vscode.ViewColumn.Beside,
-                        preserveFocus: true,
-                        preview: false
-                    });
-                });
-
-        }
-
-    }
-
 }
