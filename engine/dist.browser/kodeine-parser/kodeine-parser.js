@@ -1,4 +1,4 @@
-import { IFormulaTokenLexer, ICharReader, KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError, ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken, BrokenEvaluable, EvaluableSource, Formula, KodeValue, KodeineLexer, StringCharReader, ExpressionBuilder, FunctionCallBuilder, FunctionOccurence, UnclosedDollarSignWarning, UnclosedQuotedValueWarning } from "../kodeine.js";
+import { IFormulaTokenLexer, ICharReader, KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnquotedValueAndFunctionNameCollisionError, UnrecognizedTokenError, ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken, BrokenEvaluable, EvaluableSource, Formula, KodeValue, KodeineLexer, StringCharReader, ExpressionBuilder, FunctionCallBuilder, FunctionOccurence, UnclosedDollarSignWarning, UnclosedQuotedValueWarning } from "../kodeine.js";
 /**
  * Values representing the current state of the parser.
  * - {@link Default}: Not in an evaluable part of the formula
@@ -160,7 +160,14 @@ export class KodeineParser {
                             }
                         }
                         else {
-                            // this is not a function call, let the current expression builder handle the token
+                            // this is not a function call, but we still need to check for unquoted string and function name collision
+                            // basically reimplementing a bug
+                            if (token.getValue().length === 2 && this._parsingCtx.findFunction(token.getValue())) {
+                                throw new UnquotedValueAndFunctionNameCollisionError(token);
+                            }
+                            else {
+                                // no function with this name let the current expression builder handle the token
+                            }
                             peekLastExprBuilder().addValue(token);
                         }
                     }

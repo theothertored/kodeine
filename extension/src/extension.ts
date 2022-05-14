@@ -59,7 +59,11 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
 
     // initialize a global document manager to handle globals
-    globalDocManager = new GlobalDocumentManager(extCtx);
+    globalDocManager = new GlobalDocumentManager(
+        extCtx, 
+        parsingCtx.getOperatorSymbolsLongestFirst(),
+        parsingCtx.getFunctionNames()
+    );
 
     // react to globals changing
     globalDocManager.onGlobalAdded(globalDocument => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
+exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.UnquotedValueAndFunctionNameCollisionError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
 const kodeine_js_1 = require("./kodeine.js");
 /** A base class for errors thrown by kodeine that does not extend {@link Error} - because that breaks `instanceof`. */
 class KodeError {
@@ -41,6 +41,16 @@ class KodeFunctionNotFoundError extends KodeParsingError {
     }
 }
 exports.KodeFunctionNotFoundError = KodeFunctionNotFoundError;
+class UnquotedValueAndFunctionNameCollisionError extends KodeParsingError {
+    /**
+     * Constructs a {@link UnquotedValueAndFunctionNameCollisionError} with an unquoted value token for which the collision occurred.
+     * @param token The unquoted value token that collided with a function name.
+     */
+    constructor(token) {
+        super('Unquoted string & function name collision', token, `"${token.getSourceText()}" is a function name. Kustom will throw "err: null", even though this value is not followed by an opening parenthesis.`);
+    }
+}
+exports.UnquotedValueAndFunctionNameCollisionError = UnquotedValueAndFunctionNameCollisionError;
 /** Thrown when the lexer produced a token that the parser did not recognize. */
 class UnrecognizedTokenError extends KodeParsingError {
     /**

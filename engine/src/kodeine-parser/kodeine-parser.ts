@@ -1,6 +1,6 @@
 import {
     IFormulaTokenLexer, IFormulaStringParser, ICharReader,
-    KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnrecognizedTokenError,
+    KodeFunctionNotFoundError, KodeParsingError, KodeSyntaxError, UnquotedValueAndFunctionNameCollisionError, UnrecognizedTokenError,
     ClosingParenthesisToken, CommaToken, DollarSignToken, OpeningParenthesisToken, OperatorToken, QuotedValueToken, UnclosedQuotedValueToken, UnquotedValueToken, WhitespaceToken,
     BrokenEvaluable,
     Evaluable, EvaluableSource,
@@ -247,7 +247,19 @@ export class KodeineParser implements IFormulaStringParser {
 
                         } else {
 
-                            // this is not a function call, let the current expression builder handle the token
+                            // this is not a function call, but we still need to check for unquoted string and function name collision
+                            // basically reimplementing a bug
+
+                            if (token.getValue().length === 2 && this._parsingCtx.findFunction(token.getValue())) {
+
+                                throw new UnquotedValueAndFunctionNameCollisionError(token);
+
+                            } else {
+                                // no function with this name let the current expression builder handle the token
+
+                            }
+
+
                             peekLastExprBuilder().addValue(token);
 
                         }

@@ -28,6 +28,13 @@ export declare class KodeFunctionNotFoundError extends KodeParsingError {
      */
     constructor(token: UnquotedValueToken);
 }
+export declare class UnquotedValueAndFunctionNameCollisionError extends KodeParsingError {
+    /**
+     * Constructs a {@link UnquotedValueAndFunctionNameCollisionError} with an unquoted value token for which the collision occurred.
+     * @param token The unquoted value token that collided with a function name.
+     */
+    constructor(token: UnquotedValueToken);
+}
 /** Thrown when the lexer produced a token that the parser did not recognize. */
 export declare class UnrecognizedTokenError extends KodeParsingError {
     /**

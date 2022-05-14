@@ -57,7 +57,7 @@ import {
  * @see {@link ParsingContextBuilder}
  */
 export class ParsingContext {
-
+    
     /** An object with function names as keys and implementations as values. */
     private readonly _functions: Record<string, IKodeFunction>;
 
@@ -130,6 +130,11 @@ export class ParsingContext {
     /** Returns an array of operator symbols, sorted by length, descending. */
     getOperatorSymbolsLongestFirst(): string[] {
         return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
+    }
+
+    /** Returns an array of function names. */
+    getFunctionNames(): string[] {
+        return Object.keys(this._functions);
     }
 
     clearSideEffects() {

@@ -55,6 +55,10 @@ export class ParsingContext {
     getOperatorSymbolsLongestFirst() {
         return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
     }
+    /** Returns an array of function names. */
+    getFunctionNames() {
+        return Object.keys(this._functions);
+    }
     clearSideEffects() {
         this.sideEffects = new ParsingSideEffects();
     }

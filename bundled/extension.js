@@ -61,7 +61,7 @@ var require_errors = __commonJS({
   "engine/dist.node/errors.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
+    exports.RegexEvaluationError = exports.InvalidArgumentError = exports.InvalidArgumentCountError = exports.EvaluationError = exports.UnrecognizedTokenError = exports.UnquotedValueAndFunctionNameCollisionError = exports.KodeFunctionNotFoundError = exports.KodeSyntaxError = exports.KodeParsingError = exports.KodeError = void 0;
     var kodeine_js_1 = require_kodeine();
     var KodeError = class {
       constructor(message) {
@@ -88,6 +88,12 @@ var require_errors = __commonJS({
       }
     };
     exports.KodeFunctionNotFoundError = KodeFunctionNotFoundError2;
+    var UnquotedValueAndFunctionNameCollisionError2 = class extends KodeParsingError3 {
+      constructor(token) {
+        super("Unquoted string & function name collision", token, `"${token.getSourceText()}" is a function name. Kustom will throw "err: null", even though this value is not followed by an opening parenthesis.`);
+      }
+    };
+    exports.UnquotedValueAndFunctionNameCollisionError = UnquotedValueAndFunctionNameCollisionError2;
     var UnrecognizedTokenError2 = class extends KodeParsingError3 {
       constructor(token) {
         super("Unrecognized token", token, `Token "${token.getName()}" was not recognized by the parser.`);
@@ -7941,6 +7947,10 @@ var require_kodeine_parser = __commonJS({
                     throw new kodeine_js_1.KodeFunctionNotFoundError(token);
                   }
                 } else {
+                  if (token.getValue().length === 2 && this._parsingCtx.findFunction(token.getValue())) {
+                    throw new kodeine_js_1.UnquotedValueAndFunctionNameCollisionError(token);
+                  } else {
+                  }
                   peekLastExprBuilder().addValue(token);
                 }
               } else if (token instanceof kodeine_js_1.QuotedValueToken) {
@@ -8074,6 +8084,9 @@ var require_parsing_context = __commonJS({
       }
       getOperatorSymbolsLongestFirst() {
         return Array.from(this._operatorSymbols).sort((a, b) => b.length - a.length);
+      }
+      getFunctionNames() {
+        return Object.keys(this._functions);
       }
       clearSideEffects() {
         this.sideEffects = new ParsingSideEffects();
@@ -8487,7 +8500,7 @@ var GlobalTreeDataProvider = class {
 
 // extension/src/global-document-manager.ts
 var _GlobalDocumentManager = class {
-  constructor(extCtx) {
+  constructor(extCtx, operatorSymbols, functionNames) {
     this._globalsMap = new BidirectionalMap();
     this._globalTreeDataProvider = new GlobalTreeDataProvider();
     this._onGlobalRemoved = new vscode5.EventEmitter();
@@ -8508,15 +8521,63 @@ var _GlobalDocumentManager = class {
           validateInput: (text) => {
             if (!text) {
               return "Global name cannot be empty.";
-            } else if (text.length === 2) {
-              return "Kustom doesn't really like two letter global names because it confuses them with function names.";
+            } else if (text.endsWith("!")) {
+              return null;
             } else {
+              let segments = text.split("/");
+              let segmentIssues = [];
+              let quotationMarksEncountered = false;
+              for (let i = 0; i < segments.length; i++) {
+                const seg = segments[i];
+                let addIssue = (msg) => {
+                  segmentIssues.push({ i, seg, msg });
+                };
+                if (seg === "") {
+                  addIssue("is empty.");
+                } else {
+                  if (seg.trimStart().length !== seg.length)
+                    addIssue("has leading whitespace.");
+                  if (seg.trimEnd().length !== seg.length)
+                    addIssue("has trailing whitespace.");
+                  if (seg.trim().length === 2 && this._functionNames.includes(seg.trim())) {
+                    addIssue('collides with function name. Kustom will throw "err: null".');
+                  } else {
+                    this._operatorSymbols.forEach((symbol) => {
+                      if (seg.startsWith(symbol))
+                        addIssue(`starts or ends with operator "${symbol}".`);
+                      if (seg.endsWith(symbol))
+                        addIssue(`ends with operator "${symbol}".`);
+                    });
+                    ["+", "=", "!=", "~="].forEach((symbol) => {
+                      if (seg.includes(symbol))
+                        addIssue(`contains operator "${symbol}" that doesn't have a generic string mode.`);
+                    });
+                    ["(", ")", "$", ",", "!", "~"].forEach((char) => {
+                      if (seg.includes(char))
+                        addIssue(`contains a special character "${char}".`);
+                    });
+                    if (seg.includes('"')) {
+                      quotationMarksEncountered = true;
+                      addIssue("contains a quotation mark.");
+                    }
+                  }
+                }
+              }
+              if (segmentIssues.length > 0) {
+                return `${segmentIssues.length} ${segmentIssues.length === 1 ? "issue" : "issues"} detected:
+${segmentIssues.map((iss) => `- ${segments.length > 1 ? `Segment #${iss.i + 1} (${iss.seg})` : "Name"} ${iss.msg}`).join("\n")}
+` + (quotationMarksEncountered ? `This name contains at least one quotation mark. You should only continue if you know what you are doing.
+` : `This name should be used as a quoted string (ex. gv("${text}")).
+`) + `Type ! after the global name to bypass this warning.`;
+              }
               return null;
             }
           }
         }).then((globalName) => {
           if (globalName) {
             globalName = globalName.trim().toLowerCase();
+            if (globalName.endsWith("!"))
+              globalName = globalName.substring(0, globalName.length - 1);
             this.addGlobal(globalName, vscode5.window.activeTextEditor.document);
             vscode5.window.setStatusBarMessage(`gv(${globalName}) has been added.`, _GlobalDocumentManager.statusBarMessageTimeout);
           }
@@ -8546,6 +8607,8 @@ var _GlobalDocumentManager = class {
         vscode5.window.showTextDocument(uri);
       }
     };
+    this._operatorSymbols = operatorSymbols;
+    this._functionNames = functionNames;
     this.initGlobalsMap(extCtx);
     this.initCommands(extCtx);
     this.initGlobalListUI(extCtx);
@@ -8640,7 +8703,7 @@ function activate(extCtx) {
   diagColl = vscode6.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
   extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)));
-  globalDocManager = new GlobalDocumentManager(extCtx);
+  globalDocManager = new GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
   globalDocManager.onGlobalAdded((globalDocument) => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
   globalDocManager.onGlobalRemoved((globalDocument) => evalCtx.globals.delete(globalDocument.globalName));
   globalDocManager.onGlobalsCleared(() => evalCtx.globals.clear());

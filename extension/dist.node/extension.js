@@ -35,7 +35,7 @@ function activate(extCtx) {
     // listen to document-related events
     vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)));
     // initialize a global document manager to handle globals
-    globalDocManager = new global_document_manager_js_1.GlobalDocumentManager(extCtx);
+    globalDocManager = new global_document_manager_js_1.GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
     // react to globals changing
     globalDocManager.onGlobalAdded(globalDocument => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
     globalDocManager.onGlobalRemoved(globalDocument => evalCtx.globals.delete(globalDocument.globalName));

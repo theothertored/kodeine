@@ -42,6 +42,8 @@ export declare class ParsingContext {
     findBinaryOperator(symbol: string): IBinaryOperator;
     /** Returns an array of operator symbols, sorted by length, descending. */
     getOperatorSymbolsLongestFirst(): string[];
+    /** Returns an array of function names. */
+    getFunctionNames(): string[];
     clearSideEffects(): void;
 }
 /** A union of types that can be added to a parsing context. */

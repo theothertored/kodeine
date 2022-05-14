@@ -26,7 +26,17 @@ export declare class GlobalDocumentManager {
     private readonly _onGlobalsCleared;
     /** An event fired when all globals are cleared. */
     readonly onGlobalsCleared: vscode.Event<void>;
-    constructor(extCtx: vscode.ExtensionContext);
+    /** An array of function names to check added global names against. */
+    private readonly _functionNames;
+    /** An array of special symbols to check added global names against. */
+    private readonly _operatorSymbols;
+    /**
+     * Constructs a {@link GlobalDocumentManager}.
+     * @param extCtx The extension context.
+     * @param operatorSymbols An array of operator symbols to check added global names for.
+     * @param functionNames An array of function names to check added global names against.
+     */
+    constructor(extCtx: vscode.ExtensionContext, operatorSymbols: string[], functionNames: string[]);
     initGlobalsMap(extCtx: vscode.ExtensionContext): void;
     initCommands(extCtx: vscode.ExtensionContext): void;
     initGlobalListUI(extCtx: vscode.ExtensionContext): void;

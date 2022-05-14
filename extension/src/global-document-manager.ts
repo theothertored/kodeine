@@ -23,18 +23,32 @@ export class GlobalDocumentManager {
     private readonly _onGlobalRemoved = new vscode.EventEmitter<GlobalDocument>();
     /** An event fired when a global is removed. */
     public readonly onGlobalRemoved = this._onGlobalRemoved.event;
-    
+
     /** An event emitter for {@link onGlobalAdded}. */
     private readonly _onGlobalAdded = new vscode.EventEmitter<GlobalDocument>();
     /** An event fired when a global is added. */
     public readonly onGlobalAdded = this._onGlobalAdded.event;
-    
+
     /** An event emitter for {@link onGlobalsCleared}. */
     private readonly _onGlobalsCleared = new vscode.EventEmitter<void>();
     /** An event fired when all globals are cleared. */
     public readonly onGlobalsCleared = this._onGlobalsCleared.event;
 
-    constructor(extCtx: vscode.ExtensionContext) {
+    /** An array of function names to check added global names against. */
+    private readonly _functionNames: string[];
+    /** An array of special symbols to check added global names against. */
+    private readonly _operatorSymbols: string[];
+
+    /**
+     * Constructs a {@link GlobalDocumentManager}.
+     * @param extCtx The extension context.
+     * @param operatorSymbols An array of operator symbols to check added global names for.
+     * @param functionNames An array of function names to check added global names against.
+     */
+    constructor(extCtx: vscode.ExtensionContext, operatorSymbols: string[], functionNames: string[]) {
+
+        this._operatorSymbols = operatorSymbols;
+        this._functionNames = functionNames;
 
         this.initGlobalsMap(extCtx);
         this.initCommands(extCtx);
@@ -81,10 +95,10 @@ export class GlobalDocumentManager {
     // EVENTS
 
     onDidCloseTextDocument(doc: vscode.TextDocument): any {
-        
-        if(
+
+        if (
             doc.isUntitled
-            && doc.languageId === 'kode' 
+            && doc.languageId === 'kode'
             && this._globalsMap.hasB(doc)
         ) {
             // an untitled document backing a global was closed, delete the global and inform the user
@@ -186,13 +200,101 @@ export class GlobalDocumentManager {
                 prompt: 'Remember that Kustom limits this name to 8 characters.',
 
                 validateInput: text => {
+
                     if (!text) {
+
                         return 'Global name cannot be empty.'
-                    } else if (text.length === 2) {
-                        return 'Kustom doesn\'t really like two letter global names because it confuses them with function names.';
+
+                    } else if (text.endsWith('!')) {
+
+                        // the text ends with an exclamation mark, bypass validation
+                        return null;
+
                     } else {
+
+                        // global name is not empty
+
+                        // check for function name collisions
+
+                        let segments = text.split('/');
+                        let segmentIssues: { i: number, seg: string, msg: string }[] = [];
+                        let quotationMarksEncountered = false;
+
+                        for (let i = 0; i < segments.length; i++) {
+
+                            const seg = segments[i];
+
+                            let addIssue = (msg: string) => {
+                                segmentIssues.push({ i, seg, msg });
+                            }
+
+                            if (seg === '') {
+                                addIssue('is empty.');
+
+                            } else {
+
+
+                                if (seg.trimStart().length !== seg.length)
+                                    addIssue('has leading whitespace.');
+
+
+                                if (seg.trimEnd().length !== seg.length)
+                                    addIssue('has trailing whitespace.');
+
+                                if (seg.trim().length === 2 && this._functionNames.includes(seg.trim())) {
+
+                                    addIssue('collides with function name. Kustom will throw "err: null".');
+
+                                } else {
+
+                                    if (seg.trim().length > 8)
+                                        addIssue('is longer than 8 characters.');
+
+                                    this._operatorSymbols.forEach(symbol => {
+
+                                        if (seg.startsWith(symbol))
+                                            addIssue(`starts or ends with operator "${symbol}".`);
+
+                                        if (seg.endsWith(symbol))
+                                            addIssue(`ends with operator "${symbol}".`);
+
+                                    });
+
+                                    ['+', '=', '!=', '~='].forEach(symbol => {
+                                        if (seg.includes(symbol))
+                                            addIssue(`contains operator "${symbol}" that doesn't have a generic string mode.`);
+                                    });
+
+                                    ['(', ')', '$', ',', '!', '~'].forEach(char => {
+                                        if (seg.includes(char))
+                                            addIssue(`contains a special character "${char}".`);
+                                    });
+
+                                    if (seg.includes('"')) {
+                                        quotationMarksEncountered = true;
+                                        addIssue('contains a quotation mark.');
+                                    }
+                                }
+
+                            }
+                        }
+
+                        if (segmentIssues.length > 0) {
+
+                            return `${segmentIssues.length} ${segmentIssues.length === 1 ? 'issue' : 'issues'} detected:\n`
+                                + `${segmentIssues.map(iss => `- ${segments.length > 1 ? `Segment #${iss.i + 1} (${iss.seg})` : 'Name'} ${iss.msg}`).join('\n')}\n`
+                                + (
+                                    quotationMarksEncountered
+                                        ? `This name contains at least one quotation mark. You should only continue if you know what you are doing.\n`
+                                        : `This name should be used as a quoted string (ex. gv("${text}")).\n`
+                                )
+                                + `Type ! after the global name to bypass this warning.`
+                        }
+
+                        // if we got this far, the name is fine
                         return null;
                     }
+
                 }
 
             }).then(globalName => {
@@ -201,6 +303,10 @@ export class GlobalDocumentManager {
 
                     // normalize global name
                     globalName = globalName.trim().toLowerCase();
+
+                    // remove the validation override character from the end, if it's there
+                    if (globalName.endsWith('!'))
+                        globalName = globalName.substring(0, globalName.length - 1);
 
                     // associate the document with the global name
                     this.addGlobal(globalName, vscode.window.activeTextEditor!.document);

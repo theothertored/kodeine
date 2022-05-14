@@ -7,7 +7,13 @@ const evaluation_steps_text_document_content_provider_js_1 = require("./evaluati
 const global_tree_data_provider_js_1 = require("./global-tree-data-provider.js");
 /** Keeps track of global variables and their source documents. */
 class GlobalDocumentManager {
-    constructor(extCtx) {
+    /**
+     * Constructs a {@link GlobalDocumentManager}.
+     * @param extCtx The extension context.
+     * @param operatorSymbols An array of operator symbols to check added global names for.
+     * @param functionNames An array of function names to check added global names against.
+     */
+    constructor(extCtx, operatorSymbols, functionNames) {
         /** A two-way map between global names and their source document. */
         this._globalsMap = new bidirectional_map_js_1.BidirectionalMap();
         /** A {@link vscode.TreeDataProvider} for displaying the global list UI. */
@@ -38,10 +44,63 @@ class GlobalDocumentManager {
                         if (!text) {
                             return 'Global name cannot be empty.';
                         }
-                        else if (text.length === 2) {
-                            return 'Kustom doesn\'t really like two letter global names because it confuses them with function names.';
+                        else if (text.endsWith('!')) {
+                            // the text ends with an exclamation mark, bypass validation
+                            return null;
                         }
                         else {
+                            // global name is not empty
+                            // check for function name collisions
+                            let segments = text.split('/');
+                            let segmentIssues = [];
+                            let quotationMarksEncountered = false;
+                            for (let i = 0; i < segments.length; i++) {
+                                const seg = segments[i];
+                                let addIssue = (msg) => {
+                                    segmentIssues.push({ i, seg, msg });
+                                };
+                                if (seg === '') {
+                                    addIssue('is empty.');
+                                }
+                                else {
+                                    if (seg.trimStart().length !== seg.length)
+                                        addIssue('has leading whitespace.');
+                                    if (seg.trimEnd().length !== seg.length)
+                                        addIssue('has trailing whitespace.');
+                                    if (seg.trim().length === 2 && this._functionNames.includes(seg.trim())) {
+                                        addIssue('collides with function name. Kustom will throw "err: null".');
+                                    }
+                                    else {
+                                        this._operatorSymbols.forEach(symbol => {
+                                            if (seg.startsWith(symbol))
+                                                addIssue(`starts or ends with operator "${symbol}".`);
+                                            if (seg.endsWith(symbol))
+                                                addIssue(`ends with operator "${symbol}".`);
+                                        });
+                                        ['+', '=', '!=', '~='].forEach(symbol => {
+                                            if (seg.includes(symbol))
+                                                addIssue(`contains operator "${symbol}" that doesn't have a generic string mode.`);
+                                        });
+                                        ['(', ')', '$', ',', '!', '~'].forEach(char => {
+                                            if (seg.includes(char))
+                                                addIssue(`contains a special character "${char}".`);
+                                        });
+                                        if (seg.includes('"')) {
+                                            quotationMarksEncountered = true;
+                                            addIssue('contains a quotation mark.');
+                                        }
+                                    }
+                                }
+                            }
+                            if (segmentIssues.length > 0) {
+                                return `${segmentIssues.length} ${segmentIssues.length === 1 ? 'issue' : 'issues'} detected:\n`
+                                    + `${segmentIssues.map(iss => `- ${segments.length > 1 ? `Segment #${iss.i + 1} (${iss.seg})` : 'Name'} ${iss.msg}`).join('\n')}\n`
+                                    + (quotationMarksEncountered
+                                        ? `This name contains at least one quotation mark. You should only continue if you know what you are doing.\n`
+                                        : `This name should be used as a quoted string (ex. gv("${text}")).\n`)
+                                    + `Type ! after the global name to bypass this warning.`;
+                            }
+                            // if we got this far, the name is fine
                             return null;
                         }
                     }
@@ -49,6 +108,9 @@ class GlobalDocumentManager {
                     if (globalName) {
                         // normalize global name
                         globalName = globalName.trim().toLowerCase();
+                        // remove the validation override character from the end, if it's there
+                        if (globalName.endsWith('!'))
+                            globalName = globalName.substring(0, globalName.length - 1);
                         // associate the document with the global name
                         this.addGlobal(globalName, vscode.window.activeTextEditor.document);
                         // notify the user in the way vscode wants us to (notifications can't auto-dismiss)
@@ -85,6 +147,8 @@ class GlobalDocumentManager {
                 vscode.window.showTextDocument(uri);
             }
         };
+        this._operatorSymbols = operatorSymbols;
+        this._functionNames = functionNames;
         this.initGlobalsMap(extCtx);
         this.initCommands(extCtx);
         this.initGlobalListUI(extCtx);

@@ -1,6 +1,4 @@
 TODO:
-- smarter global name x function name collision prevention
-- produce a parsing error when an unquoted value collides with a function name
 - implement df()
 - implement dp()
 - implement tf()
@@ -17,6 +15,9 @@ MAYBE IN THE FUTURE:
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- produce a parsing error when an unquoted value collides with a function name
+- proper global name valiation with full warning messages
+- smarter global name x function name collision prevention
 - extension cleanup - add comments
 - extension cleanup - EvaluationStepsDocumentManager
 - extension cleanup - GlobalDocumentManager class

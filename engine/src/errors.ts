@@ -57,6 +57,21 @@ export class KodeFunctionNotFoundError extends KodeParsingError {
 
 }
 
+export class UnquotedValueAndFunctionNameCollisionError extends KodeParsingError {
+
+    /** 
+     * Constructs a {@link UnquotedValueAndFunctionNameCollisionError} with an unquoted value token for which the collision occurred. 
+     * @param token The unquoted value token that collided with a function name.
+     */
+    constructor(token: UnquotedValueToken) {
+        super(
+            'Unquoted string & function name collision', token, 
+            `"${token.getSourceText()}" is a function name. Kustom will throw "err: null", even though this value is not followed by an opening parenthesis.`
+        );
+    }
+
+}
+
 /** Thrown when the lexer produced a token that the parser did not recognize. */
 export class UnrecognizedTokenError extends KodeParsingError {
 
