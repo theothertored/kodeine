@@ -100,26 +100,26 @@ var require_errors = __commonJS({
       }
     };
     exports.UnrecognizedTokenError = UnrecognizedTokenError2;
-    var EvaluationError3 = class extends KodeError {
+    var EvaluationError4 = class extends KodeError {
       constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
         this.evaluable = evaluable;
       }
     };
-    exports.EvaluationError = EvaluationError3;
-    var InvalidArgumentCountError2 = class extends EvaluationError3 {
+    exports.EvaluationError = EvaluationError4;
+    var InvalidArgumentCountError2 = class extends EvaluationError4 {
       constructor(funcCall, message, funcDescription) {
         super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + "()"}: ${message}`);
       }
     };
     exports.InvalidArgumentCountError = InvalidArgumentCountError2;
-    var InvalidArgumentError2 = class extends EvaluationError3 {
+    var InvalidArgumentError2 = class extends EvaluationError4 {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
         super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError2;
-    var RegexEvaluationError2 = class extends EvaluationError3 {
+    var RegexEvaluationError2 = class extends EvaluationError4 {
       constructor(evaluable, message) {
         super(evaluable, `Regex error: ${message}`);
       }
@@ -545,7 +545,7 @@ var require_kode_value = __commonJS({
     exports.KodeValue = void 0;
     var kodeine_js_1 = require_kodeine();
     var kustom_date_helper_js_1 = require_kustom_date_helper();
-    var KodeValue7 = class extends kodeine_js_1.Evaluable {
+    var KodeValue6 = class extends kodeine_js_1.Evaluable {
       constructor(value, source) {
         super(source);
         if (typeof value === "boolean") {
@@ -618,10 +618,10 @@ var require_kode_value = __commonJS({
           return this.text;
       }
       static fromToken(token) {
-        return new KodeValue7(token.getValue(), new kodeine_js_1.EvaluableSource(token));
+        return new KodeValue6(token.getValue(), new kodeine_js_1.EvaluableSource(token));
       }
     };
-    exports.KodeValue = KodeValue7;
+    exports.KodeValue = KodeValue6;
   }
 });
 
@@ -4169,12 +4169,98 @@ var require_df_function = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.DfFunction = void 0;
     var kodeine_js_1 = require_kodeine();
+    var kustom_date_helper_js_1 = require_kustom_date_helper();
+    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    var weekdaysAbbrev = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var monthsAbbrev = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    function daysIntoYear(date) {
+      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
+    }
+    function pad(source, targetLength) {
+      const sourceString = source.toString();
+      if (sourceString.length >= targetLength)
+        return sourceString;
+      else
+        return "0".repeat(targetLength - sourceString.length) + sourceString;
+    }
     var DfFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "df";
       }
       call(evalCtx2, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
+        if (args.length === 0 || args.length > 2) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "1 or 2 arguments expected.");
+        }
+        let now = args.length === 1 ? evalCtx2.getNow() : kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
+        const simpleTokens = {
+          "e": (date) => date.getDay().toString(),
+          "f": (date) => date.getDay() === 0 ? "7" : date.getDay().toString(),
+          "F": (date) => "",
+          "o": (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate().toString(),
+          "S": (date) => Math.floor(date.valueOf() / 1e3).toString(),
+          "Z": (date) => (date.getTimezoneOffset() * 60).toString(),
+          "W": (date) => "TODO"
+        };
+        const multiTokens = {
+          "H": (date, match) => pad(date.getHours(), match.length),
+          "h": (date, match) => pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length),
+          "m": (date, match) => pad(date.getMinutes(), match.length),
+          "s": (date, match) => pad(date.getSeconds(), match.length),
+          "a": (date, match) => date.getHours() < 12 ? "am" : "pm",
+          "A": (date, match) => date.getHours() < 12 ? "am" : "pm",
+          "k": (date, match) => pad(date.getHours() % 12, match.length),
+          "d": (date, match) => pad(date.getDate(), match.length),
+          "D": (date, match) => pad(daysIntoYear(date), match.length),
+          "M": (date, match) => match.length < 3 ? pad(date.getMonth() + 1, match.length) : match.length < 4 ? monthsAbbrev[date.getMonth()] : months[date.getMonth()],
+          "Y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+          "y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+          "E": (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdays)[date.getDay()],
+          "z": (date, match) => match.length < 4 ? Intl.DateTimeFormat().resolvedOptions().timeZone : Intl.DateTimeFormat().resolvedOptions().timeZoneName || ""
+        };
+        const format = (date, format2) => {
+          let output = "";
+          let i = 0;
+          let consume = () => format2[i++];
+          let peek = () => format2[i];
+          let eof = () => i >= format2.length;
+          while (!eof()) {
+            let char = consume();
+            if (char === "'") {
+              if (eof()) {
+                break;
+              } else {
+                let nextChar = consume();
+                if (nextChar === "'") {
+                  output += "'";
+                } else {
+                  output += nextChar;
+                  while (!eof() && peek() !== "'") {
+                    output += consume();
+                  }
+                }
+              }
+            } else {
+              let simpleFunc = simpleTokens[char];
+              if (simpleFunc) {
+                output += simpleFunc(date);
+              } else {
+                let mutliFunc = multiTokens[char];
+                if (mutliFunc) {
+                  let buffer = char;
+                  while (!eof() && peek() === char) {
+                    buffer += consume();
+                  }
+                  output += mutliFunc(date, buffer);
+                } else {
+                  output += char;
+                }
+              }
+            }
+          }
+          return output;
+        };
+        return new kodeine_js_1.KodeValue(format(now, args[0].text), call.source);
       }
     };
     exports.DfFunction = DfFunction2;
@@ -7480,6 +7566,7 @@ var init_tc_function = __esm({
 var init_df_function = __esm({
   "engine/src/evaluation/implementations/functions/df-function.ts"() {
     init_kodeine();
+    init_kustom_date_helper();
   }
 });
 
