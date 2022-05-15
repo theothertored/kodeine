@@ -1,5 +1,4 @@
 TODO:
-- stringify dates accurately (when stringifying to non-kustom format)
 - implement df()
 - implement tf()
 - implement ce()
@@ -18,6 +17,7 @@ MAYBE IN THE FUTURE:
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- stringify dates accurately (when stringifying to non-kustom format)
 - implement dp()
 - implement Kustom date string -> Date conversion
 - implement Date -> Kustom date string conversion

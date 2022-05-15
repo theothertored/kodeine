@@ -80,7 +80,31 @@ export class KodeValue extends Evaluable {
 
             // the value is a date
             this.dateValue = value;
-            this.text = value.toISOString(); // TODO: modify this with a +01:00 (timezone) instead of the trailing letter
+
+            // the value is stringified to a format like 2022-05-12T12:30:13+02:00
+            this.text = ((date: Date): string => {
+
+                let timezoneOffsetTotalMinutes = date.getTimezoneOffset();
+                if (timezoneOffsetTotalMinutes === 0) {
+
+                    return date.toISOString();
+
+                } else {
+
+                    date.setMinutes(date.getMinutes() + timezoneOffsetTotalMinutes);
+
+                    let timezoneOffsetHours = Math.abs(Math.trunc(date.getTimezoneOffset() / 60));
+                    let timezoneOffsetMintues = Math.abs(date.getTimezoneOffset() % 60);
+
+                    return date.toISOString().replace(
+                        'Z',
+                        `${timezoneOffsetTotalMinutes >= 0 ? '-' : '+'}${timezoneOffsetHours < 10 ? '0' : ''}${timezoneOffsetHours}:${timezoneOffsetMintues < 10 ? '0' : ''}${timezoneOffsetMintues}`
+                    );
+
+                }
+
+            })(new Date(value));
+
             this.numericValue = Math.floor(value.valueOf() / 1000);
             this.isNumeric = false;
             this.isDate = true;

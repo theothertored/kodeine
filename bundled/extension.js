@@ -568,7 +568,17 @@ var require_kode_value = __commonJS({
           this.isDate = false;
         } else if (value instanceof Date) {
           this.dateValue = value;
-          this.text = value.toISOString();
+          this.text = ((date) => {
+            let timezoneOffsetTotalMinutes = date.getTimezoneOffset();
+            if (timezoneOffsetTotalMinutes === 0) {
+              return date.toISOString();
+            } else {
+              date.setMinutes(date.getMinutes() + timezoneOffsetTotalMinutes);
+              let timezoneOffsetHours = Math.abs(Math.trunc(date.getTimezoneOffset() / 60));
+              let timezoneOffsetMintues = Math.abs(date.getTimezoneOffset() % 60);
+              return date.toISOString().replace("Z", `${timezoneOffsetTotalMinutes >= 0 ? "-" : "+"}${timezoneOffsetHours < 10 ? "0" : ""}${timezoneOffsetHours}:${timezoneOffsetMintues < 10 ? "0" : ""}${timezoneOffsetMintues}`);
+            }
+          })(new Date(value));
           this.numericValue = Math.floor(value.valueOf() / 1e3);
           this.isNumeric = false;
           this.isDate = true;
