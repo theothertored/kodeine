@@ -19,6 +19,8 @@ export declare class EvaluationContext {
     clearSideEffects(): void;
     /** Creates a clone of the context with empty side effects. */
     clone(): EvaluationContext;
+    /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
+    getNow(): Date;
 }
 /** Holds all side effects produced during evaluation. */
 export declare class EvaluationSideEffects {

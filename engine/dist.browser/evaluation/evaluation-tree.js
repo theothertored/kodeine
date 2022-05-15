@@ -19,7 +19,7 @@ export class EvaluationStepReplacement {
         this.startIndex = evaluable.source.getStartIndex();
         this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
         if (result instanceof KodeValue)
-            this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+            this.replacementText = result.isNumeric ? result.toOutputString() : `"${result.toOutputString()}"`;
         else
             this.replacementText = result;
     }
@@ -45,7 +45,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
         for (const part of this.parts) {
             part.addStepReplacementsTo(replacements);
         }
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.toOutputString()));
     }
     _replaceStringSection(original, start, length, insertion) {
         let beforeReplacement = original.substring(0, start);
@@ -108,7 +108,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
             output += `\n\n-- step ${i + 1} --\n\n${lastStepText}`;
             changes.push(change);
         }
-        output += `\n\n-- result --\n\n${this.result.text}`;
+        output += `\n\n-- result --\n\n${this.result.toOutputString()}`;
         return output;
     }
 }
@@ -141,7 +141,7 @@ export class EvaluatedFunctionCall extends FormulaEvaluationTreeNode {
     getDescription() {
         var _a;
         if (this.call.func instanceof KodeFunctionWithModes) {
-            return `${this.call.func.getName()}(${(_a = this.args[0]) === null || _a === void 0 ? void 0 : _a.result.text}) call`;
+            return `${this.call.func.getName()}(${(_a = this.args[0]) === null || _a === void 0 ? void 0 : _a.result.toOutputString()}) call`;
         }
         else {
             return `${this.call.func.getName()}() call`;

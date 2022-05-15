@@ -27,7 +27,7 @@ class Formula extends kodeine_js_1.Evaluable {
                     if (evalCtx.buildEvaluationTree) {
                         parts.push(evalCtx.sideEffects.lastEvaluationTreeNode);
                     }
-                    output += partResult.text;
+                    output += partResult.toOutputString();
                 }
                 catch (err) {
                     if (err instanceof kodeine_js_1.EvaluationError) {

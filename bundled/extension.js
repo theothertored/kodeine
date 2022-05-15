@@ -100,26 +100,26 @@ var require_errors = __commonJS({
       }
     };
     exports.UnrecognizedTokenError = UnrecognizedTokenError2;
-    var EvaluationError2 = class extends KodeError {
+    var EvaluationError3 = class extends KodeError {
       constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
         this.evaluable = evaluable;
       }
     };
-    exports.EvaluationError = EvaluationError2;
-    var InvalidArgumentCountError2 = class extends EvaluationError2 {
+    exports.EvaluationError = EvaluationError3;
+    var InvalidArgumentCountError2 = class extends EvaluationError3 {
       constructor(funcCall, message, funcDescription) {
         super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + "()"}: ${message}`);
       }
     };
     exports.InvalidArgumentCountError = InvalidArgumentCountError2;
-    var InvalidArgumentError2 = class extends EvaluationError2 {
+    var InvalidArgumentError2 = class extends EvaluationError3 {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
-        super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
+        super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError2;
-    var RegexEvaluationError2 = class extends EvaluationError2 {
+    var RegexEvaluationError2 = class extends EvaluationError3 {
       constructor(evaluable, message) {
         super(evaluable, `Regex error: ${message}`);
       }
@@ -167,7 +167,7 @@ var require_evaluation_context = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = void 0;
-    var EvaluationContext18 = class {
+    var EvaluationContext19 = class {
       constructor() {
         this.iReplacement = null;
         this.globals = /* @__PURE__ */ new Map();
@@ -178,13 +178,16 @@ var require_evaluation_context = __commonJS({
         this.sideEffects = new EvaluationSideEffects();
       }
       clone() {
-        let newCtx = new EvaluationContext18();
+        let newCtx = new EvaluationContext19();
         newCtx.iReplacement = this.iReplacement;
         newCtx.globals = new Map(this.globals);
         return newCtx;
       }
+      getNow() {
+        return new Date();
+      }
     };
-    exports.EvaluationContext = EvaluationContext18;
+    exports.EvaluationContext = EvaluationContext19;
     var EvaluationSideEffects = class {
       constructor() {
         this.warnings = [];
@@ -222,7 +225,7 @@ var require_evaluation_tree = __commonJS({
         this.startIndex = evaluable.source.getStartIndex();
         this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
         if (result instanceof kodeine_js_1.KodeValue)
-          this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+          this.replacementText = result.isNumeric ? result.toOutputString() : `"${result.toOutputString()}"`;
         else
           this.replacementText = result;
       }
@@ -247,7 +250,7 @@ var require_evaluation_tree = __commonJS({
         for (const part of this.parts) {
           part.addStepReplacementsTo(replacements);
         }
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.toOutputString()));
       }
       _replaceStringSection(original, start, length, insertion) {
         let beforeReplacement = original.substring(0, start);
@@ -298,7 +301,7 @@ ${lastStepText}`;
 
 -- result --
 
-${this.result.text}`;
+${this.result.toOutputString()}`;
         return output;
       }
     };
@@ -329,7 +332,7 @@ ${this.result.text}`;
       getDescription() {
         var _a;
         if (this.call.func instanceof kodeine_js_1.KodeFunctionWithModes) {
-          return `${this.call.func.getName()}(${(_a = this.args[0]) == null ? void 0 : _a.result.text}) call`;
+          return `${this.call.func.getName()}(${(_a = this.args[0]) == null ? void 0 : _a.result.toOutputString()}) call`;
         } else {
           return `${this.call.func.getName()}() call`;
         }
@@ -458,6 +461,82 @@ var require_evaluable = __commonJS({
   }
 });
 
+// engine/dist.node/evaluation/implementations/helpers/kustom-date-helper.js
+var require_kustom_date_helper = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/kustom-date-helper.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.KustomDateHelper = void 0;
+    exports.KustomDateHelper = (() => {
+      let padYear = (num) => num < 1e3 ? 2e3 + num : num;
+      let pad2 = (num) => num < 10 ? `0${num}` : num;
+      return {
+        toKustomDateString: (date) => {
+          return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
+        },
+        parseKustomDateString: (now, kustomDateString) => {
+          let state = null;
+          let numberBuffer = null;
+          let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
+          let handlers = {
+            y: {
+              canSet: (val) => true,
+              set: (val) => now = new Date(val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds()),
+              add: (val) => now = new Date(now.getFullYear() + val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds())
+            },
+            M: {
+              canSet: (val) => val >= 1 && val <= 12,
+              set: (val) => now = new Date(now.getFullYear(), val - 1, Math.min(now.getDate(), getMonthDayCount(now.getFullYear(), val - 1)), now.getHours(), now.getMinutes(), now.getSeconds()),
+              add: (val) => now = new Date(now.getFullYear() + Math.trunc(val / 12), now.getMonth() + val % 12, Math.min(now.getDate(), getMonthDayCount(val, now.getMonth() + val % 12)), now.getHours(), now.getMinutes(), now.getSeconds())
+            },
+            d: {
+              canSet: (val) => val >= 1 && val <= getMonthDayCount(now.getFullYear(), now.getMonth()),
+              set: (val) => now = new Date(now.getFullYear(), now.getMonth(), val, now.getHours(), now.getMinutes(), now.getSeconds()),
+              add: (val) => now.setDate(now.getDate() + val)
+            },
+            h: {
+              canSet: (val) => val >= 0 && val < 24,
+              set: (val) => now.setHours(val),
+              add: (val) => now.setHours(now.getHours() + val)
+            },
+            m: {
+              canSet: (val) => val >= 0 && val < 60,
+              set: (val) => now.setMinutes(val),
+              add: (val) => now.setMinutes(now.getMinutes() + val)
+            },
+            s: {
+              canSet: (val) => val >= 0 && val < 60,
+              set: (val) => now.setSeconds(val),
+              add: (val) => now.setSeconds(now.getSeconds() + val)
+            }
+          };
+          for (const char of kustomDateString) {
+            let digit = "0123456789".indexOf(char);
+            if (digit >= 0) {
+              numberBuffer = (numberBuffer != null ? numberBuffer : 0) * 10 + digit;
+            } else {
+              if (char === "a" || char === "r") {
+                state = char;
+              } else if (numberBuffer && char in handlers) {
+                if (state === null) {
+                  if (handlers[char].canSet(numberBuffer))
+                    handlers[char].set(numberBuffer);
+                } else if (state === "a") {
+                  handlers[char].add(numberBuffer);
+                } else if (state === "r") {
+                  handlers[char].add(-numberBuffer);
+                }
+              }
+              numberBuffer = null;
+            }
+          }
+          return now;
+        }
+      };
+    })();
+  }
+});
+
 // engine/dist.node/evaluation/evaluables/kode-value.js
 var require_kode_value = __commonJS({
   "engine/dist.node/evaluation/evaluables/kode-value.js"(exports) {
@@ -465,7 +544,7 @@ var require_kode_value = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.KodeValue = void 0;
     var kodeine_js_1 = require_kodeine();
-    var evaluation_tree_js_1 = require_evaluation_tree();
+    var kustom_date_helper_js_1 = require_kustom_date_helper();
     var KodeValue7 = class extends kodeine_js_1.Evaluable {
       constructor(value, source) {
         super(source);
@@ -473,10 +552,12 @@ var require_kode_value = __commonJS({
           this.numericValue = value ? 1 : 0;
           this.text = this.numericValue.toString();
           this.isNumeric = true;
+          this.isDate = false;
         } else if (typeof value === "string") {
           this.text = value;
           this.numericValue = (value == null ? void 0 : value.trim()) ? Number(value) : NaN;
           this.isNumeric = !isNaN(this.numericValue);
+          this.isDate = false;
           let isI = value.trim().toLowerCase() === "i";
           if (isI)
             this.isI = true;
@@ -484,17 +565,25 @@ var require_kode_value = __commonJS({
           this.numericValue = value;
           this.text = value.toString();
           this.isNumeric = true;
+          this.isDate = false;
+        } else if (value instanceof Date) {
+          this.dateValue = value;
+          this.text = value.toISOString();
+          this.numericValue = Math.floor(value.valueOf() / 1e3);
+          this.isNumeric = false;
+          this.isDate = true;
         } else {
           this.text = value.text;
           this.isNumeric = value.isNumeric;
           this.numericValue = value.numericValue;
+          this.isDate = value.isDate;
         }
       }
       evaluate(evalCtx2) {
         let literal = new kodeine_js_1.Literal(this);
         if (evalCtx2.iReplacement && this.isI) {
           if (evalCtx2.buildEvaluationTree) {
-            evalCtx2.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.LiteralReplacement(evalCtx2.iReplacement, literal);
+            evalCtx2.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.LiteralReplacement(evalCtx2.iReplacement, literal);
           }
           return evalCtx2.iReplacement;
         } else {
@@ -505,12 +594,18 @@ var require_kode_value = __commonJS({
         }
       }
       equals(other) {
-        if (this.isNumeric && other.isNumeric)
+        if (!isNaN(this.numericValue) && !isNaN(other.numericValue))
           return this.numericValue == other.numericValue;
-        else if (this.isNumeric || other.isNumeric)
+        else if (isNaN(this.numericValue) || isNaN(other.numericValue))
           return false;
         else
           return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
+      }
+      toOutputString() {
+        if (this.isDate)
+          return kustom_date_helper_js_1.KustomDateHelper.toKustomDateString(this.dateValue);
+        else
+          return this.text;
       }
       static fromToken(token) {
         return new KodeValue7(token.getValue(), new kodeine_js_1.EvaluableSource(token));
@@ -588,7 +683,7 @@ var require_function_call = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FunctionCall = void 0;
     var kodeine_js_1 = require_kodeine();
-    var FunctionCall10 = class extends kodeine_js_1.Evaluable {
+    var FunctionCall11 = class extends kodeine_js_1.Evaluable {
       constructor(func, args, source) {
         super(source);
         this.func = func;
@@ -620,7 +715,7 @@ var require_function_call = __commonJS({
         }
       }
     };
-    exports.FunctionCall = FunctionCall10;
+    exports.FunctionCall = FunctionCall11;
   }
 });
 
@@ -674,7 +769,7 @@ var require_formula = __commonJS({
               if (evalCtx2.buildEvaluationTree) {
                 parts.push(evalCtx2.sideEffects.lastEvaluationTreeNode);
               }
-              output += partResult.text;
+              output += partResult.toOutputString();
             } catch (err) {
               if (err instanceof kodeine_js_1.EvaluationError) {
                 evalCtx2.sideEffects.errors.push(err);
@@ -837,7 +932,7 @@ var require_unimplemented_functions = __commonJS({
   "engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TuFunction = exports.DpFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var LiFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
@@ -1046,15 +1141,6 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.FdFunction = FdFunction2;
-    var DpFunction2 = class extends kodeine_js_1.IKodeFunction {
-      getName() {
-        return "dp";
-      }
-      call(evalCtx2, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.DpFunction = DpFunction2;
     var TuFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "tu";
@@ -4085,6 +4171,32 @@ var require_df_function = __commonJS({
   }
 });
 
+// engine/dist.node/evaluation/implementations/functions/dp-function.js
+var require_dp_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/dp-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DpFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var kustom_date_helper_js_1 = require_kustom_date_helper();
+    var DpFunction2 = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "dp";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length === 0) {
+          return new kodeine_js_1.KodeValue(evalCtx2.getNow(), call.source);
+        } else if (args.length === 1) {
+          return new kodeine_js_1.KodeValue(kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[0].text), call.source);
+        } else {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected 0 or 1 arguments.");
+        }
+      }
+    };
+    exports.DpFunction = DpFunction2;
+  }
+});
+
 // engine/dist.node/evaluation/implementations/operators/unary-operators.js
 var require_unary_operators = __commonJS({
   "engine/dist.node/evaluation/implementations/operators/unary-operators.js"(exports) {
@@ -4122,16 +4234,16 @@ var require_two_mode_binary_operator = __commonJS({
     var kodeine_js_1 = require_kodeine();
     var TwoModeBinaryOperator2 = class extends kodeine_js_1.IBinaryOperator {
       operation(evalCtx2, operation, a, b) {
-        if (a.isNumeric && b.isNumeric) {
+        if (!isNaN(a.numericValue) && !isNaN(b.numericValue)) {
           return new kodeine_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
         } else {
           return new kodeine_js_1.KodeValue(this.textMode(a, b), operation.source);
         }
       }
       textMode(a, b) {
-        if (a.isNumeric)
+        if (!isNaN(a.numericValue))
           return a.numericValue + this.getSymbol() + b.text;
-        else if (b.isNumeric)
+        else if (!isNaN(b.numericValue))
           return a.text + this.getSymbol() + b.numericValue;
         else
           return a.text + this.getSymbol() + b.text;
@@ -4204,12 +4316,12 @@ var require_binary_operators = __commonJS({
         return 3;
       }
       operation(evalCtx2, operation, a, b) {
-        if (a.isNumeric && b.isNumeric) {
+        if (!isNaN(a.numericValue) && !isNaN(b.numericValue)) {
           return new kodeine_js_1.KodeValue(a.numericValue + b.numericValue);
         } else {
-          if (a.isNumeric)
+          if (!isNaN(a.numericValue))
             return new kodeine_js_1.KodeValue(a.numericValue + b.text, operation.source);
-          else if (b.isNumeric)
+          else if (!isNaN(b.numericValue))
             return new kodeine_js_1.KodeValue(a.text + b.numericValue, operation.source);
           else
             return new kodeine_js_1.KodeValue(a.text + b.text, operation.source);
@@ -4249,12 +4361,7 @@ var require_binary_operators = __commonJS({
         return 2;
       }
       operation(evalCtx2, operation, a, b) {
-        if (a.isNumeric && b.isNumeric)
-          return new kodeine_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
-        else if (a.isNumeric || b.isNumeric)
-          return new kodeine_js_1.KodeValue(1, operation.source);
-        else
-          return new kodeine_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
+        return new kodeine_js_1.KodeValue(!a.equals(b), operation.source);
       }
     };
     exports.InequalityOperator = InequalityOperator2;
@@ -4739,11 +4846,85 @@ var init_evaluable = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/helpers/kustom-date-helper.ts
+var KustomDateHelper;
+var init_kustom_date_helper = __esm({
+  "engine/src/evaluation/implementations/helpers/kustom-date-helper.ts"() {
+    KustomDateHelper = (() => {
+      let padYear = (num) => num < 1e3 ? 2e3 + num : num;
+      let pad2 = (num) => num < 10 ? `0${num}` : num;
+      return {
+        toKustomDateString: (date) => {
+          return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
+        },
+        parseKustomDateString: (now, kustomDateString) => {
+          let state = null;
+          let numberBuffer = null;
+          let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
+          let handlers = {
+            y: {
+              canSet: (val) => true,
+              set: (val) => now = new Date(val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds()),
+              add: (val) => now = new Date(now.getFullYear() + val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds())
+            },
+            M: {
+              canSet: (val) => val >= 1 && val <= 12,
+              set: (val) => now = new Date(now.getFullYear(), val - 1, Math.min(now.getDate(), getMonthDayCount(now.getFullYear(), val - 1)), now.getHours(), now.getMinutes(), now.getSeconds()),
+              add: (val) => now = new Date(now.getFullYear() + Math.trunc(val / 12), now.getMonth() + val % 12, Math.min(now.getDate(), getMonthDayCount(val, now.getMonth() + val % 12)), now.getHours(), now.getMinutes(), now.getSeconds())
+            },
+            d: {
+              canSet: (val) => val >= 1 && val <= getMonthDayCount(now.getFullYear(), now.getMonth()),
+              set: (val) => now = new Date(now.getFullYear(), now.getMonth(), val, now.getHours(), now.getMinutes(), now.getSeconds()),
+              add: (val) => now.setDate(now.getDate() + val)
+            },
+            h: {
+              canSet: (val) => val >= 0 && val < 24,
+              set: (val) => now.setHours(val),
+              add: (val) => now.setHours(now.getHours() + val)
+            },
+            m: {
+              canSet: (val) => val >= 0 && val < 60,
+              set: (val) => now.setMinutes(val),
+              add: (val) => now.setMinutes(now.getMinutes() + val)
+            },
+            s: {
+              canSet: (val) => val >= 0 && val < 60,
+              set: (val) => now.setSeconds(val),
+              add: (val) => now.setSeconds(now.getSeconds() + val)
+            }
+          };
+          for (const char of kustomDateString) {
+            let digit = "0123456789".indexOf(char);
+            if (digit >= 0) {
+              numberBuffer = (numberBuffer != null ? numberBuffer : 0) * 10 + digit;
+            } else {
+              if (char === "a" || char === "r") {
+                state = char;
+              } else if (numberBuffer && char in handlers) {
+                if (state === null) {
+                  if (handlers[char].canSet(numberBuffer))
+                    handlers[char].set(numberBuffer);
+                } else if (state === "a") {
+                  handlers[char].add(numberBuffer);
+                } else if (state === "r") {
+                  handlers[char].add(-numberBuffer);
+                }
+              }
+              numberBuffer = null;
+            }
+          }
+          return now;
+        }
+      };
+    })();
+  }
+});
+
 // engine/src/evaluation/evaluables/kode-value.ts
 var init_kode_value = __esm({
   "engine/src/evaluation/evaluables/kode-value.ts"() {
     init_kodeine();
-    init_evaluation_tree();
+    init_kustom_date_helper();
   }
 });
 
@@ -7292,6 +7473,14 @@ var init_df_function = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/functions/dp-function.ts
+var init_dp_function = __esm({
+  "engine/src/evaluation/implementations/functions/dp-function.ts"() {
+    init_kodeine();
+    init_kustom_date_helper();
+  }
+});
+
 // engine/src/evaluation/implementations/operators/unary-operators.ts
 var init_unary_operators = __esm({
   "engine/src/evaluation/implementations/operators/unary-operators.ts"() {
@@ -7403,6 +7592,7 @@ var init_kodeine = __esm({
     init_mu_function();
     init_tc_function();
     init_df_function();
+    init_dp_function();
     init_unary_operators();
     init_two_mode_binary_operator();
     init_binary_operators();
@@ -8229,6 +8419,7 @@ var require_kodeine = __commonJS({
     __exportStar(require_mu_function(), exports);
     __exportStar(require_tc_function(), exports);
     __exportStar(require_df_function(), exports);
+    __exportStar(require_dp_function(), exports);
     __exportStar(require_unary_operators(), exports);
     __exportStar(require_two_mode_binary_operator(), exports);
     __exportStar(require_binary_operators(), exports);
@@ -8252,7 +8443,7 @@ __export(extension_exports, {
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode6 = __toESM(require("vscode"));
-var import_kodeine29 = __toESM(require_kodeine());
+var import_kodeine30 = __toESM(require_kodeine());
 
 // extension/src/evaluation-tree-document-manager.ts
 var vscode3 = __toESM(require("vscode"));
@@ -8290,7 +8481,7 @@ EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode2 = __toESM(require("vscode"));
-var import_kodeine28 = __toESM(require_kodeine());
+var import_kodeine29 = __toESM(require_kodeine());
 var EvaluationTreeDataProvider = class {
   constructor() {
     this._evaluationTree = null;
@@ -8304,22 +8495,22 @@ var EvaluationTreeDataProvider = class {
       } else {
         return void 0;
       }
-    } else if (element instanceof import_kodeine28.FormulaEvaluationTree) {
+    } else if (element instanceof import_kodeine29.FormulaEvaluationTree) {
       return element.parts;
-    } else if (element instanceof import_kodeine28.EvaluatedUnaryOperation) {
+    } else if (element instanceof import_kodeine29.EvaluatedUnaryOperation) {
       return [element.arg];
-    } else if (element instanceof import_kodeine28.EvaluatedBinaryOperation) {
+    } else if (element instanceof import_kodeine29.EvaluatedBinaryOperation) {
       return [element.argA, element.argB];
-    } else if (element instanceof import_kodeine28.EvaluatedFunctionCall) {
+    } else if (element instanceof import_kodeine29.EvaluatedFunctionCall) {
       return element.args;
-    } else if (element instanceof import_kodeine28.EvaluatedExpression) {
+    } else if (element instanceof import_kodeine29.EvaluatedExpression) {
       return [element.child];
     } else {
       return void 0;
     }
   }
   getTreeItem(element) {
-    let treeItem = new vscode2.TreeItem(`${element.result.text}`, element instanceof import_kodeine28.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
+    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine29.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
     treeItem.description = element.getDescription();
     return treeItem;
   }
@@ -8542,6 +8733,8 @@ var _GlobalDocumentManager = class {
                   if (seg.trim().length === 2 && this._functionNames.includes(seg.trim())) {
                     addIssue('collides with function name. Kustom will throw "err: null".');
                   } else {
+                    if (seg.trim().length > 8)
+                      addIssue("is longer than 8 characters.");
                     this._operatorSymbols.forEach((symbol) => {
                       if (seg.startsWith(symbol))
                         addIssue(`starts or ends with operator "${symbol}".`);
@@ -8693,9 +8886,9 @@ var globalDocManager;
 var evalTreeDocManager;
 function activate(extCtx) {
   var _a;
-  parsingCtx = import_kodeine29.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine29.KodeineParser(parsingCtx);
-  evalCtx = new import_kodeine29.EvaluationContext();
+  parsingCtx = import_kodeine30.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine30.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine30.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
   outChannel = vscode6.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
@@ -8727,6 +8920,7 @@ function evaluateToOutput(document) {
       evalCtx.globals.set(globalName, lastFormula);
     }
     let result = lastFormula.evaluate(evalCtx);
+    let resultOutputString = result.toOutputString();
     let errCount = parsingCtx.sideEffects.errors.length + evalCtx.sideEffects.errors.length;
     if (errCount > 0) {
       let errorMessages = [];
@@ -8741,8 +8935,8 @@ function evaluateToOutput(document) {
           ei++;
         }
       }
-      if (result.text) {
-        outChannel.replace(`${result.text}
+      if (resultOutputString) {
+        outChannel.replace(`${resultOutputString}
 
 Formula contains ${errCount} error${errCount === 1 ? "" : "s"}:
 ${errorMessages.join("\n")}`);
@@ -8750,7 +8944,7 @@ ${errorMessages.join("\n")}`);
         outChannel.replace(errorMessages.join("\n"));
       }
     } else {
-      outChannel.replace(result.text);
+      outChannel.replace(resultOutputString);
     }
   } catch (err) {
     outChannel.replace("kodeine crashed: " + (err == null ? void 0 : err.toString()));

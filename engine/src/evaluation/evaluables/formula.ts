@@ -48,7 +48,7 @@ export class Formula extends Evaluable {
 
                     }
 
-                    output += partResult.text;
+                    output += partResult.toOutputString();
 
                 } catch (err) {
 

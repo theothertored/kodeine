@@ -139,12 +139,6 @@ export class FdFunction extends IKodeFunction {
         throw new EvaluationError(call, 'This function isn\'t implemented yet.');
     }
 }
-export class DpFunction extends IKodeFunction {
-    getName() { return 'dp'; }
-    call(evalCtx, call, args) {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
 export class TuFunction extends IKodeFunction {
     getName() { return 'tu'; }
     call(evalCtx, call, args) {

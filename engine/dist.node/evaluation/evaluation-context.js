@@ -30,6 +30,10 @@ class EvaluationContext {
         newCtx.globals = new Map(this.globals);
         return newCtx;
     }
+    /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
+    getNow() {
+        return new Date();
+    }
 }
 exports.EvaluationContext = EvaluationContext;
 /** Holds all side effects produced during evaluation. */

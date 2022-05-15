@@ -1,5 +1,5 @@
-import { Evaluable, EvaluableSource, Literal } from "../../kodeine.js";
-import { LiteralReplacement } from "../evaluation-tree.js";
+import { Evaluable, EvaluableSource, Literal, LiteralReplacement } from "../../kodeine.js";
+import { KustomDateHelper } from "../implementations/helpers/kustom-date-helper.js";
 /** A concrete kode value. */
 export class KodeValue extends Evaluable {
     /**
@@ -17,12 +17,14 @@ export class KodeValue extends Evaluable {
             this.numericValue = value ? 1 : 0;
             this.text = this.numericValue.toString();
             this.isNumeric = true;
+            this.isDate = false;
         }
         else if (typeof value === 'string') {
             // the value is a string, try to parse as number
             this.text = value;
             this.numericValue = (value === null || value === void 0 ? void 0 : value.trim()) ? Number(value) : NaN; // Number('[empty or whitespace]') = 0, so an additional check is needed
             this.isNumeric = !isNaN(this.numericValue);
+            this.isDate = false;
             // only set isI if it's true
             let isI = value.trim().toLowerCase() === 'i';
             if (isI)
@@ -33,12 +35,22 @@ export class KodeValue extends Evaluable {
             this.numericValue = value;
             this.text = value.toString();
             this.isNumeric = true;
+            this.isDate = false;
+        }
+        else if (value instanceof Date) {
+            // the value is a date
+            this.dateValue = value;
+            this.text = value.toISOString(); // TODO: modify this with a +01:00 (timezone) instead of the trailing letter
+            this.numericValue = Math.floor(value.valueOf() / 1000);
+            this.isNumeric = false;
+            this.isDate = true;
         }
         else {
             // the value is a KodeValue
             this.text = value.text;
             this.isNumeric = value.isNumeric;
             this.numericValue = value.numericValue;
+            this.isDate = value.isDate;
         }
     }
     evaluate(evalCtx) {
@@ -61,12 +73,19 @@ export class KodeValue extends Evaluable {
     }
     /** Checks whether this value is equal to another value. */
     equals(other) {
-        if (this.isNumeric && other.isNumeric)
+        if (!isNaN(this.numericValue) && !isNaN(other.numericValue))
             return this.numericValue == other.numericValue;
-        else if (this.isNumeric || other.isNumeric)
+        else if (isNaN(this.numericValue) || isNaN(other.numericValue))
             return false;
         else
             return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
+    }
+    /** Converts this {@link KodeValue} to its string representation. */
+    toOutputString() {
+        if (this.isDate)
+            return KustomDateHelper.toKustomDateString(this.dateValue);
+        else
+            return this.text;
     }
     static fromToken(token) {
         return new KodeValue(token.getValue(), new EvaluableSource(token));

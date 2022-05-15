@@ -1,11 +1,14 @@
 TODO:
+- stringify dates accurately (when stringifying to non-kustom format)
 - implement df()
-- implement dp()
 - implement tf()
 - implement ce()
 - implement cm()
-- release as 0.1.0
-- design an eval ctx editor to prepare for more function implementations
+- implement the scientific notation bug accurately
+- handle large numeric constants converting to Infinity
+- add a tips & tricks section to the readme
+- release as 0.1.0-alpha
+- design an eval ctx editor to prepare for remaining function implementations
 
 MAYBE IN THE FUTURE:
 - find a way to not remove a global when an untitled file gets saved
@@ -15,6 +18,9 @@ MAYBE IN THE FUTURE:
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- implement dp()
+- implement Kustom date string -> Date conversion
+- implement Date -> Kustom date string conversion
 - produce a parsing error when an unquoted value collides with a function name
 - proper global name valiation with full warning messages
 - smarter global name x function name collision prevention
@@ -34,6 +40,7 @@ DONE:
 - generate static evaluation tree with results for each step as a side effect of the evaluation
 - display evaluation results for each object in the formula tree
 - create a social banner for github, add short description and topics
+# 0.0.2 RELEASED
 - write instructions on how to install in the browser
 - check if it really works in the browser
 - publish to the vcode marketplace as alpha

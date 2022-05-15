@@ -71,6 +71,8 @@ class GlobalDocumentManager {
                                         addIssue('collides with function name. Kustom will throw "err: null".');
                                     }
                                     else {
+                                        if (seg.trim().length > 8)
+                                            addIssue('is longer than 8 characters.');
                                         this._operatorSymbols.forEach(symbol => {
                                             if (seg.startsWith(symbol))
                                                 addIssue(`starts or ends with operator "${symbol}".`);

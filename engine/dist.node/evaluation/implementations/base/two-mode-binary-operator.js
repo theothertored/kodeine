@@ -12,7 +12,7 @@ const kodeine_js_1 = require("../../../kodeine.js");
 class TwoModeBinaryOperator extends kodeine_js_1.IBinaryOperator {
     /** Selects between a numeric mode and default text mode. */
     operation(evalCtx, operation, a, b) {
-        if (a.isNumeric && b.isNumeric) {
+        if (!isNaN(a.numericValue) && !isNaN(b.numericValue)) {
             // both values are numeric, run numeric mode
             return new kodeine_js_1.KodeValue(this.numericMode(a.numericValue, b.numericValue), operation.source);
         }
@@ -32,9 +32,9 @@ class TwoModeBinaryOperator extends kodeine_js_1.IBinaryOperator {
     textMode(a, b) {
         // if either a or b is numeric, concat the numeric value instead of the text value.
         // for example, 2.000 + "text" => 2text
-        if (a.isNumeric)
+        if (!isNaN(a.numericValue))
             return a.numericValue + this.getSymbol() + b.text;
-        else if (b.isNumeric)
+        else if (!isNaN(b.numericValue))
             return a.text + this.getSymbol() + b.numericValue;
         else
             return a.text + this.getSymbol() + b.text;

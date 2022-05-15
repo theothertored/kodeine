@@ -1,4 +1,4 @@
-import { 
+import {
     EvaluationError,
     Evaluable,
     FormulaEvaluationTreeNode,
@@ -50,6 +50,12 @@ export class EvaluationContext {
         return newCtx;
 
     }
+
+    /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
+    getNow(): Date {
+        return new Date();
+    }
+
 }
 
 

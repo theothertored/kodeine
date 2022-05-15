@@ -50,13 +50,13 @@ class AdditionOperator extends kodeine_js_1.IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
     operation(evalCtx, operation, a, b) {
-        if (a.isNumeric && b.isNumeric) {
+        if (!isNaN(a.numericValue) && !isNaN(b.numericValue)) {
             return new kodeine_js_1.KodeValue(a.numericValue + b.numericValue);
         }
         else {
-            if (a.isNumeric)
+            if (!isNaN(a.numericValue))
                 return new kodeine_js_1.KodeValue(a.numericValue + b.text, operation.source);
-            else if (b.isNumeric)
+            else if (!isNaN(b.numericValue))
                 return new kodeine_js_1.KodeValue(a.text + b.numericValue, operation.source);
             else
                 return new kodeine_js_1.KodeValue(a.text + b.text, operation.source);
@@ -85,12 +85,7 @@ class InequalityOperator extends kodeine_js_1.IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
     operation(evalCtx, operation, a, b) {
-        if (a.isNumeric && b.isNumeric)
-            return new kodeine_js_1.KodeValue(a.numericValue != b.numericValue, operation.source);
-        else if (a.isNumeric || b.isNumeric)
-            return new kodeine_js_1.KodeValue(1, operation.source);
-        else
-            return new kodeine_js_1.KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
+        return new kodeine_js_1.KodeValue(!a.equals(b), operation.source);
     }
 }
 exports.InequalityOperator = InequalityOperator;

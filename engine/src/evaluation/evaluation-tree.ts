@@ -39,7 +39,7 @@ export class EvaluationStepReplacement {
         this.sourceLength = evaluable.source!.getEndIndex() - this.startIndex;
 
         if (result instanceof KodeValue)
-            this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+            this.replacementText = result.isNumeric ? result.toOutputString() : `"${result.toOutputString()}"`;
         else
             this.replacementText = result;
     }
@@ -90,7 +90,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
             part.addStepReplacementsTo(replacements);
         }
 
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.toOutputString()));
 
     }
 
@@ -179,7 +179,7 @@ export class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
             changes.push(change);
         }
 
-        output += `\n\n-- result --\n\n${this.result.text}`;
+        output += `\n\n-- result --\n\n${this.result.toOutputString()}`;
 
         return output;
 
@@ -231,7 +231,7 @@ export class EvaluatedFunctionCall extends FormulaEvaluationTreeNode {
 
         if (this.call.func instanceof KodeFunctionWithModes) {
 
-            return `${this.call.func.getName()}(${this.args[0]?.result.text}) call`
+            return `${this.call.func.getName()}(${this.args[0]?.result.toOutputString()}) call`
 
         } else {
 

@@ -19,6 +19,7 @@ export * from './evaluation/implementations/functions/if-function.js';
 export * from './evaluation/implementations/functions/mu-function.js';
 export * from './evaluation/implementations/functions/tc-function.js';
 export * from './evaluation/implementations/functions/df-function.js';
+export * from './evaluation/implementations/functions/dp-function.js';
 export * from './evaluation/implementations/operators/unary-operators.js';
 export * from './evaluation/implementations/base/two-mode-binary-operator.js';
 export * from './evaluation/implementations/operators/binary-operators.js';

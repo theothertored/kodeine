@@ -63,12 +63,12 @@ export class AdditionOperator extends IBinaryOperator {
     getSymbol() { return '+'; }
     getPrecedence() { return 3; }
     operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
-        if (a.isNumeric && b.isNumeric) {
+        if (!isNaN(a.numericValue) && !isNaN(b.numericValue)) {
             return new KodeValue(a.numericValue + b.numericValue);
         } else {
-            if (a.isNumeric)
+            if (!isNaN(a.numericValue))
                 return new KodeValue(a.numericValue + b.text, operation.source);
-            else if (b.isNumeric)
+            else if (!isNaN(b.numericValue))
                 return new KodeValue(a.text + b.numericValue, operation.source);
             else
                 return new KodeValue(a.text + b.text, operation.source);
@@ -99,12 +99,7 @@ export class InequalityOperator extends IBinaryOperator {
     getSymbol() { return '!='; }
     getPrecedence() { return 2; }
     operation(evalCtx: EvaluationContext, operation: BinaryOperation, a: KodeValue, b: KodeValue): KodeValue {
-        if (a.isNumeric && b.isNumeric)
-            return new KodeValue(a.numericValue != b.numericValue, operation.source);
-        else if (a.isNumeric || b.isNumeric)
-            return new KodeValue(1, operation.source);
-        else
-            return new KodeValue(a.text.trim().toLowerCase() != b.text.trim().toLowerCase(), operation.source);
+        return new KodeValue(!a.equals(b), operation.source);
     }
 }
 

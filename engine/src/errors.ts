@@ -131,7 +131,7 @@ export class InvalidArgumentError extends EvaluationError {
      * @param message A message explaining the error.
      */
     constructor(funcDescription: string, argumentName: string, argumentIndex: number, argumentSource: Evaluable, invalidValue: string | number | KodeValue, message: string) {
-        super(argumentSource, `Value ${invalidValue instanceof KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`)
+        super(argumentSource, `Value ${invalidValue instanceof KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`)
     }
 
 }

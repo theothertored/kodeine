@@ -24,7 +24,7 @@ export class Formula extends Evaluable {
                     if (evalCtx.buildEvaluationTree) {
                         parts.push(evalCtx.sideEffects.lastEvaluationTreeNode);
                     }
-                    output += partResult.text;
+                    output += partResult.toOutputString();
                 }
                 catch (err) {
                     if (err instanceof EvaluationError) {

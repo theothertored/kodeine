@@ -128,6 +128,7 @@ function evaluateToOutput(document: vscode.TextDocument) {
 
         // evaluate the parsed formula
         let result = lastFormula.evaluate(evalCtx);
+        let resultOutputString = result.toOutputString();
 
         // count how many parsing and evaluation errors popped up
         let errCount = parsingCtx.sideEffects.errors.length + evalCtx.sideEffects.errors.length;
@@ -164,10 +165,10 @@ function evaluateToOutput(document: vscode.TextDocument) {
 
             }
 
-            if (result.text) {
+            if (resultOutputString) {
 
                 // there is a result besides the error messages
-                outChannel.replace(`${result.text}\n\nFormula contains ${errCount} error${errCount === 1 ? '' : 's'}:\n${errorMessages.join('\n')}`);
+                outChannel.replace(`${resultOutputString}\n\nFormula contains ${errCount} error${errCount === 1 ? '' : 's'}:\n${errorMessages.join('\n')}`);
 
             } else {
 
@@ -179,7 +180,7 @@ function evaluateToOutput(document: vscode.TextDocument) {
         } else {
 
             // no errors encountered, simply output the result
-            outChannel.replace(result.text);
+            outChannel.replace(resultOutputString);
 
         }
 

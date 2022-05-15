@@ -99,7 +99,7 @@ class InvalidArgumentError extends EvaluationError {
      * @param message A message explaining the error.
      */
     constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
-        super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.text : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
+        super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
     }
 }
 exports.InvalidArgumentError = InvalidArgumentError;

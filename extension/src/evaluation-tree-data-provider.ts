@@ -64,7 +64,7 @@ export class EvaluationTreeDataProvider implements vscode.TreeDataProvider<Formu
     getTreeItem(element: FormulaEvaluationTreeNode): vscode.TreeItem | Thenable<vscode.TreeItem> {
 
         let treeItem = new vscode.TreeItem(
-            `${element.result.text}`,
+            `${element.result.toOutputString()}`,
             element instanceof Literal
                 ? vscode.TreeItemCollapsibleState.None
                 : vscode.TreeItemCollapsibleState.Collapsed

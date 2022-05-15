@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.KodeValue = void 0;
 const kodeine_js_1 = require("../../kodeine.js");
-const evaluation_tree_js_1 = require("../evaluation-tree.js");
+const kustom_date_helper_js_1 = require("../implementations/helpers/kustom-date-helper.js");
 /** A concrete kode value. */
 class KodeValue extends kodeine_js_1.Evaluable {
     /**
@@ -20,12 +20,14 @@ class KodeValue extends kodeine_js_1.Evaluable {
             this.numericValue = value ? 1 : 0;
             this.text = this.numericValue.toString();
             this.isNumeric = true;
+            this.isDate = false;
         }
         else if (typeof value === 'string') {
             // the value is a string, try to parse as number
             this.text = value;
             this.numericValue = value?.trim() ? Number(value) : NaN; // Number('[empty or whitespace]') = 0, so an additional check is needed
             this.isNumeric = !isNaN(this.numericValue);
+            this.isDate = false;
             // only set isI if it's true
             let isI = value.trim().toLowerCase() === 'i';
             if (isI)
@@ -36,12 +38,22 @@ class KodeValue extends kodeine_js_1.Evaluable {
             this.numericValue = value;
             this.text = value.toString();
             this.isNumeric = true;
+            this.isDate = false;
+        }
+        else if (value instanceof Date) {
+            // the value is a date
+            this.dateValue = value;
+            this.text = value.toISOString(); // TODO: modify this with a +01:00 (timezone) instead of the trailing letter
+            this.numericValue = Math.floor(value.valueOf() / 1000);
+            this.isNumeric = false;
+            this.isDate = true;
         }
         else {
             // the value is a KodeValue
             this.text = value.text;
             this.isNumeric = value.isNumeric;
             this.numericValue = value.numericValue;
+            this.isDate = value.isDate;
         }
     }
     evaluate(evalCtx) {
@@ -50,7 +62,7 @@ class KodeValue extends kodeine_js_1.Evaluable {
             // we are currently replacing i with a different value 
             // and this value is i, return the replacement value
             if (evalCtx.buildEvaluationTree) {
-                evalCtx.sideEffects.lastEvaluationTreeNode = new evaluation_tree_js_1.LiteralReplacement(evalCtx.iReplacement, literal);
+                evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.LiteralReplacement(evalCtx.iReplacement, literal);
             }
             return evalCtx.iReplacement;
         }
@@ -64,12 +76,19 @@ class KodeValue extends kodeine_js_1.Evaluable {
     }
     /** Checks whether this value is equal to another value. */
     equals(other) {
-        if (this.isNumeric && other.isNumeric)
+        if (!isNaN(this.numericValue) && !isNaN(other.numericValue))
             return this.numericValue == other.numericValue;
-        else if (this.isNumeric || other.isNumeric)
+        else if (isNaN(this.numericValue) || isNaN(other.numericValue))
             return false;
         else
             return this.text.trim().toLowerCase() == other.text.trim().toLowerCase();
+    }
+    /** Converts this {@link KodeValue} to its string representation. */
+    toOutputString() {
+        if (this.isDate)
+            return kustom_date_helper_js_1.KustomDateHelper.toKustomDateString(this.dateValue);
+        else
+            return this.text;
     }
     static fromToken(token) {
         return new KodeValue(token.getValue(), new kodeine_js_1.EvaluableSource(token));

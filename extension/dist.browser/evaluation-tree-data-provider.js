@@ -41,7 +41,7 @@ class EvaluationTreeDataProvider {
         }
     }
     getTreeItem(element) {
-        let treeItem = new vscode.TreeItem(`${element.result.text}`, element instanceof kodeine_js_1.Literal
+        let treeItem = new vscode.TreeItem(`${element.result.toOutputString()}`, element instanceof kodeine_js_1.Literal
             ? vscode.TreeItemCollapsibleState.None
             : vscode.TreeItemCollapsibleState.Collapsed);
         treeItem.description = element.getDescription();

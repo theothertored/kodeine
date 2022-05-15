@@ -22,7 +22,7 @@ class EvaluationStepReplacement {
         this.startIndex = evaluable.source.getStartIndex();
         this.sourceLength = evaluable.source.getEndIndex() - this.startIndex;
         if (result instanceof kodeine_js_1.KodeValue)
-            this.replacementText = result.isNumeric ? result.text : `"${result.text}"`;
+            this.replacementText = result.isNumeric ? result.toOutputString() : `"${result.toOutputString()}"`;
         else
             this.replacementText = result;
     }
@@ -50,7 +50,7 @@ class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
         for (const part of this.parts) {
             part.addStepReplacementsTo(replacements);
         }
-        replacements.push(new EvaluationStepReplacement(this.formula, this.result.text));
+        replacements.push(new EvaluationStepReplacement(this.formula, this.result.toOutputString()));
     }
     _replaceStringSection(original, start, length, insertion) {
         let beforeReplacement = original.substring(0, start);
@@ -113,7 +113,7 @@ class FormulaEvaluationTree extends FormulaEvaluationTreeNode {
             output += `\n\n-- step ${i + 1} --\n\n${lastStepText}`;
             changes.push(change);
         }
-        output += `\n\n-- result --\n\n${this.result.text}`;
+        output += `\n\n-- result --\n\n${this.result.toOutputString()}`;
         return output;
     }
 }
@@ -147,7 +147,7 @@ class EvaluatedFunctionCall extends FormulaEvaluationTreeNode {
     }
     getDescription() {
         if (this.call.func instanceof kodeine_js_1.KodeFunctionWithModes) {
-            return `${this.call.func.getName()}(${this.args[0]?.result.text}) call`;
+            return `${this.call.func.getName()}(${this.args[0]?.result.toOutputString()}) call`;
         }
         else {
             return `${this.call.func.getName()}() call`;
