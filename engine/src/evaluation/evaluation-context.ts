@@ -51,13 +51,19 @@ export class EvaluationContext {
 
     }
 
+
     /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
     getNow(): Date {
         return new Date();
     }
 
-}
+    /** The current clock mode. Related to a setting in Kustom. */
+    public clockMode: 'auto' | '12h' | '24h' = 'auto';
 
+    /** The day to treat as the first day of the week. Related to a setting in Kustom. */
+    public firstDayOfTheWeek: 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' = 'mon';
+
+}
 
 /** Holds all side effects produced during evaluation. */
 export class EvaluationSideEffects {

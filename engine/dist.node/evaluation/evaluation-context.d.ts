@@ -21,6 +21,10 @@ export declare class EvaluationContext {
     clone(): EvaluationContext;
     /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
     getNow(): Date;
+    /** The current clock mode. Related to a setting in Kustom. */
+    clockMode: 'auto' | '12h' | '24h';
+    /** The day to treat as the first day of the week. Related to a setting in Kustom. */
+    firstDayOfTheWeek: 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
 }
 /** Holds all side effects produced during evaluation. */
 export declare class EvaluationSideEffects {

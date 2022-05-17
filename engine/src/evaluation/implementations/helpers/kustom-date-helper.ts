@@ -20,9 +20,6 @@ export const KustomDateHelper = (() => {
         /** Converts a kustom */
         parseKustomDateString: (now: Date, kustomDateString: string): Date => {
 
-            let state: null | 'a' | 'r' = null;
-            let numberBuffer = null;
-
             let getMonthDayCount = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
 
             let handlers: Record<string, { canSet: (val: number) => boolean, set: (val: number) => void, add: (val: number) => void }> = {
@@ -70,6 +67,9 @@ export const KustomDateHelper = (() => {
                 }
             };
 
+            let state: null | 'a' | 'r' = null;
+            let numberBuffer = 0;
+
             for (const char of kustomDateString) {
 
                 let digit = '0123456789'.indexOf(char);
@@ -84,7 +84,7 @@ export const KustomDateHelper = (() => {
 
                         state = char;
 
-                    } else if (numberBuffer && char in handlers) {
+                    } else if (char in handlers) {
 
                         if (state === null) {
 
@@ -103,7 +103,7 @@ export const KustomDateHelper = (() => {
 
                     }
 
-                    numberBuffer = null;
+                    numberBuffer = 0;
 
                 }
 

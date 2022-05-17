@@ -12,6 +12,10 @@ export class EvaluationContext {
          * @see {@link FormulaEvaluationTree}
          */
         this.buildEvaluationTree = false;
+        /** The current clock mode. Related to a setting in Kustom. */
+        this.clockMode = 'auto';
+        /** The day to treat as the first day of the week. Related to a setting in Kustom. */
+        this.firstDayOfTheWeek = 'mon';
         this.sideEffects = new EvaluationSideEffects();
     }
     /** Clears all {@link sideEffects} from the context. */

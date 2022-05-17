@@ -16,8 +16,6 @@ exports.KustomDateHelper = (() => {
         },
         /** Converts a kustom */
         parseKustomDateString: (now, kustomDateString) => {
-            let state = null;
-            let numberBuffer = null;
             let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
             let handlers = {
                 y: {
@@ -51,6 +49,8 @@ exports.KustomDateHelper = (() => {
                     add: val => now.setSeconds(now.getSeconds() + val)
                 }
             };
+            let state = null;
+            let numberBuffer = 0;
             for (const char of kustomDateString) {
                 let digit = '0123456789'.indexOf(char);
                 if (digit >= 0) {
@@ -60,7 +60,7 @@ exports.KustomDateHelper = (() => {
                     if (char === 'a' || char === 'r') {
                         state = char;
                     }
-                    else if (numberBuffer && char in handlers) {
+                    else if (char in handlers) {
                         if (state === null) {
                             if (handlers[char].canSet(numberBuffer))
                                 handlers[char].set(numberBuffer);
@@ -72,7 +72,7 @@ exports.KustomDateHelper = (() => {
                             handlers[char].add(-numberBuffer);
                         }
                     }
-                    numberBuffer = null;
+                    numberBuffer = 0;
                 }
             }
             return now;

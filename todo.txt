@@ -1,22 +1,25 @@
 TODO:
-- implement df()
+- contribute settings for clock mode and first day of the week to vscode (not implementing eval ctx editor for now)
 - implement tf()
 - implement ce()
 - implement cm()
 - implement the scientific notation bug accurately
 - handle large numeric constants converting to Infinity
 - add a tips & tricks section to the readme
+- create a changelog file
 - release as 0.1.0-alpha
+- find a way to deal with timezones
 - design an eval ctx editor to prepare for remaining function implementations
 
 MAYBE IN THE FUTURE:
 - find a way to not remove a global when an untitled file gets saved
 - persist text globals on vscode exit
-- show evaluation steps tab when active editor changes and it is opened beside
+- show evaluation steps tab automatically when active editor changes and it is opened beside
 - react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- implement df()
 - stringify dates accurately (when stringifying to non-kustom format)
 - implement dp()
 - implement Kustom date string -> Date conversion

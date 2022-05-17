@@ -172,6 +172,8 @@ var require_evaluation_context = __commonJS({
         this.iReplacement = null;
         this.globals = /* @__PURE__ */ new Map();
         this.buildEvaluationTree = false;
+        this.clockMode = "auto";
+        this.firstDayOfTheWeek = "mon";
         this.sideEffects = new EvaluationSideEffects();
       }
       clearSideEffects() {
@@ -475,8 +477,6 @@ var require_kustom_date_helper = __commonJS({
           return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
         },
         parseKustomDateString: (now, kustomDateString) => {
-          let state = null;
-          let numberBuffer = null;
           let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
           let handlers = {
             y: {
@@ -510,6 +510,8 @@ var require_kustom_date_helper = __commonJS({
               add: (val) => now.setSeconds(now.getSeconds() + val)
             }
           };
+          let state = null;
+          let numberBuffer = 0;
           for (const char of kustomDateString) {
             let digit = "0123456789".indexOf(char);
             if (digit >= 0) {
@@ -517,7 +519,7 @@ var require_kustom_date_helper = __commonJS({
             } else {
               if (char === "a" || char === "r") {
                 state = char;
-              } else if (numberBuffer && char in handlers) {
+              } else if (char in handlers) {
                 if (state === null) {
                   if (handlers[char].canSet(numberBuffer))
                     handlers[char].set(numberBuffer);
@@ -527,7 +529,7 @@ var require_kustom_date_helper = __commonJS({
                   handlers[char].add(-numberBuffer);
                 }
               }
-              numberBuffer = null;
+              numberBuffer = 0;
             }
           }
           return now;
@@ -3903,6 +3905,9 @@ var require_text_capitalizer = __commonJS({
     exports.TextCapitalizer = (() => ({
       capitalize: (text) => {
         return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
+      },
+      capitalizeFirstLetter: (text) => {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
       }
     }))();
   }
@@ -4170,9 +4175,11 @@ var require_df_function = __commonJS({
     exports.DfFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var kustom_date_helper_js_1 = require_kustom_date_helper();
+    var number_to_text_converter_js_1 = require_number_to_text_converter();
+    var text_capitalizer_js_1 = require_text_capitalizer();
     var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     var weekdaysAbbrev = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     var monthsAbbrev = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     function daysIntoYear(date) {
       return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
@@ -4192,31 +4199,89 @@ var require_df_function = __commonJS({
         if (args.length === 0 || args.length > 2) {
           throw new kodeine_js_1.InvalidArgumentCountError(call, "1 or 2 arguments expected.");
         }
-        let now = args.length === 1 ? evalCtx2.getNow() : kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
+        const resolveClockMode = () => {
+          if (evalCtx2.clockMode === "auto") {
+            return /am|pm/.test(new Date().toLocaleTimeString()) ? "12h" : "24h";
+          } else {
+            return evalCtx2.clockMode;
+          }
+        };
         const simpleTokens = {
-          "e": (date) => date.getDay().toString(),
-          "f": (date) => date.getDay() === 0 ? "7" : date.getDay().toString(),
-          "F": (date) => "",
-          "o": (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate().toString(),
-          "S": (date) => Math.floor(date.valueOf() / 1e3).toString(),
-          "Z": (date) => (date.getTimezoneOffset() * 60).toString(),
-          "W": (date) => "TODO"
+          "e": (date) => {
+            let day = date.getDay();
+            let firstDay = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"].indexOf(evalCtx2.firstDayOfTheWeek);
+            return Math.abs((7 + day - firstDay) % 7);
+          },
+          "f": (date) => {
+            if (date.getDay() === 0)
+              return 7;
+            else
+              return date.getDay();
+          },
+          "F": (date) => {
+            let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            let firstSundayOfMonthNumber = firstDayOfMonth.getDay() === 0 ? 1 : 8 - firstDayOfMonth.getDay();
+            if (date.getDate() <= firstSundayOfMonthNumber) {
+              return 1;
+            } else {
+              let sundayBeforeDateNumber = date.getDate() - (date.getDay() || 7);
+              let weeksBetweenSundays = Math.floor((sundayBeforeDateNumber - firstSundayOfMonthNumber) / 7);
+              return weeksBetweenSundays + 2;
+            }
+          },
+          "o": (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(),
+          "S": (date) => Math.floor(date.valueOf() / 1e3),
+          "Z": (date) => date.getTimezoneOffset() * 60,
+          "W": (date) => {
+            let h = date.getHours();
+            let m = date.getMinutes();
+            if (m === 0) {
+              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))} o'clock`;
+            } else if (m === 15) {
+              return `quarter past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else if (m < 30) {
+              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(m))} past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else if (m === 30) {
+              return `half past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else if (m === 45) {
+              return `quarter to ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else {
+              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(60 - m))} to ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert((h + 1) % 12 || 12))}`;
+            }
+          }
         };
         const multiTokens = {
           "H": (date, match) => pad(date.getHours(), match.length),
-          "h": (date, match) => pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length),
+          "h": (date, match) => {
+            if (resolveClockMode() == "12h")
+              return pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
+            else
+              return pad(date.getHours(), match.length);
+          },
           "m": (date, match) => pad(date.getMinutes(), match.length),
           "s": (date, match) => pad(date.getSeconds(), match.length),
-          "a": (date, match) => date.getHours() < 12 ? "am" : "pm",
+          "a": (date, match) => resolveClockMode() === "12h" ? "" : date.getHours() < 12 ? "am" : "pm",
           "A": (date, match) => date.getHours() < 12 ? "am" : "pm",
-          "k": (date, match) => pad(date.getHours() % 12, match.length),
+          "k": (date, match) => {
+            if (resolveClockMode() == "12h")
+              return pad(date.getHours() % 12, match.length);
+            else
+              return pad(date.getHours() === 0 ? 24 : date.getHours(), match.length);
+          },
           "d": (date, match) => pad(date.getDate(), match.length),
           "D": (date, match) => pad(daysIntoYear(date), match.length),
-          "M": (date, match) => match.length < 3 ? pad(date.getMonth() + 1, match.length) : match.length < 4 ? monthsAbbrev[date.getMonth()] : months[date.getMonth()],
-          "Y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+          "M": (date, match) => {
+            if (match.length < 3)
+              return pad(date.getMonth() + 1, match.length);
+            else if (match.length === 3)
+              return monthsAbbrev[date.getMonth()];
+            else
+              return monthsFull[date.getMonth()];
+          },
           "y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+          "Y": (date, match) => multiTokens["y"](date, match),
           "E": (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdays)[date.getDay()],
-          "z": (date, match) => match.length < 4 ? Intl.DateTimeFormat().resolvedOptions().timeZone : Intl.DateTimeFormat().resolvedOptions().timeZoneName || ""
+          "z": (date, match) => "NOT IMPLEMENTED"
         };
         const format = (date, format2) => {
           let output = "";
@@ -4260,6 +4325,15 @@ var require_df_function = __commonJS({
           }
           return output;
         };
+        let now;
+        if (args.length === 1)
+          now = evalCtx2.getNow();
+        else if (args[0].isDate)
+          now = args[0].dateValue;
+        else if (args[0].isNumeric)
+          now = new Date(args[0].numericValue * 1e3);
+        else
+          now = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
         return new kodeine_js_1.KodeValue(format(now, args[0].text), call.source);
       }
     };
@@ -4954,8 +5028,6 @@ var init_kustom_date_helper = __esm({
           return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
         },
         parseKustomDateString: (now, kustomDateString) => {
-          let state = null;
-          let numberBuffer = null;
           let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
           let handlers = {
             y: {
@@ -4989,6 +5061,8 @@ var init_kustom_date_helper = __esm({
               add: (val) => now.setSeconds(now.getSeconds() + val)
             }
           };
+          let state = null;
+          let numberBuffer = 0;
           for (const char of kustomDateString) {
             let digit = "0123456789".indexOf(char);
             if (digit >= 0) {
@@ -4996,7 +5070,7 @@ var init_kustom_date_helper = __esm({
             } else {
               if (char === "a" || char === "r") {
                 state = char;
-              } else if (numberBuffer && char in handlers) {
+              } else if (char in handlers) {
                 if (state === null) {
                   if (handlers[char].canSet(numberBuffer))
                     handlers[char].set(numberBuffer);
@@ -5006,7 +5080,7 @@ var init_kustom_date_helper = __esm({
                   handlers[char].add(-numberBuffer);
                 }
               }
-              numberBuffer = null;
+              numberBuffer = 0;
             }
           }
           return now;
@@ -7545,6 +7619,9 @@ var init_text_capitalizer = __esm({
     TextCapitalizer = (() => ({
       capitalize: (text) => {
         return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
+      },
+      capitalizeFirstLetter: (text) => {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
       }
     }))();
   }
@@ -7567,6 +7644,8 @@ var init_df_function = __esm({
   "engine/src/evaluation/implementations/functions/df-function.ts"() {
     init_kodeine();
     init_kustom_date_helper();
+    init_number_to_text_converter();
+    init_text_capitalizer();
   }
 });
 
