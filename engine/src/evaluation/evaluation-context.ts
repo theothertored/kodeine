@@ -7,6 +7,12 @@ import {
     UnaryOperation
 } from "../kodeine.js";
 
+export const ValidClockModes = ['auto', '12h', '24h'] as const;
+export type ClockMode = typeof ValidClockModes[number];
+
+export const ValidWeekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+export type Weekday = typeof ValidWeekdays[number];
+
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export class EvaluationContext {
 
@@ -58,10 +64,10 @@ export class EvaluationContext {
     }
 
     /** The current clock mode. Related to a setting in Kustom. */
-    public clockMode: 'auto' | '12h' | '24h' = 'auto';
+    public clockMode: ClockMode = 'auto';
 
     /** The day to treat as the first day of the week. Related to a setting in Kustom. */
-    public firstDayOfTheWeek: 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' = 'mon';
+    public firstDayOfTheWeek: Weekday = 'mon';
 
 }
 

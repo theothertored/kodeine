@@ -1,3 +1,5 @@
+export const ValidClockModes = ['auto', '12h', '24h'];
+export const ValidWeekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export class EvaluationContext {
     /** Constructs an empty {@link EvaluationContext}. */

@@ -35,6 +35,46 @@
     "main": "./bundled/extension.js",
     "browser": "./bundled/extension.js",
     "contributes": {
+        "configuration": [
+            {
+                "title": "kodeine",
+                "properties": {
+                    "kodeine.clockMode": {
+                        "type": "string",
+                        "scope": "resource",
+                        "enum": [
+                            "auto",
+                            "12h",
+                            "24h"
+                        ],
+                        "default": "auto"
+                    },
+                    "kodeine.firstDayOfTheWeek": {
+                        "type": "string",
+                        "scope": "resource",
+                        "enum": [
+                            "mon",
+                            "tue",
+                            "wed",
+                            "thu",
+                            "fri",
+                            "sat",
+                            "sun"
+                        ],
+                        "enumDescriptions": [
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                            "Sunday"
+                        ],
+                        "default": "mon"
+                    }
+                }
+            }
+        ],
         "languages": [
             {
                 "id": "kode",

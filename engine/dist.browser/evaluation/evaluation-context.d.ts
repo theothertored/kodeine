@@ -1,4 +1,8 @@
 import { EvaluationError, Evaluable, FormulaEvaluationTreeNode, Formula, KodeValue, UnaryOperation } from "../kodeine.js";
+export declare const ValidClockModes: readonly ["auto", "12h", "24h"];
+export declare type ClockMode = typeof ValidClockModes[number];
+export declare const ValidWeekdays: readonly ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+export declare type Weekday = typeof ValidWeekdays[number];
 /** The context of the evaluation, containing the state of the device, editor, the module this evaluation is taking place in etc. */
 export declare class EvaluationContext {
     /** Side effects produced during evaluation. Expected to be cleared using {@link clearSideEffects()} before each evaluation run. */
@@ -22,9 +26,9 @@ export declare class EvaluationContext {
     /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
     getNow(): Date;
     /** The current clock mode. Related to a setting in Kustom. */
-    clockMode: 'auto' | '12h' | '24h';
+    clockMode: ClockMode;
     /** The day to treat as the first day of the week. Related to a setting in Kustom. */
-    firstDayOfTheWeek: 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
+    firstDayOfTheWeek: Weekday;
 }
 /** Holds all side effects produced during evaluation. */
 export declare class EvaluationSideEffects {

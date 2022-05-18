@@ -166,7 +166,9 @@ var require_evaluation_context = __commonJS({
   "engine/dist.node/evaluation/evaluation-context.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = void 0;
+    exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = exports.ValidWeekdays = exports.ValidClockModes = void 0;
+    exports.ValidClockModes = ["auto", "12h", "24h"];
+    exports.ValidWeekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     var EvaluationContext19 = class {
       constructor() {
         this.iReplacement = null;
@@ -4209,8 +4211,8 @@ var require_df_function = __commonJS({
         const simpleTokens = {
           "e": (date) => {
             let day = date.getDay();
-            let firstDay = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"].indexOf(evalCtx2.firstDayOfTheWeek);
-            return Math.abs((7 + day - firstDay) % 7);
+            let firstDay = kodeine_js_1.ValidWeekdays.indexOf(evalCtx2.firstDayOfTheWeek);
+            return Math.abs((7 + day - firstDay) % 7 + 1);
           },
           "f": (date) => {
             if (date.getDay() === 0)
@@ -4260,7 +4262,7 @@ var require_df_function = __commonJS({
           },
           "m": (date, match) => pad(date.getMinutes(), match.length),
           "s": (date, match) => pad(date.getSeconds(), match.length),
-          "a": (date, match) => resolveClockMode() === "12h" ? "" : date.getHours() < 12 ? "am" : "pm",
+          "a": (date, match) => resolveClockMode() === "24h" ? "" : date.getHours() < 12 ? "am" : "pm",
           "A": (date, match) => date.getHours() < 12 ? "am" : "pm",
           "k": (date, match) => {
             if (resolveClockMode() == "12h")
@@ -9058,6 +9060,7 @@ var parsingCtx;
 var parser;
 var evalCtx;
 var lastFormula;
+var lastEvaluatedDoc;
 var globalDocManager;
 var evalTreeDocManager;
 function activate(extCtx) {
@@ -9071,7 +9074,7 @@ function activate(extCtx) {
   outChannel.show(true);
   diagColl = vscode6.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
-  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)));
+  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode6.workspace.onDidChangeConfiguration((ev) => onConfigurationChanged(ev)));
   globalDocManager = new GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
   globalDocManager.onGlobalAdded((globalDocument) => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
   globalDocManager.onGlobalRemoved((globalDocument) => evalCtx.globals.delete(globalDocument.globalName));
@@ -9084,9 +9087,28 @@ function onSomethingDocumentRelated(document) {
     evaluateToOutput(document);
   }
 }
+function onConfigurationChanged(ev) {
+  if (lastEvaluatedDoc && ev.affectsConfiguration("kodeine"))
+    evaluateToOutput(lastEvaluatedDoc);
+}
+function enforceValue(validValues, value, defaultIndex = 0) {
+  if (typeof value === "undefined") {
+    return validValues[defaultIndex];
+  } else {
+    let i = validValues.indexOf(value.trim().toLowerCase());
+    if (i >= 0)
+      return validValues[i];
+    else
+      return validValues[defaultIndex];
+  }
+}
 function evaluateToOutput(document) {
   let diags = [];
   let formulaText = document.getText();
+  lastEvaluatedDoc = document;
+  let config = vscode6.workspace.getConfiguration("kodeine", vscode6.window.activeTextEditor.document.uri);
+  evalCtx.clockMode = enforceValue(import_kodeine30.ValidClockModes, config.get("clockMode"));
+  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine30.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
   try {
     lastFormula = parser.parse(formulaText);
     evalCtx.clearSideEffects();

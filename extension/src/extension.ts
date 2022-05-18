@@ -4,11 +4,14 @@ import {
     KodeineParser,
     EvaluationContext,
     Formula,
-    FormulaEvaluationTree
+    FormulaEvaluationTree,
+    ClockMode,
+    Weekday,
+    ValidClockModes,
+    ValidWeekdays
 } from '../../engine/dist.node/kodeine.js';
 import { EvaluationTreeDocumentManager } from './evaluation-tree-document-manager.js';
 import { EvaluationStepsTextDocumentContentProvider } from './evaluation-steps-text-document-content-provider.js';
-import { EvaluationTreeDataProvider } from './evaluation-tree-data-provider.js';
 import { GlobalDocumentManager } from './global-document-manager.js';
 
 let outChannel: vscode.OutputChannel;
@@ -18,6 +21,7 @@ let parsingCtx: ParsingContext;
 let parser: KodeineParser;
 let evalCtx: EvaluationContext;
 let lastFormula: Formula | null;
+let lastEvaluatedDoc: vscode.TextDocument | null;
 
 let globalDocManager: GlobalDocumentManager;
 let evalTreeDocManager: EvaluationTreeDocumentManager;
@@ -32,7 +36,6 @@ export function activate(extCtx: vscode.ExtensionContext) {
 
     // enable evaluation tree building in the context
     evalCtx.buildEvaluationTree = true;
-
 
     // create an output channel for formula results
     outChannel = vscode.window.createOutputChannel('Formula Result');
@@ -53,14 +56,15 @@ export function activate(extCtx: vscode.ExtensionContext) {
         // listen to document-related events
         vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)),
         vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)),
-        vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc))
+        vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)),
+        vscode.workspace.onDidChangeConfiguration(ev => onConfigurationChanged(ev))
 
     );
 
 
     // initialize a global document manager to handle globals
     globalDocManager = new GlobalDocumentManager(
-        extCtx, 
+        extCtx,
         parsingCtx.getOperatorSymbolsLongestFirst(),
         parsingCtx.getFunctionNames()
     );
@@ -94,6 +98,30 @@ function onSomethingDocumentRelated(document?: vscode.TextDocument) {
     }
 }
 
+function onConfigurationChanged(ev: vscode.ConfigurationChangeEvent): any {
+    if (lastEvaluatedDoc && ev.affectsConfiguration('kodeine'))
+        evaluateToOutput(lastEvaluatedDoc);
+}
+
+function enforceValue(validValues: readonly string[], value: string | undefined, defaultIndex: number = 0) {
+
+    if (typeof value === 'undefined') {
+
+        return validValues[defaultIndex];
+
+    } else {
+
+        let i = validValues.indexOf(value.trim().toLowerCase());
+
+        if (i >= 0)
+            return validValues[i];
+        else
+            return validValues[defaultIndex];
+
+    }
+
+}
+
 /** Evaluates a given kode document to the formula result output channel. */
 function evaluateToOutput(document: vscode.TextDocument) {
 
@@ -102,6 +130,12 @@ function evaluateToOutput(document: vscode.TextDocument) {
 
     // get formula text from the document
     let formulaText = document.getText();
+    lastEvaluatedDoc = document;
+
+    // load configuration
+    let config = vscode.workspace.getConfiguration('kodeine', vscode.window.activeTextEditor!.document.uri);
+    evalCtx.clockMode = enforceValue(ValidClockModes, config.get('clockMode')) as ClockMode;
+    evalCtx.firstDayOfTheWeek = enforceValue(ValidWeekdays, config.get('firstDayOfTheWeek'), 1) as Weekday;
 
     try {
 
@@ -281,3 +315,4 @@ function evaluateToOutput(document: vscode.TextDocument) {
 function command_formulaResult() {
     outChannel.show(true);
 }
+

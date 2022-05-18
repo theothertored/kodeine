@@ -4,7 +4,8 @@ import {
     FunctionCall,
     KodeValue,
     EvaluationContext,
-    InvalidArgumentCountError
+    InvalidArgumentCountError,
+    ValidWeekdays
 } from "../../../kodeine.js";
 import { KustomDateHelper } from "../helpers/kustom-date-helper.js";
 import { NumberToTextConverter } from "../helpers/number-to-text-converter.js";
@@ -56,9 +57,9 @@ export class DfFunction extends IKodeFunction {
             'e': date => {
                 // both day and firstDay: sunday = 0, monday = 1, ..., saturday = 6
                 let day = date.getDay();
-                let firstDay = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].indexOf(evalCtx.firstDayOfTheWeek);
+                let firstDay = ValidWeekdays.indexOf(evalCtx.firstDayOfTheWeek);
                 // if day is sunday and firstDay is monday, we need to offset the day by -firstDay
-                return Math.abs((7 + day - firstDay) % 7);
+                return Math.abs((7 + day - firstDay) % 7 + 1);
             },
 
             // ISO day of week (Monday = 1, Sunday = 7)
@@ -144,7 +145,7 @@ export class DfFunction extends IKodeFunction {
             's': (date, match) => pad(date.getSeconds(), match.length),
 
             // am/pm (empty in 24h)
-            'a': (date, match) => resolveClockMode() === '12h' ? '' : date.getHours() < 12 ? 'am' : 'pm',
+            'a': (date, match) => resolveClockMode() === '24h' ? '' : date.getHours() < 12 ? 'am' : 'pm',
 
             // am/pm (shown regardless of mode)
             'A': (date, match) => date.getHours() < 12 ? 'am' : 'pm',

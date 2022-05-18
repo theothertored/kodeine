@@ -12,6 +12,7 @@ let parsingCtx;
 let parser;
 let evalCtx;
 let lastFormula;
+let lastEvaluatedDoc;
 let globalDocManager;
 let evalTreeDocManager;
 /** Activates the extension. */
@@ -33,7 +34,7 @@ function activate(extCtx) {
     // register commands
     vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), 
     // listen to document-related events
-    vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)));
+    vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)), vscode.workspace.onDidChangeConfiguration(ev => onConfigurationChanged(ev)));
     // initialize a global document manager to handle globals
     globalDocManager = new global_document_manager_js_1.GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
     // react to globals changing
@@ -55,12 +56,33 @@ function onSomethingDocumentRelated(document) {
         evaluateToOutput(document);
     }
 }
+function onConfigurationChanged(ev) {
+    if (lastEvaluatedDoc && ev.affectsConfiguration('kodeine'))
+        evaluateToOutput(lastEvaluatedDoc);
+}
+function enforceValue(validValues, value, defaultIndex = 0) {
+    if (typeof value === 'undefined') {
+        return validValues[defaultIndex];
+    }
+    else {
+        let i = validValues.indexOf(value.trim().toLowerCase());
+        if (i >= 0)
+            return validValues[i];
+        else
+            return validValues[defaultIndex];
+    }
+}
 /** Evaluates a given kode document to the formula result output channel. */
 function evaluateToOutput(document) {
     // create a list of diagnostics (warnings, errors etc.) that will replace the current list for the evaluated document
     let diags = [];
     // get formula text from the document
     let formulaText = document.getText();
+    lastEvaluatedDoc = document;
+    // load configuration
+    let config = vscode.workspace.getConfiguration('kodeine', vscode.window.activeTextEditor.document.uri);
+    evalCtx.clockMode = enforceValue(kodeine_js_1.ValidClockModes, config.get('clockMode'));
+    evalCtx.firstDayOfTheWeek = enforceValue(kodeine_js_1.ValidWeekdays, config.get('firstDayOfTheWeek'), 1);
     try {
         // parse the formula text into an evaluable formula
         lastFormula = parser.parse(formulaText);
