@@ -1,5 +1,4 @@
 TODO:
-- contribute settings for clock mode and first day of the week to vscode (not implementing eval ctx editor for now)
 - implement tf()
 - implement ce()
 - implement cm()
@@ -19,6 +18,8 @@ MAYBE IN THE FUTURE:
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 
 DONE:
+- fix syntax highlighting for unquoted strings with spaces
+- contribute settings for clock mode and first day of the week to vscode (not implementing eval ctx editor for now)
 - implement df()
 - stringify dates accurately (when stringifying to non-kustom format)
 - implement dp()
