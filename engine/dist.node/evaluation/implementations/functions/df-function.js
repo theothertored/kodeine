@@ -23,8 +23,11 @@ function pad(source, targetLength) {
 class DfFunction extends kodeine_js_1.IKodeFunction {
     getName() { return 'df'; }
     call(evalCtx, call, args) {
-        if (args.length === 0 || args.length > 2) {
-            throw new kodeine_js_1.InvalidArgumentCountError(call, '1 or 2 arguments expected.');
+        if (args.length === 0) {
+            throw new kodeine_js_1.InvalidArgumentCountError(call, 'At least one argument required.');
+        }
+        else if (args.length > 2) {
+            throw new kodeine_js_1.InvalidArgumentCountError(call, 'Expected one or two arguments.');
         }
         const resolveClockMode = () => {
             if (evalCtx.clockMode === "auto") {
@@ -171,6 +174,10 @@ class DfFunction extends kodeine_js_1.IKodeFunction {
                             output += nextChar;
                             while (!eof() && peek() !== '\'') {
                                 output += consume();
+                            }
+                            // consume ending '
+                            if (!eof()) {
+                                consume();
                             }
                         }
                     }

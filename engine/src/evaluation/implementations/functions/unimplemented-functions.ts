@@ -135,13 +135,6 @@ export class WfFunction extends IKodeFunction {
     }
 }
 
-export class TfFunction extends IKodeFunction {
-    getName() { return 'tf'; }
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-
 export class UcFunction extends IKodeFunction {
     getName() { return 'uc'; }
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {

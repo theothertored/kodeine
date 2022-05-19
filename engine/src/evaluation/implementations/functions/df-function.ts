@@ -38,8 +38,10 @@ export class DfFunction extends IKodeFunction {
 
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
 
-        if (args.length === 0 || args.length > 2) {
-            throw new InvalidArgumentCountError(call, '1 or 2 arguments expected.');
+        if (args.length === 0) {
+            throw new InvalidArgumentCountError(call, 'At least one argument required.');
+        } else if (args.length > 2) {
+            throw new InvalidArgumentCountError(call, 'Expected one or two arguments.');
         }
 
         const resolveClockMode = (): '12h' | '24h' => {
@@ -234,6 +236,10 @@ export class DfFunction extends IKodeFunction {
                                 output += consume();
                             }
 
+                            // consume ending '
+                            if (!eof()) {
+                                consume();
+                            }
                         }
 
                     }
@@ -287,7 +293,7 @@ export class DfFunction extends IKodeFunction {
         else if (args[0].isNumeric)
             // second argument is a number
             now = new Date(args[0].numericValue * 1000);
-            
+
         else
             // second argument is text
             now = KustomDateHelper.parseKustomDateString(evalCtx.getNow(), args[1].text);

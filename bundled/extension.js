@@ -100,26 +100,26 @@ var require_errors = __commonJS({
       }
     };
     exports.UnrecognizedTokenError = UnrecognizedTokenError2;
-    var EvaluationError4 = class extends KodeError {
+    var EvaluationError5 = class extends KodeError {
       constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
         this.evaluable = evaluable;
       }
     };
-    exports.EvaluationError = EvaluationError4;
-    var InvalidArgumentCountError2 = class extends EvaluationError4 {
+    exports.EvaluationError = EvaluationError5;
+    var InvalidArgumentCountError2 = class extends EvaluationError5 {
       constructor(funcCall, message, funcDescription) {
         super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + "()"}: ${message}`);
       }
     };
     exports.InvalidArgumentCountError = InvalidArgumentCountError2;
-    var InvalidArgumentError2 = class extends EvaluationError4 {
+    var InvalidArgumentError2 = class extends EvaluationError5 {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
         super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError2;
-    var RegexEvaluationError2 = class extends EvaluationError4 {
+    var RegexEvaluationError2 = class extends EvaluationError5 {
       constructor(evaluable, message) {
         super(evaluable, `Regex error: ${message}`);
       }
@@ -169,7 +169,7 @@ var require_evaluation_context = __commonJS({
     exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = exports.ValidWeekdays = exports.ValidClockModes = void 0;
     exports.ValidClockModes = ["auto", "12h", "24h"];
     exports.ValidWeekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-    var EvaluationContext19 = class {
+    var EvaluationContext20 = class {
       constructor() {
         this.iReplacement = null;
         this.globals = /* @__PURE__ */ new Map();
@@ -182,7 +182,7 @@ var require_evaluation_context = __commonJS({
         this.sideEffects = new EvaluationSideEffects();
       }
       clone() {
-        let newCtx = new EvaluationContext19();
+        let newCtx = new EvaluationContext20();
         newCtx.iReplacement = this.iReplacement;
         newCtx.globals = new Map(this.globals);
         return newCtx;
@@ -191,7 +191,7 @@ var require_evaluation_context = __commonJS({
         return new Date();
       }
     };
-    exports.EvaluationContext = EvaluationContext19;
+    exports.EvaluationContext = EvaluationContext20;
     var EvaluationSideEffects = class {
       constructor() {
         this.warnings = [];
@@ -697,7 +697,7 @@ var require_function_call = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FunctionCall = void 0;
     var kodeine_js_1 = require_kodeine();
-    var FunctionCall11 = class extends kodeine_js_1.Evaluable {
+    var FunctionCall12 = class extends kodeine_js_1.Evaluable {
       constructor(func, args, source) {
         super(source);
         this.func = func;
@@ -729,7 +729,7 @@ var require_function_call = __commonJS({
         }
       }
     };
-    exports.FunctionCall = FunctionCall11;
+    exports.FunctionCall = FunctionCall12;
   }
 });
 
@@ -946,7 +946,7 @@ var require_unimplemented_functions = __commonJS({
   "engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var LiFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
@@ -1110,15 +1110,6 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.WfFunction = WfFunction2;
-    var TfFunction2 = class extends kodeine_js_1.IKodeFunction {
-      getName() {
-        return "tf";
-      }
-      call(evalCtx2, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.TfFunction = TfFunction2;
     var UcFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "uc";
@@ -1164,6 +1155,341 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.TuFunction = TuFunction2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/number-to-text-converter.js
+var require_number_to_text_converter = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/number-to-text-converter.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NumberToTextConverter = void 0;
+    exports.NumberToTextConverter = (() => {
+      const maxConvertible = __pow(2, 31) - 1;
+      const million = 1e6;
+      const billion = 1e9;
+      const zeroToNineteen = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen"
+      ];
+      const tens = ["zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+      const _convertUnder20 = (n) => {
+        return zeroToNineteen[n];
+      };
+      const _convertUnderHundred = (n) => {
+        if (n < 20) {
+          return _convertUnder20(n);
+        } else {
+          let tenCount = Math.floor(n / 10);
+          let output = tens[tenCount];
+          let rest = n % 10;
+          if (rest > 0) {
+            return `${output} ${_convertUnder20(rest)}`;
+          } else {
+            return output;
+          }
+        }
+      };
+      const _convertUnderThousand = (n) => {
+        if (n < 100) {
+          return _convertUnderHundred(n);
+        } else {
+          let hundredCount = Math.floor(n / 100);
+          let output = _convertUnder20(hundredCount);
+          let rest = n % 100;
+          if (rest > 0)
+            return `${output} hundred ${_convertUnderHundred(rest)}`;
+          else
+            return output;
+        }
+      };
+      const _convertUnderMillion = (n) => {
+        if (n < 1e3) {
+          return _convertUnderThousand(n);
+        } else {
+          let thousandCount = Math.floor(n / 1e3);
+          let output = _convertUnderThousand(thousandCount);
+          let rest = n % 1e3;
+          if (rest > 0)
+            return `${output} thousand ${_convertUnderThousand(rest)}`;
+          else
+            return output;
+        }
+      };
+      const _convertUnderBillion = (n) => {
+        if (n < million) {
+          return _convertUnderMillion(n);
+        } else {
+          let millionCount = Math.floor(n / million);
+          let output = _convertUnderThousand(millionCount);
+          let rest = n % million;
+          if (rest > 0)
+            return `${output} million ${_convertUnderMillion(rest)}`;
+          else
+            return `${output} million`;
+        }
+      };
+      return {
+        max: maxConvertible,
+        convert: (n) => {
+          if (n < 0)
+            throw new Error(`Can only convert positive numbers.`);
+          else if (n > maxConvertible)
+            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
+          if (n < billion) {
+            return _convertUnderBillion(n);
+          } else {
+            let billionCount = Math.floor(n / billion);
+            let output = _convertUnder20(billionCount);
+            let rest = n % billion;
+            if (rest > 0)
+              return `${output} billion ${_convertUnderBillion(rest)}`;
+            else
+              return `${output} billion`;
+          }
+        }
+      };
+    })();
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/text-capitalizer.js
+var require_text_capitalizer = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/text-capitalizer.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.TextCapitalizer = void 0;
+    exports.TextCapitalizer = (() => ({
+      capitalize: (text) => {
+        return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
+      },
+      capitalizeFirstLetter: (text) => {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
+      }
+    }))();
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/df-function.js
+var require_df_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/df-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DfFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var kustom_date_helper_js_1 = require_kustom_date_helper();
+    var number_to_text_converter_js_1 = require_number_to_text_converter();
+    var text_capitalizer_js_1 = require_text_capitalizer();
+    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    var weekdaysAbbrev = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    var monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var monthsAbbrev = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    function daysIntoYear(date) {
+      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
+    }
+    function pad(source, targetLength) {
+      const sourceString = source.toString();
+      if (sourceString.length >= targetLength)
+        return sourceString;
+      else
+        return "0".repeat(targetLength - sourceString.length) + sourceString;
+    }
+    var DfFunction2 = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "df";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length === 0) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "At least one argument required.");
+        } else if (args.length > 2) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected one or two arguments.");
+        }
+        const resolveClockMode = () => {
+          if (evalCtx2.clockMode === "auto") {
+            return /am|pm/.test(new Date().toLocaleTimeString()) ? "12h" : "24h";
+          } else {
+            return evalCtx2.clockMode;
+          }
+        };
+        const simpleTokens = {
+          "e": (date) => {
+            let day = date.getDay();
+            let firstDay = kodeine_js_1.ValidWeekdays.indexOf(evalCtx2.firstDayOfTheWeek);
+            return Math.abs((7 + day - firstDay) % 7 + 1);
+          },
+          "f": (date) => {
+            if (date.getDay() === 0)
+              return 7;
+            else
+              return date.getDay();
+          },
+          "F": (date) => {
+            let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+            let firstSundayOfMonthNumber = firstDayOfMonth.getDay() === 0 ? 1 : 8 - firstDayOfMonth.getDay();
+            if (date.getDate() <= firstSundayOfMonthNumber) {
+              return 1;
+            } else {
+              let sundayBeforeDateNumber = date.getDate() - (date.getDay() || 7);
+              let weeksBetweenSundays = Math.floor((sundayBeforeDateNumber - firstSundayOfMonthNumber) / 7);
+              return weeksBetweenSundays + 2;
+            }
+          },
+          "o": (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(),
+          "S": (date) => Math.floor(date.valueOf() / 1e3),
+          "Z": (date) => date.getTimezoneOffset() * 60,
+          "W": (date) => {
+            let h = date.getHours();
+            let m = date.getMinutes();
+            if (m === 0) {
+              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))} o'clock`;
+            } else if (m === 15) {
+              return `quarter past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else if (m < 30) {
+              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(m))} past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else if (m === 30) {
+              return `half past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else if (m === 45) {
+              return `quarter to ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
+            } else {
+              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(60 - m))} to ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert((h + 1) % 12 || 12))}`;
+            }
+          }
+        };
+        const multiTokens = {
+          "H": (date, match) => pad(date.getHours(), match.length),
+          "h": (date, match) => {
+            if (resolveClockMode() == "12h")
+              return pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
+            else
+              return pad(date.getHours(), match.length);
+          },
+          "m": (date, match) => pad(date.getMinutes(), match.length),
+          "s": (date, match) => pad(date.getSeconds(), match.length),
+          "a": (date, match) => resolveClockMode() === "24h" ? "" : date.getHours() < 12 ? "am" : "pm",
+          "A": (date, match) => date.getHours() < 12 ? "am" : "pm",
+          "k": (date, match) => {
+            if (resolveClockMode() == "12h")
+              return pad(date.getHours() % 12, match.length);
+            else
+              return pad(date.getHours() === 0 ? 24 : date.getHours(), match.length);
+          },
+          "d": (date, match) => pad(date.getDate(), match.length),
+          "D": (date, match) => pad(daysIntoYear(date), match.length),
+          "M": (date, match) => {
+            if (match.length < 3)
+              return pad(date.getMonth() + 1, match.length);
+            else if (match.length === 3)
+              return monthsAbbrev[date.getMonth()];
+            else
+              return monthsFull[date.getMonth()];
+          },
+          "y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+          "Y": (date, match) => multiTokens["y"](date, match),
+          "E": (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdays)[date.getDay()],
+          "z": (date, match) => "NOT IMPLEMENTED"
+        };
+        const format = (date, format2) => {
+          let output = "";
+          let i = 0;
+          let consume = () => format2[i++];
+          let peek = () => format2[i];
+          let eof = () => i >= format2.length;
+          while (!eof()) {
+            let char = consume();
+            if (char === "'") {
+              if (eof()) {
+                break;
+              } else {
+                let nextChar = consume();
+                if (nextChar === "'") {
+                  output += "'";
+                } else {
+                  output += nextChar;
+                  while (!eof() && peek() !== "'") {
+                    output += consume();
+                  }
+                  if (!eof()) {
+                    consume();
+                  }
+                }
+              }
+            } else {
+              let simpleFunc = simpleTokens[char];
+              if (simpleFunc) {
+                output += simpleFunc(date);
+              } else {
+                let mutliFunc = multiTokens[char];
+                if (mutliFunc) {
+                  let buffer = char;
+                  while (!eof() && peek() === char) {
+                    buffer += consume();
+                  }
+                  output += mutliFunc(date, buffer);
+                } else {
+                  output += char;
+                }
+              }
+            }
+          }
+          return output;
+        };
+        let now;
+        if (args.length === 1)
+          now = evalCtx2.getNow();
+        else if (args[0].isDate)
+          now = args[0].dateValue;
+        else if (args[0].isNumeric)
+          now = new Date(args[0].numericValue * 1e3);
+        else
+          now = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
+        return new kodeine_js_1.KodeValue(format(now, args[0].text), call.source);
+      }
+    };
+    exports.DfFunction = DfFunction2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/dp-function.js
+var require_dp_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/dp-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DpFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var kustom_date_helper_js_1 = require_kustom_date_helper();
+    var DpFunction2 = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "dp";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length === 0) {
+          return new kodeine_js_1.KodeValue(evalCtx2.getNow(), call.source);
+        } else if (args.length === 1) {
+          return new kodeine_js_1.KodeValue(kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[0].text), call.source);
+        } else {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected 0 or 1 arguments.");
+        }
+      }
+    };
+    exports.DpFunction = DpFunction2;
   }
 });
 
@@ -3753,119 +4079,6 @@ var require_number_to_roman_converter = __commonJS({
   }
 });
 
-// engine/dist.node/evaluation/implementations/helpers/number-to-text-converter.js
-var require_number_to_text_converter = __commonJS({
-  "engine/dist.node/evaluation/implementations/helpers/number-to-text-converter.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.NumberToTextConverter = void 0;
-    exports.NumberToTextConverter = (() => {
-      const maxConvertible = __pow(2, 31) - 1;
-      const million = 1e6;
-      const billion = 1e9;
-      const zeroToNineteen = [
-        "zero",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-        "ten",
-        "eleven",
-        "twelve",
-        "thirteen",
-        "fourteen",
-        "fifteen",
-        "sixteen",
-        "seventeen",
-        "eighteen",
-        "nineteen"
-      ];
-      const tens = ["zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
-      const _convertUnder20 = (n) => {
-        return zeroToNineteen[n];
-      };
-      const _convertUnderHundred = (n) => {
-        if (n < 20) {
-          return _convertUnder20(n);
-        } else {
-          let tenCount = Math.floor(n / 10);
-          let output = tens[tenCount];
-          let rest = n % 10;
-          if (rest > 0) {
-            return `${output} ${_convertUnder20(rest)}`;
-          } else {
-            return output;
-          }
-        }
-      };
-      const _convertUnderThousand = (n) => {
-        if (n < 100) {
-          return _convertUnderHundred(n);
-        } else {
-          let hundredCount = Math.floor(n / 100);
-          let output = _convertUnder20(hundredCount);
-          let rest = n % 100;
-          if (rest > 0)
-            return `${output} hundred ${_convertUnderHundred(rest)}`;
-          else
-            return output;
-        }
-      };
-      const _convertUnderMillion = (n) => {
-        if (n < 1e3) {
-          return _convertUnderThousand(n);
-        } else {
-          let thousandCount = Math.floor(n / 1e3);
-          let output = _convertUnderThousand(thousandCount);
-          let rest = n % 1e3;
-          if (rest > 0)
-            return `${output} thousand ${_convertUnderThousand(rest)}`;
-          else
-            return output;
-        }
-      };
-      const _convertUnderBillion = (n) => {
-        if (n < million) {
-          return _convertUnderMillion(n);
-        } else {
-          let millionCount = Math.floor(n / million);
-          let output = _convertUnderThousand(millionCount);
-          let rest = n % million;
-          if (rest > 0)
-            return `${output} million ${_convertUnderMillion(rest)}`;
-          else
-            return `${output} million`;
-        }
-      };
-      return {
-        max: maxConvertible,
-        convert: (n) => {
-          if (n < 0)
-            throw new Error(`Can only convert positive numbers.`);
-          else if (n > maxConvertible)
-            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
-          if (n < billion) {
-            return _convertUnderBillion(n);
-          } else {
-            let billionCount = Math.floor(n / billion);
-            let output = _convertUnder20(billionCount);
-            let rest = n % billion;
-            if (rest > 0)
-              return `${output} billion ${_convertUnderBillion(rest)}`;
-            else
-              return `${output} billion`;
-          }
-        }
-      };
-    })();
-  }
-});
-
 // engine/dist.node/evaluation/implementations/helpers/ordinal-suffix-helper.js
 var require_ordinal_suffix_helper = __commonJS({
   "engine/dist.node/evaluation/implementations/helpers/ordinal-suffix-helper.js"(exports) {
@@ -3895,23 +4108,6 @@ var require_ordinal_suffix_helper = __commonJS({
         }
       };
     })();
-  }
-});
-
-// engine/dist.node/evaluation/implementations/helpers/text-capitalizer.js
-var require_text_capitalizer = __commonJS({
-  "engine/dist.node/evaluation/implementations/helpers/text-capitalizer.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TextCapitalizer = void 0;
-    exports.TextCapitalizer = (() => ({
-      capitalize: (text) => {
-        return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
-      },
-      capitalizeFirstLetter: (text) => {
-        return text.substring(0, 1).toUpperCase() + text.substring(1);
-      }
-    }))();
   }
 });
 
@@ -4169,203 +4365,171 @@ var require_tc_function = __commonJS({
   }
 });
 
-// engine/dist.node/evaluation/implementations/functions/df-function.js
-var require_df_function = __commonJS({
-  "engine/dist.node/evaluation/implementations/functions/df-function.js"(exports) {
+// engine/dist.node/evaluation/implementations/helpers/timespan.js
+var require_timespan = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/timespan.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DfFunction = void 0;
-    var kodeine_js_1 = require_kodeine();
-    var kustom_date_helper_js_1 = require_kustom_date_helper();
-    var number_to_text_converter_js_1 = require_number_to_text_converter();
-    var text_capitalizer_js_1 = require_text_capitalizer();
-    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    var weekdaysAbbrev = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    var monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    var monthsAbbrev = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    function daysIntoYear(date) {
-      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
-    }
-    function pad(source, targetLength) {
-      const sourceString = source.toString();
+    exports.TimeSpan = void 0;
+    function floorAndPad(source, targetLength) {
+      const sourceString = Math.floor(source).toString();
       if (sourceString.length >= targetLength)
         return sourceString;
       else
         return "0".repeat(targetLength - sourceString.length) + sourceString;
     }
-    var DfFunction2 = class extends kodeine_js_1.IKodeFunction {
-      getName() {
-        return "df";
+    var formatTokens = {
+      "D": (timespan, match) => floorAndPad(timespan.totalDays, match.length),
+      "H": (timespan, match) => floorAndPad(timespan.totalHours, match.length),
+      "M": (timespan, match) => floorAndPad(timespan.totalMinutes, match.length),
+      "S": (timespan, match) => floorAndPad(timespan.totalSeconds, match.length),
+      "h": (timespan, match) => floorAndPad(timespan.totalHours % 24, match.length),
+      "m": (timespan, match) => floorAndPad(timespan.totalMinutes % 60, match.length),
+      "s": (timespan, match) => floorAndPad(timespan.totalSeconds % 60, match.length)
+    };
+    var unitBoundaries2 = [
+      [60, "minute"],
+      [60 * 60, "hour"],
+      [60 * 60 * 24, "day"],
+      [60 * 60 * 24 * 29, "month"],
+      [60 * 60 * 24 * 365, "year"],
+      [60 * 60 * 24 * 365 * 10, "decade"]
+    ];
+    var TimeSpan2 = class {
+      constructor(totalSeconds) {
+        this.totalSeconds = totalSeconds;
       }
-      call(evalCtx2, call, args) {
-        if (args.length === 0 || args.length > 2) {
-          throw new kodeine_js_1.InvalidArgumentCountError(call, "1 or 2 arguments expected.");
-        }
-        const resolveClockMode = () => {
-          if (evalCtx2.clockMode === "auto") {
-            return /am|pm/.test(new Date().toLocaleTimeString()) ? "12h" : "24h";
+      get totalMinutes() {
+        return this.totalSeconds / 60;
+      }
+      get totalHours() {
+        return this.totalMinutes / 60;
+      }
+      get totalDays() {
+        return this.totalHours / 24;
+      }
+      format(format) {
+        let output = "";
+        let i = 0;
+        let consume = () => format[i++];
+        let peek = () => format[i];
+        let eof = () => i >= format.length;
+        while (!eof()) {
+          let char = consume();
+          if (char === "'") {
+            if (eof()) {
+              break;
+            } else {
+              let nextChar = consume();
+              if (nextChar === "'") {
+                output += "'";
+              } else {
+                output += nextChar;
+                while (!eof() && peek() !== "'") {
+                  output += consume();
+                }
+                if (!eof()) {
+                  consume();
+                }
+              }
+            }
           } else {
-            return evalCtx2.clockMode;
-          }
-        };
-        const simpleTokens = {
-          "e": (date) => {
-            let day = date.getDay();
-            let firstDay = kodeine_js_1.ValidWeekdays.indexOf(evalCtx2.firstDayOfTheWeek);
-            return Math.abs((7 + day - firstDay) % 7 + 1);
-          },
-          "f": (date) => {
-            if (date.getDay() === 0)
-              return 7;
-            else
-              return date.getDay();
-          },
-          "F": (date) => {
-            let firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-            let firstSundayOfMonthNumber = firstDayOfMonth.getDay() === 0 ? 1 : 8 - firstDayOfMonth.getDay();
-            if (date.getDate() <= firstSundayOfMonthNumber) {
-              return 1;
-            } else {
-              let sundayBeforeDateNumber = date.getDate() - (date.getDay() || 7);
-              let weeksBetweenSundays = Math.floor((sundayBeforeDateNumber - firstSundayOfMonthNumber) / 7);
-              return weeksBetweenSundays + 2;
-            }
-          },
-          "o": (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(),
-          "S": (date) => Math.floor(date.valueOf() / 1e3),
-          "Z": (date) => date.getTimezoneOffset() * 60,
-          "W": (date) => {
-            let h = date.getHours();
-            let m = date.getMinutes();
-            if (m === 0) {
-              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))} o'clock`;
-            } else if (m === 15) {
-              return `quarter past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
-            } else if (m < 30) {
-              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(m))} past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
-            } else if (m === 30) {
-              return `half past ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
-            } else if (m === 45) {
-              return `quarter to ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(h))}`;
-            } else {
-              return `${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert(60 - m))} to ${text_capitalizer_js_1.TextCapitalizer.capitalizeFirstLetter(number_to_text_converter_js_1.NumberToTextConverter.convert((h + 1) % 12 || 12))}`;
-            }
-          }
-        };
-        const multiTokens = {
-          "H": (date, match) => pad(date.getHours(), match.length),
-          "h": (date, match) => {
-            if (resolveClockMode() == "12h")
-              return pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
-            else
-              return pad(date.getHours(), match.length);
-          },
-          "m": (date, match) => pad(date.getMinutes(), match.length),
-          "s": (date, match) => pad(date.getSeconds(), match.length),
-          "a": (date, match) => resolveClockMode() === "24h" ? "" : date.getHours() < 12 ? "am" : "pm",
-          "A": (date, match) => date.getHours() < 12 ? "am" : "pm",
-          "k": (date, match) => {
-            if (resolveClockMode() == "12h")
-              return pad(date.getHours() % 12, match.length);
-            else
-              return pad(date.getHours() === 0 ? 24 : date.getHours(), match.length);
-          },
-          "d": (date, match) => pad(date.getDate(), match.length),
-          "D": (date, match) => pad(daysIntoYear(date), match.length),
-          "M": (date, match) => {
-            if (match.length < 3)
-              return pad(date.getMonth() + 1, match.length);
-            else if (match.length === 3)
-              return monthsAbbrev[date.getMonth()];
-            else
-              return monthsFull[date.getMonth()];
-          },
-          "y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
-          "Y": (date, match) => multiTokens["y"](date, match),
-          "E": (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdays)[date.getDay()],
-          "z": (date, match) => "NOT IMPLEMENTED"
-        };
-        const format = (date, format2) => {
-          let output = "";
-          let i = 0;
-          let consume = () => format2[i++];
-          let peek = () => format2[i];
-          let eof = () => i >= format2.length;
-          while (!eof()) {
-            let char = consume();
-            if (char === "'") {
-              if (eof()) {
-                break;
-              } else {
-                let nextChar = consume();
-                if (nextChar === "'") {
-                  output += "'";
-                } else {
-                  output += nextChar;
-                  while (!eof() && peek() !== "'") {
-                    output += consume();
-                  }
-                }
+            let mutliFunc = formatTokens[char];
+            if (mutliFunc) {
+              let buffer = char;
+              while (!eof() && peek() === char) {
+                buffer += consume();
               }
+              output += mutliFunc(this, buffer);
             } else {
-              let simpleFunc = simpleTokens[char];
-              if (simpleFunc) {
-                output += simpleFunc(date);
-              } else {
-                let mutliFunc = multiTokens[char];
-                if (mutliFunc) {
-                  let buffer = char;
-                  while (!eof() && peek() === char) {
-                    buffer += consume();
-                  }
-                  output += mutliFunc(date, buffer);
-                } else {
-                  output += char;
-                }
-              }
+              output += char;
             }
           }
-          return output;
-        };
-        let now;
-        if (args.length === 1)
-          now = evalCtx2.getNow();
-        else if (args[0].isDate)
-          now = args[0].dateValue;
-        else if (args[0].isNumeric)
-          now = new Date(args[0].numericValue * 1e3);
-        else
-          now = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
-        return new kodeine_js_1.KodeValue(format(now, args[0].text), call.source);
+        }
+        return output;
+      }
+      prettyPrintAbsolute() {
+        const max = 8 * 10 * 356 * 24 * 60 * 60;
+        let dur = Math.min(Math.abs(this.totalSeconds), max);
+        let boundaryI = 0;
+        for (let i = 0; i < unitBoundaries2.length; i++) {
+          let boundary2 = unitBoundaries2[i];
+          if (dur >= boundary2[0]) {
+            boundaryI = i;
+          } else {
+            break;
+          }
+        }
+        let boundary = unitBoundaries2[boundaryI];
+        let boundaryCount = Math.floor(dur / boundary[0]);
+        return `${boundaryCount} ${boundary[1]}${boundaryCount === 1 ? "" : "s"}`;
+      }
+      prettyPrintRelative() {
+        const max = 8 * 10 * 356 * 24 * 60 * 60;
+        let dur = Math.min(Math.abs(this.totalSeconds), max);
+        if (dur < 60) {
+          return `moments ${this.totalSeconds > 0 ? "from now" : "ago"}`;
+        } else {
+          let boundaryI = 0;
+          for (let i = 0; i < unitBoundaries2.length; i++) {
+            let boundary2 = unitBoundaries2[i];
+            if (dur >= boundary2[0]) {
+              boundaryI = i;
+            } else {
+              break;
+            }
+          }
+          let boundary = unitBoundaries2[boundaryI];
+          let boundaryCount = Math.floor(dur / boundary[0]);
+          return `${boundaryCount} ${boundary[1]}${boundaryCount === 1 ? "" : "s"} ${this.totalSeconds > 0 ? "from now" : "ago"}`;
+        }
       }
     };
-    exports.DfFunction = DfFunction2;
+    exports.TimeSpan = TimeSpan2;
   }
 });
 
-// engine/dist.node/evaluation/implementations/functions/dp-function.js
-var require_dp_function = __commonJS({
-  "engine/dist.node/evaluation/implementations/functions/dp-function.js"(exports) {
+// engine/dist.node/evaluation/implementations/functions/tf-function.js
+var require_tf_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/tf-function.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DpFunction = void 0;
+    exports.TfFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var kustom_date_helper_js_1 = require_kustom_date_helper();
-    var DpFunction2 = class extends kodeine_js_1.IKodeFunction {
+    var timespan_js_1 = require_timespan();
+    var TfFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
-        return "dp";
+        return "tf";
       }
       call(evalCtx2, call, args) {
-        if (args.length === 0) {
-          return new kodeine_js_1.KodeValue(evalCtx2.getNow(), call.source);
-        } else if (args.length === 1) {
-          return new kodeine_js_1.KodeValue(kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[0].text), call.source);
+        if (args.length == 0) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "At least one argument required.");
+        } else if (args.length > 2) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected one or two arguments.");
+        }
+        if (args[0].isDate || !args[0].isNumeric) {
+          let date = args[0].isDate ? args[0].dateValue : kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[0].text);
+          let timespan = new timespan_js_1.TimeSpan(Math.trunc((date.valueOf() - evalCtx2.getNow().valueOf()) / 1e3));
+          if (args.length === 2) {
+            let format = args[1].text;
+            return new kodeine_js_1.KodeValue(timespan.format(format), call.source);
+          } else {
+            return new kodeine_js_1.KodeValue(timespan.prettyPrintRelative(), call.source);
+          }
         } else {
-          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected 0 or 1 arguments.");
+          let duration = args[0].numericValue;
+          let timespan = new timespan_js_1.TimeSpan(duration);
+          if (args.length === 2) {
+            let format = args[1].text;
+            return new kodeine_js_1.KodeValue(timespan.format(format), call.source);
+          } else {
+            return new kodeine_js_1.KodeValue(timespan.prettyPrintAbsolute(), call.source);
+          }
         }
       }
     };
-    exports.DpFunction = DpFunction2;
+    exports.TfFunction = TfFunction2;
   }
 });
 
@@ -5153,6 +5317,150 @@ var init_kode_function_with_modes = __esm({
 var init_unimplemented_functions = __esm({
   "engine/src/evaluation/implementations/functions/unimplemented-functions.ts"() {
     init_kodeine();
+  }
+});
+
+// engine/src/evaluation/implementations/helpers/number-to-text-converter.ts
+var NumberToTextConverter;
+var init_number_to_text_converter = __esm({
+  "engine/src/evaluation/implementations/helpers/number-to-text-converter.ts"() {
+    NumberToTextConverter = (() => {
+      const maxConvertible = __pow(2, 31) - 1;
+      const million = 1e6;
+      const billion = 1e9;
+      const zeroToNineteen = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+        "thirteen",
+        "fourteen",
+        "fifteen",
+        "sixteen",
+        "seventeen",
+        "eighteen",
+        "nineteen"
+      ];
+      const tens = ["zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+      const _convertUnder20 = (n) => {
+        return zeroToNineteen[n];
+      };
+      const _convertUnderHundred = (n) => {
+        if (n < 20) {
+          return _convertUnder20(n);
+        } else {
+          let tenCount = Math.floor(n / 10);
+          let output = tens[tenCount];
+          let rest = n % 10;
+          if (rest > 0) {
+            return `${output} ${_convertUnder20(rest)}`;
+          } else {
+            return output;
+          }
+        }
+      };
+      const _convertUnderThousand = (n) => {
+        if (n < 100) {
+          return _convertUnderHundred(n);
+        } else {
+          let hundredCount = Math.floor(n / 100);
+          let output = _convertUnder20(hundredCount);
+          let rest = n % 100;
+          if (rest > 0)
+            return `${output} hundred ${_convertUnderHundred(rest)}`;
+          else
+            return output;
+        }
+      };
+      const _convertUnderMillion = (n) => {
+        if (n < 1e3) {
+          return _convertUnderThousand(n);
+        } else {
+          let thousandCount = Math.floor(n / 1e3);
+          let output = _convertUnderThousand(thousandCount);
+          let rest = n % 1e3;
+          if (rest > 0)
+            return `${output} thousand ${_convertUnderThousand(rest)}`;
+          else
+            return output;
+        }
+      };
+      const _convertUnderBillion = (n) => {
+        if (n < million) {
+          return _convertUnderMillion(n);
+        } else {
+          let millionCount = Math.floor(n / million);
+          let output = _convertUnderThousand(millionCount);
+          let rest = n % million;
+          if (rest > 0)
+            return `${output} million ${_convertUnderMillion(rest)}`;
+          else
+            return `${output} million`;
+        }
+      };
+      return {
+        max: maxConvertible,
+        convert: (n) => {
+          if (n < 0)
+            throw new Error(`Can only convert positive numbers.`);
+          else if (n > maxConvertible)
+            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
+          if (n < billion) {
+            return _convertUnderBillion(n);
+          } else {
+            let billionCount = Math.floor(n / billion);
+            let output = _convertUnder20(billionCount);
+            let rest = n % billion;
+            if (rest > 0)
+              return `${output} billion ${_convertUnderBillion(rest)}`;
+            else
+              return `${output} billion`;
+          }
+        }
+      };
+    })();
+  }
+});
+
+// engine/src/evaluation/implementations/helpers/text-capitalizer.ts
+var TextCapitalizer;
+var init_text_capitalizer = __esm({
+  "engine/src/evaluation/implementations/helpers/text-capitalizer.ts"() {
+    TextCapitalizer = (() => ({
+      capitalize: (text) => {
+        return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
+      },
+      capitalizeFirstLetter: (text) => {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
+      }
+    }))();
+  }
+});
+
+// engine/src/evaluation/implementations/functions/df-function.ts
+var init_df_function = __esm({
+  "engine/src/evaluation/implementations/functions/df-function.ts"() {
+    init_kodeine();
+    init_kustom_date_helper();
+    init_number_to_text_converter();
+    init_text_capitalizer();
+  }
+});
+
+// engine/src/evaluation/implementations/functions/dp-function.ts
+var init_dp_function = __esm({
+  "engine/src/evaluation/implementations/functions/dp-function.ts"() {
+    init_kodeine();
+    init_kustom_date_helper();
   }
 });
 
@@ -7473,117 +7781,6 @@ var init_number_to_roman_converter = __esm({
   }
 });
 
-// engine/src/evaluation/implementations/helpers/number-to-text-converter.ts
-var NumberToTextConverter;
-var init_number_to_text_converter = __esm({
-  "engine/src/evaluation/implementations/helpers/number-to-text-converter.ts"() {
-    NumberToTextConverter = (() => {
-      const maxConvertible = __pow(2, 31) - 1;
-      const million = 1e6;
-      const billion = 1e9;
-      const zeroToNineteen = [
-        "zero",
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-        "ten",
-        "eleven",
-        "twelve",
-        "thirteen",
-        "fourteen",
-        "fifteen",
-        "sixteen",
-        "seventeen",
-        "eighteen",
-        "nineteen"
-      ];
-      const tens = ["zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
-      const _convertUnder20 = (n) => {
-        return zeroToNineteen[n];
-      };
-      const _convertUnderHundred = (n) => {
-        if (n < 20) {
-          return _convertUnder20(n);
-        } else {
-          let tenCount = Math.floor(n / 10);
-          let output = tens[tenCount];
-          let rest = n % 10;
-          if (rest > 0) {
-            return `${output} ${_convertUnder20(rest)}`;
-          } else {
-            return output;
-          }
-        }
-      };
-      const _convertUnderThousand = (n) => {
-        if (n < 100) {
-          return _convertUnderHundred(n);
-        } else {
-          let hundredCount = Math.floor(n / 100);
-          let output = _convertUnder20(hundredCount);
-          let rest = n % 100;
-          if (rest > 0)
-            return `${output} hundred ${_convertUnderHundred(rest)}`;
-          else
-            return output;
-        }
-      };
-      const _convertUnderMillion = (n) => {
-        if (n < 1e3) {
-          return _convertUnderThousand(n);
-        } else {
-          let thousandCount = Math.floor(n / 1e3);
-          let output = _convertUnderThousand(thousandCount);
-          let rest = n % 1e3;
-          if (rest > 0)
-            return `${output} thousand ${_convertUnderThousand(rest)}`;
-          else
-            return output;
-        }
-      };
-      const _convertUnderBillion = (n) => {
-        if (n < million) {
-          return _convertUnderMillion(n);
-        } else {
-          let millionCount = Math.floor(n / million);
-          let output = _convertUnderThousand(millionCount);
-          let rest = n % million;
-          if (rest > 0)
-            return `${output} million ${_convertUnderMillion(rest)}`;
-          else
-            return `${output} million`;
-        }
-      };
-      return {
-        max: maxConvertible,
-        convert: (n) => {
-          if (n < 0)
-            throw new Error(`Can only convert positive numbers.`);
-          else if (n > maxConvertible)
-            throw new Error(`Number ${n} is too big for conversion. Max is ${maxConvertible}.`);
-          if (n < billion) {
-            return _convertUnderBillion(n);
-          } else {
-            let billionCount = Math.floor(n / billion);
-            let output = _convertUnder20(billionCount);
-            let rest = n % billion;
-            if (rest > 0)
-              return `${output} billion ${_convertUnderBillion(rest)}`;
-            else
-              return `${output} billion`;
-          }
-        }
-      };
-    })();
-  }
-});
-
 // engine/src/evaluation/implementations/helpers/ordinal-suffix-helper.ts
 var OrdinalSuffixHelper;
 var init_ordinal_suffix_helper = __esm({
@@ -7614,21 +7811,6 @@ var init_ordinal_suffix_helper = __esm({
   }
 });
 
-// engine/src/evaluation/implementations/helpers/text-capitalizer.ts
-var TextCapitalizer;
-var init_text_capitalizer = __esm({
-  "engine/src/evaluation/implementations/helpers/text-capitalizer.ts"() {
-    TextCapitalizer = (() => ({
-      capitalize: (text) => {
-        return text.replace(/(?<=^| )./g, (match) => match.toUpperCase());
-      },
-      capitalizeFirstLetter: (text) => {
-        return text.substring(0, 1).toUpperCase() + text.substring(1);
-      }
-    }))();
-  }
-});
-
 // engine/src/evaluation/implementations/functions/tc-function.ts
 var init_tc_function = __esm({
   "engine/src/evaluation/implementations/functions/tc-function.ts"() {
@@ -7641,21 +7823,27 @@ var init_tc_function = __esm({
   }
 });
 
-// engine/src/evaluation/implementations/functions/df-function.ts
-var init_df_function = __esm({
-  "engine/src/evaluation/implementations/functions/df-function.ts"() {
-    init_kodeine();
-    init_kustom_date_helper();
-    init_number_to_text_converter();
-    init_text_capitalizer();
+// engine/src/evaluation/implementations/helpers/timespan.ts
+var unitBoundaries;
+var init_timespan = __esm({
+  "engine/src/evaluation/implementations/helpers/timespan.ts"() {
+    unitBoundaries = [
+      [60, "minute"],
+      [60 * 60, "hour"],
+      [60 * 60 * 24, "day"],
+      [60 * 60 * 24 * 29, "month"],
+      [60 * 60 * 24 * 365, "year"],
+      [60 * 60 * 24 * 365 * 10, "decade"]
+    ];
   }
 });
 
-// engine/src/evaluation/implementations/functions/dp-function.ts
-var init_dp_function = __esm({
-  "engine/src/evaluation/implementations/functions/dp-function.ts"() {
+// engine/src/evaluation/implementations/functions/tf-function.ts
+var init_tf_function = __esm({
+  "engine/src/evaluation/implementations/functions/tf-function.ts"() {
     init_kodeine();
     init_kustom_date_helper();
+    init_timespan();
   }
 });
 
@@ -7764,13 +7952,14 @@ var init_kodeine = __esm({
     init_broken_evaluable();
     init_kode_function_with_modes();
     init_unimplemented_functions();
+    init_df_function();
+    init_dp_function();
     init_fl_function();
     init_gv_function();
     init_if_function();
     init_mu_function();
     init_tc_function();
-    init_df_function();
-    init_dp_function();
+    init_tf_function();
     init_unary_operators();
     init_two_mode_binary_operator();
     init_binary_operators();
@@ -8591,13 +8780,14 @@ var require_kodeine = __commonJS({
     __exportStar(require_broken_evaluable(), exports);
     __exportStar(require_kode_function_with_modes(), exports);
     __exportStar(require_unimplemented_functions(), exports);
+    __exportStar(require_df_function(), exports);
+    __exportStar(require_dp_function(), exports);
     __exportStar(require_fl_function(), exports);
     __exportStar(require_gv_function(), exports);
     __exportStar(require_if_function(), exports);
     __exportStar(require_mu_function(), exports);
     __exportStar(require_tc_function(), exports);
-    __exportStar(require_df_function(), exports);
-    __exportStar(require_dp_function(), exports);
+    __exportStar(require_tf_function(), exports);
     __exportStar(require_unary_operators(), exports);
     __exportStar(require_two_mode_binary_operator(), exports);
     __exportStar(require_binary_operators(), exports);
@@ -8621,7 +8811,7 @@ __export(extension_exports, {
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode6 = __toESM(require("vscode"));
-var import_kodeine30 = __toESM(require_kodeine());
+var import_kodeine31 = __toESM(require_kodeine());
 
 // extension/src/evaluation-tree-document-manager.ts
 var vscode3 = __toESM(require("vscode"));
@@ -8659,7 +8849,7 @@ EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode2 = __toESM(require("vscode"));
-var import_kodeine29 = __toESM(require_kodeine());
+var import_kodeine30 = __toESM(require_kodeine());
 var EvaluationTreeDataProvider = class {
   constructor() {
     this._evaluationTree = null;
@@ -8673,22 +8863,22 @@ var EvaluationTreeDataProvider = class {
       } else {
         return void 0;
       }
-    } else if (element instanceof import_kodeine29.FormulaEvaluationTree) {
+    } else if (element instanceof import_kodeine30.FormulaEvaluationTree) {
       return element.parts;
-    } else if (element instanceof import_kodeine29.EvaluatedUnaryOperation) {
+    } else if (element instanceof import_kodeine30.EvaluatedUnaryOperation) {
       return [element.arg];
-    } else if (element instanceof import_kodeine29.EvaluatedBinaryOperation) {
+    } else if (element instanceof import_kodeine30.EvaluatedBinaryOperation) {
       return [element.argA, element.argB];
-    } else if (element instanceof import_kodeine29.EvaluatedFunctionCall) {
+    } else if (element instanceof import_kodeine30.EvaluatedFunctionCall) {
       return element.args;
-    } else if (element instanceof import_kodeine29.EvaluatedExpression) {
+    } else if (element instanceof import_kodeine30.EvaluatedExpression) {
       return [element.child];
     } else {
       return void 0;
     }
   }
   getTreeItem(element) {
-    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine29.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
+    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine30.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
     treeItem.description = element.getDescription();
     return treeItem;
   }
@@ -9065,9 +9255,9 @@ var globalDocManager;
 var evalTreeDocManager;
 function activate(extCtx) {
   var _a;
-  parsingCtx = import_kodeine30.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine30.KodeineParser(parsingCtx);
-  evalCtx = new import_kodeine30.EvaluationContext();
+  parsingCtx = import_kodeine31.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine31.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine31.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
   outChannel = vscode6.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
@@ -9107,8 +9297,8 @@ function evaluateToOutput(document) {
   let formulaText = document.getText();
   lastEvaluatedDoc = document;
   let config = vscode6.workspace.getConfiguration("kodeine", vscode6.window.activeTextEditor.document.uri);
-  evalCtx.clockMode = enforceValue(import_kodeine30.ValidClockModes, config.get("clockMode"));
-  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine30.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
+  evalCtx.clockMode = enforceValue(import_kodeine31.ValidClockModes, config.get("clockMode"));
+  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine31.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
   try {
     lastFormula = parser.parse(formulaText);
     evalCtx.clearSideEffects();

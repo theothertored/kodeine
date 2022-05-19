@@ -20,8 +20,11 @@ function pad(source, targetLength) {
 export class DfFunction extends IKodeFunction {
     getName() { return 'df'; }
     call(evalCtx, call, args) {
-        if (args.length === 0 || args.length > 2) {
-            throw new InvalidArgumentCountError(call, '1 or 2 arguments expected.');
+        if (args.length === 0) {
+            throw new InvalidArgumentCountError(call, 'At least one argument required.');
+        }
+        else if (args.length > 2) {
+            throw new InvalidArgumentCountError(call, 'Expected one or two arguments.');
         }
         const resolveClockMode = () => {
             if (evalCtx.clockMode === "auto") {
@@ -168,6 +171,10 @@ export class DfFunction extends IKodeFunction {
                             output += nextChar;
                             while (!eof() && peek() !== '\'') {
                                 output += consume();
+                            }
+                            // consume ending '
+                            if (!eof()) {
+                                consume();
                             }
                         }
                     }

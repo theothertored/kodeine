@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.TfFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
 const kodeine_js_1 = require("../../../kodeine.js");
 // this file contains classes for functions that have not been implemented yet.
 // they should be moved to separate files after they are implemented.
@@ -130,13 +130,6 @@ class WfFunction extends kodeine_js_1.IKodeFunction {
     }
 }
 exports.WfFunction = WfFunction;
-class TfFunction extends kodeine_js_1.IKodeFunction {
-    getName() { return 'tf'; }
-    call(evalCtx, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-exports.TfFunction = TfFunction;
 class UcFunction extends kodeine_js_1.IKodeFunction {
     getName() { return 'uc'; }
     call(evalCtx, call, args) {

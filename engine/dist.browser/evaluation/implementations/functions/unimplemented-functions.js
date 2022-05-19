@@ -109,12 +109,6 @@ export class WfFunction extends IKodeFunction {
         throw new EvaluationError(call, 'This function isn\'t implemented yet.');
     }
 }
-export class TfFunction extends IKodeFunction {
-    getName() { return 'tf'; }
-    call(evalCtx, call, args) {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
 export class UcFunction extends IKodeFunction {
     getName() { return 'uc'; }
     call(evalCtx, call, args) {
