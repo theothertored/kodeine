@@ -103,14 +103,14 @@ class TimeSpan {
     prettyPrintRelative() {
         const max = 8 * 10 * 356 * 24 * 60 * 60; // max is 7 decades for some reason
         let dur = Math.min(Math.abs(this.totalSeconds), max);
-        if (dur < 60) {
+        if (dur <= 60) {
             return `moments ${this.totalSeconds > 0 ? 'from now' : 'ago'}`;
         }
         else {
             let boundaryI = 0;
             for (let i = 0; i < unitBoundaries.length; i++) {
                 let boundary = unitBoundaries[i];
-                if (dur >= boundary[0]) {
+                if (dur > boundary[0]) {
                     boundaryI = i;
                 }
                 else {

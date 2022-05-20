@@ -100,26 +100,26 @@ var require_errors = __commonJS({
       }
     };
     exports.UnrecognizedTokenError = UnrecognizedTokenError2;
-    var EvaluationError5 = class extends KodeError {
+    var EvaluationError4 = class extends KodeError {
       constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
         this.evaluable = evaluable;
       }
     };
-    exports.EvaluationError = EvaluationError5;
-    var InvalidArgumentCountError2 = class extends EvaluationError5 {
+    exports.EvaluationError = EvaluationError4;
+    var InvalidArgumentCountError2 = class extends EvaluationError4 {
       constructor(funcCall, message, funcDescription) {
         super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + "()"}: ${message}`);
       }
     };
     exports.InvalidArgumentCountError = InvalidArgumentCountError2;
-    var InvalidArgumentError2 = class extends EvaluationError5 {
+    var InvalidArgumentError2 = class extends EvaluationError4 {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
         super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError2;
-    var RegexEvaluationError2 = class extends EvaluationError5 {
+    var RegexEvaluationError2 = class extends EvaluationError4 {
       constructor(evaluable, message) {
         super(evaluable, `Regex error: ${message}`);
       }
@@ -4467,13 +4467,13 @@ var require_timespan = __commonJS({
       prettyPrintRelative() {
         const max = 8 * 10 * 356 * 24 * 60 * 60;
         let dur = Math.min(Math.abs(this.totalSeconds), max);
-        if (dur < 60) {
+        if (dur <= 60) {
           return `moments ${this.totalSeconds > 0 ? "from now" : "ago"}`;
         } else {
           let boundaryI = 0;
           for (let i = 0; i < unitBoundaries2.length; i++) {
             let boundary2 = unitBoundaries2[i];
-            if (dur >= boundary2[0]) {
+            if (dur > boundary2[0]) {
               boundaryI = i;
             } else {
               break;
