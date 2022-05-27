@@ -107,13 +107,6 @@ export class BpFunction extends IKodeFunction {
     }
 }
 
-export class CmFunction extends IKodeFunction {
-    getName() { return 'cm'; }
-    call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
-
 export class BrFunction extends IKodeFunction {
     getName() { return 'br'; }
     call(evalCtx: EvaluationContext, call: FunctionCall, args: KodeValue[]): KodeValue {

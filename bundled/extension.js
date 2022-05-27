@@ -100,26 +100,26 @@ var require_errors = __commonJS({
       }
     };
     exports.UnrecognizedTokenError = UnrecognizedTokenError2;
-    var EvaluationError4 = class extends KodeError {
+    var EvaluationError5 = class extends KodeError {
       constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
         this.evaluable = evaluable;
       }
     };
-    exports.EvaluationError = EvaluationError4;
-    var InvalidArgumentCountError2 = class extends EvaluationError4 {
+    exports.EvaluationError = EvaluationError5;
+    var InvalidArgumentCountError2 = class extends EvaluationError5 {
       constructor(funcCall, message, funcDescription) {
         super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + "()"}: ${message}`);
       }
     };
     exports.InvalidArgumentCountError = InvalidArgumentCountError2;
-    var InvalidArgumentError2 = class extends EvaluationError4 {
+    var InvalidArgumentError2 = class extends EvaluationError5 {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
         super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError2;
-    var RegexEvaluationError2 = class extends EvaluationError4 {
+    var RegexEvaluationError2 = class extends EvaluationError5 {
       constructor(evaluable, message) {
         super(evaluable, `Regex error: ${message}`);
       }
@@ -169,7 +169,7 @@ var require_evaluation_context = __commonJS({
     exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = exports.ValidWeekdays = exports.ValidClockModes = void 0;
     exports.ValidClockModes = ["auto", "12h", "24h"];
     exports.ValidWeekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-    var EvaluationContext20 = class {
+    var EvaluationContext21 = class {
       constructor() {
         this.iReplacement = null;
         this.globals = /* @__PURE__ */ new Map();
@@ -182,7 +182,7 @@ var require_evaluation_context = __commonJS({
         this.sideEffects = new EvaluationSideEffects();
       }
       clone() {
-        let newCtx = new EvaluationContext20();
+        let newCtx = new EvaluationContext21();
         newCtx.iReplacement = this.iReplacement;
         newCtx.globals = new Map(this.globals);
         return newCtx;
@@ -191,7 +191,7 @@ var require_evaluation_context = __commonJS({
         return new Date();
       }
     };
-    exports.EvaluationContext = EvaluationContext20;
+    exports.EvaluationContext = EvaluationContext21;
     var EvaluationSideEffects = class {
       constructor() {
         this.warnings = [];
@@ -704,7 +704,7 @@ var require_function_call = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FunctionCall = void 0;
     var kodeine_js_1 = require_kodeine();
-    var FunctionCall12 = class extends kodeine_js_1.Evaluable {
+    var FunctionCall13 = class extends kodeine_js_1.Evaluable {
       constructor(func, args, source) {
         super(source);
         this.func = func;
@@ -736,7 +736,7 @@ var require_function_call = __commonJS({
         }
       }
     };
-    exports.FunctionCall = FunctionCall12;
+    exports.FunctionCall = FunctionCall13;
   }
 });
 
@@ -953,7 +953,7 @@ var require_unimplemented_functions = __commonJS({
   "engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.CmFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var LiFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
@@ -1081,15 +1081,6 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.BpFunction = BpFunction2;
-    var CmFunction2 = class extends kodeine_js_1.IKodeFunction {
-      getName() {
-        return "cm";
-      }
-      call(evalCtx2, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.CmFunction = CmFunction2;
     var BrFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "br";
@@ -1162,6 +1153,78 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.TuFunction = TuFunction2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/argb-color.js
+var require_argb_color = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/argb-color.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ArgbColor = void 0;
+    var pad = (s) => s.length === 1 ? "0" + s : s;
+    var ArgbColor2 = class {
+      constructor(a, r, g, b) {
+        this.a = a;
+        this.r = r;
+        this.g = g;
+        this.b = b;
+      }
+      toARGBString() {
+        let p = (c) => pad(c.toString(16).toUpperCase());
+        return `#${p(this.a)}${p(this.r)}${p(this.g)}${p(this.b)}`;
+      }
+      static fromAHSV(a, h, s, v) {
+        let c = v * s;
+        let x = c * (1 - Math.abs(h / 60 % 2 - 1));
+        let m = v - c;
+        let [rp, gp, bp] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+        return new ArgbColor2(a, Math.round((rp + m) * 255), Math.round((gp + m) * 255), Math.round((bp + m) * 255));
+      }
+    };
+    exports.ArgbColor = ArgbColor2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/cm-function.js
+var require_cm_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/cm-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CmFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var argb_color_js_1 = require_argb_color();
+    var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+    var CmFunction2 = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "cm";
+      }
+      call(evalCtx2, call, args) {
+        const checkNumeric = (index, argNames, max = 255) => {
+          if (args[index].isNumeric)
+            return clamp(Math.round(args[index].numericValue), 0, max);
+          else
+            throw new kodeine_js_1.InvalidArgumentError("cm()", argNames[index], index, call.args[index], args[index], "Argument must be numeric.");
+        };
+        let color;
+        if (args.length < 3) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected at least 3 arguments.");
+        } else if (args.length > 5) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected at most 5 arguments.");
+        } else if (args.length === 3) {
+          let argNames = ["r", "g", "b"];
+          color = new argb_color_js_1.ArgbColor(255, checkNumeric(0, argNames), checkNumeric(1, argNames), checkNumeric(2, argNames));
+        } else if (args.length === 4 || args[4].text !== "h") {
+          let argNames = ["a", "r", "g", "b"];
+          color = new argb_color_js_1.ArgbColor(checkNumeric(0, argNames), checkNumeric(1, argNames), checkNumeric(2, argNames), checkNumeric(3, argNames));
+        } else {
+          let argNames = ["a", "h", "s", "v"];
+          color = argb_color_js_1.ArgbColor.fromAHSV(checkNumeric(0, argNames), checkNumeric(1, argNames), checkNumeric(2, argNames, 100) / 100, checkNumeric(3, argNames, 100) / 100);
+        }
+        return new kodeine_js_1.KodeValue(color.toARGBString(), call.source);
+      }
+    };
+    exports.CmFunction = CmFunction2;
   }
 });
 
@@ -5330,6 +5393,20 @@ var init_unimplemented_functions = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/helpers/argb-color.ts
+var init_argb_color = __esm({
+  "engine/src/evaluation/implementations/helpers/argb-color.ts"() {
+  }
+});
+
+// engine/src/evaluation/implementations/functions/cm-function.ts
+var init_cm_function = __esm({
+  "engine/src/evaluation/implementations/functions/cm-function.ts"() {
+    init_kodeine();
+    init_argb_color();
+  }
+});
+
 // engine/src/evaluation/implementations/helpers/number-to-text-converter.ts
 var NumberToTextConverter;
 var init_number_to_text_converter = __esm({
@@ -7962,6 +8039,7 @@ var init_kodeine = __esm({
     init_broken_evaluable();
     init_kode_function_with_modes();
     init_unimplemented_functions();
+    init_cm_function();
     init_df_function();
     init_dp_function();
     init_fl_function();
@@ -8790,6 +8868,7 @@ var require_kodeine = __commonJS({
     __exportStar(require_broken_evaluable(), exports);
     __exportStar(require_kode_function_with_modes(), exports);
     __exportStar(require_unimplemented_functions(), exports);
+    __exportStar(require_cm_function(), exports);
     __exportStar(require_df_function(), exports);
     __exportStar(require_dp_function(), exports);
     __exportStar(require_fl_function(), exports);
@@ -8821,7 +8900,7 @@ __export(extension_exports, {
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode6 = __toESM(require("vscode"));
-var import_kodeine31 = __toESM(require_kodeine());
+var import_kodeine32 = __toESM(require_kodeine());
 
 // extension/src/evaluation-tree-document-manager.ts
 var vscode3 = __toESM(require("vscode"));
@@ -8859,7 +8938,7 @@ EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode2 = __toESM(require("vscode"));
-var import_kodeine30 = __toESM(require_kodeine());
+var import_kodeine31 = __toESM(require_kodeine());
 var EvaluationTreeDataProvider = class {
   constructor() {
     this._evaluationTree = null;
@@ -8873,22 +8952,22 @@ var EvaluationTreeDataProvider = class {
       } else {
         return void 0;
       }
-    } else if (element instanceof import_kodeine30.FormulaEvaluationTree) {
+    } else if (element instanceof import_kodeine31.FormulaEvaluationTree) {
       return element.parts;
-    } else if (element instanceof import_kodeine30.EvaluatedUnaryOperation) {
+    } else if (element instanceof import_kodeine31.EvaluatedUnaryOperation) {
       return [element.arg];
-    } else if (element instanceof import_kodeine30.EvaluatedBinaryOperation) {
+    } else if (element instanceof import_kodeine31.EvaluatedBinaryOperation) {
       return [element.argA, element.argB];
-    } else if (element instanceof import_kodeine30.EvaluatedFunctionCall) {
+    } else if (element instanceof import_kodeine31.EvaluatedFunctionCall) {
       return element.args;
-    } else if (element instanceof import_kodeine30.EvaluatedExpression) {
+    } else if (element instanceof import_kodeine31.EvaluatedExpression) {
       return [element.child];
     } else {
       return void 0;
     }
   }
   getTreeItem(element) {
-    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine30.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
+    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine31.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
     treeItem.description = element.getDescription();
     return treeItem;
   }
@@ -9265,9 +9344,9 @@ var globalDocManager;
 var evalTreeDocManager;
 function activate(extCtx) {
   var _a;
-  parsingCtx = import_kodeine31.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine31.KodeineParser(parsingCtx);
-  evalCtx = new import_kodeine31.EvaluationContext();
+  parsingCtx = import_kodeine32.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine32.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine32.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
   outChannel = vscode6.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
@@ -9307,8 +9386,8 @@ function evaluateToOutput(document) {
   let formulaText = document.getText();
   lastEvaluatedDoc = document;
   let config = vscode6.workspace.getConfiguration("kodeine", vscode6.window.activeTextEditor.document.uri);
-  evalCtx.clockMode = enforceValue(import_kodeine31.ValidClockModes, config.get("clockMode"));
-  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine31.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
+  evalCtx.clockMode = enforceValue(import_kodeine32.ValidClockModes, config.get("clockMode"));
+  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine32.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
   try {
     lastFormula = parser.parse(formulaText);
     evalCtx.clearSideEffects();

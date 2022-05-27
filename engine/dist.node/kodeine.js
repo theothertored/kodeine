@@ -32,6 +32,7 @@ __exportStar(require("./evaluation/evaluables/formula.js"), exports);
 __exportStar(require("./evaluation/evaluables/broken-evaluable.js"), exports);
 __exportStar(require("./evaluation/implementations/base/kode-function-with-modes.js"), exports);
 __exportStar(require("./evaluation/implementations/functions/unimplemented-functions.js"), exports);
+__exportStar(require("./evaluation/implementations/functions/cm-function.js"), exports);
 __exportStar(require("./evaluation/implementations/functions/df-function.js"), exports);
 __exportStar(require("./evaluation/implementations/functions/dp-function.js"), exports);
 __exportStar(require("./evaluation/implementations/functions/fl-function.js"), exports);
