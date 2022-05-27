@@ -549,6 +549,8 @@ var require_kode_value = __commonJS({
     exports.KodeValue = void 0;
     var kodeine_js_1 = require_kodeine();
     var kustom_date_helper_js_1 = require_kustom_date_helper();
+    var signedInt32Max2 = __pow(2, 31) - 1;
+    var signedInt32Min2 = -__pow(2, 31);
     var KodeValue6 = class extends kodeine_js_1.Evaluable {
       constructor(value, source) {
         super(source);
@@ -566,7 +568,12 @@ var require_kode_value = __commonJS({
           if (isI)
             this.isI = true;
         } else if (typeof value === "number") {
-          this.numericValue = value;
+          if (Number.isInteger(value)) {
+            this.numericValue = Math.max(signedInt32Min2, value, signedInt32Max2);
+          } else {
+            let floatArr = new Float64Array([value]);
+            this.numericValue = floatArr[0];
+          }
           this.text = value.toString();
           this.isNumeric = true;
           this.isDate = false;
@@ -5257,10 +5264,13 @@ var init_kustom_date_helper = __esm({
 });
 
 // engine/src/evaluation/evaluables/kode-value.ts
+var signedInt32Max, signedInt32Min;
 var init_kode_value = __esm({
   "engine/src/evaluation/evaluables/kode-value.ts"() {
     init_kodeine();
     init_kustom_date_helper();
+    signedInt32Max = __pow(2, 31) - 1;
+    signedInt32Min = -__pow(2, 31);
   }
 });
 

@@ -8,6 +8,10 @@ import {
 } from "../../kodeine.js";
 import { KustomDateHelper } from "../implementations/helpers/kustom-date-helper.js";
 
+const signedInt32Max = 2 ** 31 - 1;
+const signedInt32Min = -(2 ** 31);
+
+
 /** Describes a JS type that can be converted to a KodeValue. */
 export type ConvertibleToKodeValue = string | number | boolean | Date | KodeValue;
 
@@ -71,7 +75,16 @@ export class KodeValue extends Evaluable {
         } else if (typeof value === 'number') {
 
             // the value is a number
-            this.numericValue = value;
+
+            if (Number.isInteger(value)) {
+                // kustom internally limits integers to 32 bits
+                this.numericValue = Math.max(signedInt32Min, value, signedInt32Max);
+            } else {
+                // kustom internally limits floats to something, not sure what though
+                let floatArr = new Float64Array([value]);
+                this.numericValue = floatArr[0];
+            }
+
             this.text = value.toString();
             this.isNumeric = true;
             this.isDate = false;

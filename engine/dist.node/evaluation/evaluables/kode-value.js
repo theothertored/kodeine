@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.KodeValue = void 0;
 const kodeine_js_1 = require("../../kodeine.js");
 const kustom_date_helper_js_1 = require("../implementations/helpers/kustom-date-helper.js");
+const signedInt32Max = 2 ** 31 - 1;
+const signedInt32Min = -(2 ** 31);
 /** A concrete kode value. */
 class KodeValue extends kodeine_js_1.Evaluable {
     /**
@@ -35,7 +37,15 @@ class KodeValue extends kodeine_js_1.Evaluable {
         }
         else if (typeof value === 'number') {
             // the value is a number
-            this.numericValue = value;
+            if (Number.isInteger(value)) {
+                // kustom internally limits integers to 32 bits
+                this.numericValue = Math.max(signedInt32Min, value, signedInt32Max);
+            }
+            else {
+                // kustom internally limits floats to something, not sure what though
+                let floatArr = new Float64Array([value]);
+                this.numericValue = floatArr[0];
+            }
             this.text = value.toString();
             this.isNumeric = true;
             this.isDate = false;

@@ -1,11 +1,13 @@
 TODO:
-- implement ce()
 - implement cm()
-- implement the scientific notation bug accurately
-- handle large numeric constants converting to Infinity
+- implement ce()
 - add a tips & tricks section to the readme
 - create a changelog file
 - release as 0.1.0-alpha
+- implement the scientific notation bug accurately
+- implement 5 decimal places limit for float literals (why)
+- implement int and float caps (seems like 32 bit int and float should be enforced because number works too well)
+- handle large numeric constants converting to Infinity
 - find a way to deal with timezones
 - design an eval ctx editor to prepare for remaining function implementations
 
