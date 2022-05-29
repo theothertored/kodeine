@@ -111,6 +111,15 @@ If you don't want to use the Global List GUI, You can also delete a global using
 The extension adds a view to your Run and Debug tab, called "Formula Evaluation Tree". This view shows what objects the kodeine parser created from your formula text and what each element of your formula returned along the way.
 
 
+### Settings
+
+kodeine contributes two settings to vscode:
+- `kodeine.clockMode` (`auto`, `12h` or `24h`)  
+Equivalent to a Kustom setting. Affects `df(h)`, `df(k)` and `df(a)`.
+- `kodeine.firstDayOfTheWeek` (one of `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`)  
+Equivalend to a Kustom setting. Affects `df(e)`.
+
+
 ### Tips & Tricks
 
 - Use [scrcpy](https://github.com/Genymobile/scrcpy) to mirror your phone screen to your computer. `scrcpy` also supports clipboard mirroring, which makes transferring your formulas between vscode and your phone easy.
