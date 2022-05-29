@@ -71,7 +71,7 @@ export class KodeFunctionWithModes extends IKodeFunction {
                 return argValue;
             case 'txt':
                 // the function wants to work on the value as string
-                return argValue.isNumeric ? argValue.numericValue.toString() : argValue.text;
+                return argValue.text;
             case 'num':
                 // the function wants to work on the value as number
                 if (argValue.isNumeric) {

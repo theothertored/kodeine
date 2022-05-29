@@ -127,7 +127,7 @@ export class MuFunction extends KodeFunctionWithModes {
             ['num number'],
             function (number: number): string {
 
-                return number.toString(16);
+                return Math.trunc(number).toString(16);
 
             }
         );

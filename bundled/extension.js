@@ -100,26 +100,26 @@ var require_errors = __commonJS({
       }
     };
     exports.UnrecognizedTokenError = UnrecognizedTokenError2;
-    var EvaluationError5 = class extends KodeError {
+    var EvaluationError6 = class extends KodeError {
       constructor(evaluable, message) {
         super(`Evaluation error: ${message}`);
         this.evaluable = evaluable;
       }
     };
-    exports.EvaluationError = EvaluationError5;
-    var InvalidArgumentCountError2 = class extends EvaluationError5 {
+    exports.EvaluationError = EvaluationError6;
+    var InvalidArgumentCountError2 = class extends EvaluationError6 {
       constructor(funcCall, message, funcDescription) {
         super(funcCall, `Invalid argument count for ${funcDescription || funcCall.func.getName() + "()"}: ${message}`);
       }
     };
     exports.InvalidArgumentCountError = InvalidArgumentCountError2;
-    var InvalidArgumentError2 = class extends EvaluationError5 {
+    var InvalidArgumentError2 = class extends EvaluationError6 {
       constructor(funcDescription, argumentName, argumentIndex, argumentSource, invalidValue, message) {
         super(argumentSource, `Value ${invalidValue instanceof kodeine_js_1.KodeValue ? invalidValue.toOutputString() : invalidValue} given for argument "${argumentName}" (#${argumentIndex}) for ${funcDescription} is invalid: ${message}`);
       }
     };
     exports.InvalidArgumentError = InvalidArgumentError2;
-    var RegexEvaluationError2 = class extends EvaluationError5 {
+    var RegexEvaluationError2 = class extends EvaluationError6 {
       constructor(evaluable, message) {
         super(evaluable, `Regex error: ${message}`);
       }
@@ -169,7 +169,7 @@ var require_evaluation_context = __commonJS({
     exports.UnaryMinusStringModeWarning = exports.EvaluationWarning = exports.EvaluationSideEffects = exports.EvaluationContext = exports.ValidWeekdays = exports.ValidClockModes = void 0;
     exports.ValidClockModes = ["auto", "12h", "24h"];
     exports.ValidWeekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-    var EvaluationContext21 = class {
+    var EvaluationContext22 = class {
       constructor() {
         this.iReplacement = null;
         this.globals = /* @__PURE__ */ new Map();
@@ -182,7 +182,7 @@ var require_evaluation_context = __commonJS({
         this.sideEffects = new EvaluationSideEffects();
       }
       clone() {
-        let newCtx = new EvaluationContext21();
+        let newCtx = new EvaluationContext22();
         newCtx.iReplacement = this.iReplacement;
         newCtx.globals = new Map(this.globals);
         return newCtx;
@@ -191,7 +191,7 @@ var require_evaluation_context = __commonJS({
         return new Date();
       }
     };
-    exports.EvaluationContext = EvaluationContext21;
+    exports.EvaluationContext = EvaluationContext22;
     var EvaluationSideEffects = class {
       constructor() {
         this.warnings = [];
@@ -569,10 +569,9 @@ var require_kode_value = __commonJS({
             this.isI = true;
         } else if (typeof value === "number") {
           if (Number.isInteger(value)) {
-            this.numericValue = Math.max(signedInt32Min2, value, signedInt32Max2);
+            this.numericValue = Math.max(signedInt32Min2, Math.min(value, signedInt32Max2));
           } else {
-            let floatArr = new Float64Array([value]);
-            this.numericValue = floatArr[0];
+            this.numericValue = value;
           }
           this.text = value.toString();
           this.isNumeric = true;
@@ -704,7 +703,7 @@ var require_function_call = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.FunctionCall = void 0;
     var kodeine_js_1 = require_kodeine();
-    var FunctionCall13 = class extends kodeine_js_1.Evaluable {
+    var FunctionCall14 = class extends kodeine_js_1.Evaluable {
       constructor(func, args, source) {
         super(source);
         this.func = func;
@@ -736,7 +735,7 @@ var require_function_call = __commonJS({
         }
       }
     };
-    exports.FunctionCall = FunctionCall13;
+    exports.FunctionCall = FunctionCall14;
   }
 });
 
@@ -866,7 +865,7 @@ var require_kode_function_with_modes = __commonJS({
           case "any":
             return argValue;
           case "txt":
-            return argValue.isNumeric ? argValue.numericValue.toString() : argValue.text;
+            return argValue.text;
           case "num":
             if (argValue.isNumeric) {
               return argValue.numericValue;
@@ -953,7 +952,7 @@ var require_unimplemented_functions = __commonJS({
   "engine/dist.node/evaluation/implementations/functions/unimplemented-functions.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.CeFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
+    exports.TuFunction = exports.FdFunction = exports.AiFunction = exports.CiFunction = exports.UcFunction = exports.WfFunction = exports.MiFunction = exports.BrFunction = exports.BpFunction = exports.TsFunction = exports.MqFunction = exports.SiFunction = exports.BiFunction = exports.WiFunction = exports.ShFunction = exports.RmFunction = exports.WgFunction = exports.NiFunction = exports.NcFunction = exports.AqFunction = exports.LiFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var LiFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
@@ -1009,15 +1008,6 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.RmFunction = RmFunction2;
-    var CeFunction2 = class extends kodeine_js_1.IKodeFunction {
-      getName() {
-        return "ce";
-      }
-      call(evalCtx2, call, args) {
-        throw new kodeine_js_1.EvaluationError(call, "This function isn't implemented yet.");
-      }
-    };
-    exports.CeFunction = CeFunction2;
     var ShFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "sh";
@@ -1163,6 +1153,27 @@ var require_argb_color = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ArgbColor = void 0;
     var pad = (s) => s.length === 1 ? "0" + s : s;
+    var lerp = (a, b, f) => Math.round(a + (b - a) * f);
+    var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+    function rgb2hsv(r, g, b) {
+      const rf = r / 255;
+      const gf = g / 255;
+      const bf = b / 255;
+      const cmax = Math.max(rf, gf, bf);
+      const cmin = Math.min(rf, gf, bf);
+      const delta = cmax - cmin;
+      let h = 60 * (delta === 0 ? 0 : cmax === rf ? (gf - bf) / delta % 6 : cmax === gf ? (bf - rf) / delta + 2 : (rf - gf) / delta + 4);
+      let s = cmax === 0 ? 0 : delta / cmax;
+      let v = cmax;
+      return [h, s, v];
+    }
+    function hsv2rgb(h, s, v) {
+      const c = v * s;
+      const x = c * (1 - Math.abs(h / 60 % 2 - 1));
+      const m = v - c;
+      const [rf, gf, bf] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+      return [rf, gf, bf].map((c2) => Math.round((c2 + m) * 255));
+    }
     var ArgbColor2 = class {
       constructor(a, r, g, b) {
         this.a = a;
@@ -1170,19 +1181,150 @@ var require_argb_color = __commonJS({
         this.g = g;
         this.b = b;
       }
+      invert() {
+        return new ArgbColor2(this.a, 255 - this.r, 255 - this.g, 255 - this.b);
+      }
+      shiftHue(amount) {
+        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...hsv2rgb((h + amount) % 360, s, v));
+      }
+      setAlpha(newAlpha) {
+        return new ArgbColor2(clamp(newAlpha, 0, 255), this.r, this.g, this.b);
+      }
+      setSaturation(newSaturation) {
+        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...hsv2rgb(h, clamp(newSaturation, 0, 1), v));
+      }
+      addSaturation(amount) {
+        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...hsv2rgb(h, clamp(s + amount, 0, 1), v));
+      }
+      setLuminance(newLuminance) {
+        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...hsv2rgb(h, s, clamp(newLuminance, 0, 1)));
+      }
+      addLuminance(amount) {
+        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...hsv2rgb(h, s, clamp(v + amount, 0, 1)));
+      }
       toARGBString() {
         let p = (c) => pad(c.toString(16).toUpperCase());
         return `#${p(this.a)}${p(this.r)}${p(this.g)}${p(this.b)}`;
       }
       static fromAHSV(a, h, s, v) {
-        let c = v * s;
-        let x = c * (1 - Math.abs(h / 60 % 2 - 1));
-        let m = v - c;
-        let [rp, gp, bp] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
-        return new ArgbColor2(a, Math.round((rp + m) * 255), Math.round((gp + m) * 255), Math.round((bp + m) * 255));
+        return new ArgbColor2(a, ...hsv2rgb(h, s, v));
+      }
+      static parse(str) {
+        const parse2 = (str2) => {
+          let val = parseInt(str2, 16);
+          if (isNaN(val))
+            throw "";
+          else
+            return val;
+        };
+        try {
+          str = str.replace(/ |#|[^a-zA-Z0-9]/g, "");
+          if (str.length === 6) {
+            let r = parse2(str.substring(0, 2));
+            let g = parse2(str.substring(2, 4));
+            let b = parse2(str.substring(4, 6));
+            return new ArgbColor2(255, r, g, b);
+          } else if (str.length === 8) {
+            let a = parse2(str.substring(0, 2));
+            let r = parse2(str.substring(2, 4));
+            let g = parse2(str.substring(4, 6));
+            let b = parse2(str.substring(6, 8));
+            return new ArgbColor2(255, r, g, b);
+          }
+        } catch (e) {
+        }
+        return ArgbColor2.default();
+      }
+      static default() {
+        return new ArgbColor2(0, 0, 0, 0);
+      }
+      static mix(color1, color2, factor) {
+        if (factor < 0) {
+          return new ArgbColor2(lerp(color2.a, color1.a, -factor), lerp(color2.r, color1.r, -factor), lerp(color2.g, color1.g, -factor), lerp(color2.b, color1.b, -factor));
+        } else {
+          return new ArgbColor2(lerp(color1.a, color2.a, factor), lerp(color1.r, color2.r, factor), lerp(color1.g, color2.g, factor), lerp(color1.b, color2.b, factor));
+        }
       }
     };
     exports.ArgbColor = ArgbColor2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/functions/ce-function.js
+var require_ce_function = __commonJS({
+  "engine/dist.node/evaluation/implementations/functions/ce-function.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CeFunction = void 0;
+    var kodeine_js_1 = require_kodeine();
+    var argb_color_js_1 = require_argb_color();
+    var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+    var simpleModes = {
+      invert: (color) => color.invert(),
+      comp: (color) => color.shiftHue(180),
+      contrast: (color) => color
+    };
+    var complexModes = {
+      alpha: (color, amountMode, amountValue) => amountMode === "s" ? color.setAlpha(amountValue) : amountMode === "a" ? color.setAlpha(color.a + Math.round(amountValue / 100 * 255)) : color.setAlpha(color.a - Math.round(amountValue / 100 * 255)),
+      sat: (color, amountMode, amountValue) => amountMode === "s" ? color.setSaturation(amountValue / 100) : amountMode === "a" ? color.addSaturation(amountValue / 100) : color.addSaturation(-amountValue / 100),
+      lum: (color, amountMode, amountValue) => amountMode === "s" ? color.setLuminance(amountValue / 100) : amountMode === "a" ? color.addLuminance(amountValue / 100) : color.addLuminance(-amountValue / 100)
+    };
+    var CeFunction2 = class extends kodeine_js_1.IKodeFunction {
+      getName() {
+        return "ce";
+      }
+      call(evalCtx2, call, args) {
+        if (args.length < 2) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected at least two arguments.");
+        } else if (args.length > 3) {
+          throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected at most three arguments.");
+        } else {
+          let color = argb_color_js_1.ArgbColor.parse(args[0].text);
+          let mode = args[1].text;
+          let simpleModeImplementation = simpleModes[mode];
+          if (simpleModeImplementation) {
+            return new kodeine_js_1.KodeValue(simpleModeImplementation(color).toARGBString(), call.source);
+          } else {
+            let complexModeImplementation = complexModes[mode];
+            if (complexModeImplementation) {
+              if (args.length < 3 || args[2].isNumeric) {
+                return new kodeine_js_1.KodeValue(complexModeImplementation(color, "s", args.length < 3 ? 0 : args[2].numericValue).toARGBString(), call.source);
+              } else {
+                let amountText = args.length < 3 ? "" : args[2].text.trim().toLowerCase();
+                if (/^.-?\d+\.?\d*$|^.-?\.\d+$/.test(amountText)) {
+                  let amountMode = amountText[0] === "a" ? "a" : amountText[0] === "r" ? "r" : "s";
+                  let amountValue = Number(amountText.substring(1));
+                  if (amountValue < 0)
+                    return new kodeine_js_1.KodeValue(color.toARGBString(), call.source);
+                  else
+                    return new kodeine_js_1.KodeValue(complexModeImplementation(color, amountMode, amountValue).toARGBString(), call.source);
+                } else {
+                  throw new kodeine_js_1.InvalidArgumentError(`ce(${mode})`, "amount", 2, call.args[2], args[2], "The amount should be a number optionally preceded by one letter (a or r).");
+                }
+              }
+            } else {
+              let amountValue;
+              if (args.length < 3) {
+                amountValue = 0;
+              } else if (args[2].isNumeric) {
+                amountValue = args[2].numericValue;
+              } else if (/^.-?\d+\.?\d*$|^.-?\.\d+$/.test(args[2].text)) {
+                amountValue = Number(args[2].text.substring(1));
+              } else {
+                throw new kodeine_js_1.InvalidArgumentError(`ce(${mode})`, "amount", 2, call.args[2], args[2], "The amount should be a number optionally preceded by one letter (a or r).");
+              }
+              return new kodeine_js_1.KodeValue(argb_color_js_1.ArgbColor.mix(color, argb_color_js_1.ArgbColor.parse(args[1].text), clamp(amountValue, -100, 100) / 100).toARGBString(), call.source);
+            }
+          }
+        }
+      }
+    };
+    exports.CeFunction = CeFunction2;
   }
 });
 
@@ -1848,7 +1990,7 @@ var require_mu_function = __commonJS({
           }
         });
         this.mode("d2h", ["num number"], function(number) {
-          return number.toString(16);
+          return Math.trunc(number).toString(16);
         });
       }
     };
@@ -5399,6 +5541,14 @@ var init_argb_color = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/functions/ce-function.ts
+var init_ce_function = __esm({
+  "engine/src/evaluation/implementations/functions/ce-function.ts"() {
+    init_kodeine();
+    init_argb_color();
+  }
+});
+
 // engine/src/evaluation/implementations/functions/cm-function.ts
 var init_cm_function = __esm({
   "engine/src/evaluation/implementations/functions/cm-function.ts"() {
@@ -8039,6 +8189,7 @@ var init_kodeine = __esm({
     init_broken_evaluable();
     init_kode_function_with_modes();
     init_unimplemented_functions();
+    init_ce_function();
     init_cm_function();
     init_df_function();
     init_dp_function();
@@ -8868,6 +9019,7 @@ var require_kodeine = __commonJS({
     __exportStar(require_broken_evaluable(), exports);
     __exportStar(require_kode_function_with_modes(), exports);
     __exportStar(require_unimplemented_functions(), exports);
+    __exportStar(require_ce_function(), exports);
     __exportStar(require_cm_function(), exports);
     __exportStar(require_df_function(), exports);
     __exportStar(require_dp_function(), exports);
@@ -8900,7 +9052,7 @@ __export(extension_exports, {
 });
 module.exports = __toCommonJS(extension_exports);
 var vscode6 = __toESM(require("vscode"));
-var import_kodeine32 = __toESM(require_kodeine());
+var import_kodeine33 = __toESM(require_kodeine());
 
 // extension/src/evaluation-tree-document-manager.ts
 var vscode3 = __toESM(require("vscode"));
@@ -8938,7 +9090,7 @@ EvaluationStepsTextDocumentContentProvider.scheme = "formulaevaluationsteps";
 
 // extension/src/evaluation-tree-data-provider.ts
 var vscode2 = __toESM(require("vscode"));
-var import_kodeine31 = __toESM(require_kodeine());
+var import_kodeine32 = __toESM(require_kodeine());
 var EvaluationTreeDataProvider = class {
   constructor() {
     this._evaluationTree = null;
@@ -8952,22 +9104,22 @@ var EvaluationTreeDataProvider = class {
       } else {
         return void 0;
       }
-    } else if (element instanceof import_kodeine31.FormulaEvaluationTree) {
+    } else if (element instanceof import_kodeine32.FormulaEvaluationTree) {
       return element.parts;
-    } else if (element instanceof import_kodeine31.EvaluatedUnaryOperation) {
+    } else if (element instanceof import_kodeine32.EvaluatedUnaryOperation) {
       return [element.arg];
-    } else if (element instanceof import_kodeine31.EvaluatedBinaryOperation) {
+    } else if (element instanceof import_kodeine32.EvaluatedBinaryOperation) {
       return [element.argA, element.argB];
-    } else if (element instanceof import_kodeine31.EvaluatedFunctionCall) {
+    } else if (element instanceof import_kodeine32.EvaluatedFunctionCall) {
       return element.args;
-    } else if (element instanceof import_kodeine31.EvaluatedExpression) {
+    } else if (element instanceof import_kodeine32.EvaluatedExpression) {
       return [element.child];
     } else {
       return void 0;
     }
   }
   getTreeItem(element) {
-    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine31.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
+    let treeItem = new vscode2.TreeItem(`${element.result.toOutputString()}`, element instanceof import_kodeine32.Literal ? vscode2.TreeItemCollapsibleState.None : vscode2.TreeItemCollapsibleState.Collapsed);
     treeItem.description = element.getDescription();
     return treeItem;
   }
@@ -9344,9 +9496,9 @@ var globalDocManager;
 var evalTreeDocManager;
 function activate(extCtx) {
   var _a;
-  parsingCtx = import_kodeine32.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine32.KodeineParser(parsingCtx);
-  evalCtx = new import_kodeine32.EvaluationContext();
+  parsingCtx = import_kodeine33.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine33.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine33.EvaluationContext();
   evalCtx.buildEvaluationTree = true;
   outChannel = vscode6.window.createOutputChannel("Formula Result");
   extCtx.subscriptions.push(outChannel);
@@ -9386,8 +9538,8 @@ function evaluateToOutput(document) {
   let formulaText = document.getText();
   lastEvaluatedDoc = document;
   let config = vscode6.workspace.getConfiguration("kodeine", vscode6.window.activeTextEditor.document.uri);
-  evalCtx.clockMode = enforceValue(import_kodeine32.ValidClockModes, config.get("clockMode"));
-  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine32.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
+  evalCtx.clockMode = enforceValue(import_kodeine33.ValidClockModes, config.get("clockMode"));
+  evalCtx.firstDayOfTheWeek = enforceValue(import_kodeine33.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
   try {
     lastFormula = parser.parse(formulaText);
     evalCtx.clearSideEffects();

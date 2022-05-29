@@ -37,12 +37,6 @@ export class RmFunction extends IKodeFunction {
         throw new EvaluationError(call, 'This function isn\'t implemented yet.');
     }
 }
-export class CeFunction extends IKodeFunction {
-    getName() { return 'ce'; }
-    call(evalCtx, call, args) {
-        throw new EvaluationError(call, 'This function isn\'t implemented yet.');
-    }
-}
 export class ShFunction extends IKodeFunction {
     getName() { return 'sh'; }
     call(evalCtx, call, args) {

@@ -58,7 +58,7 @@ class MuFunction extends kodeine_js_1.KodeFunctionWithModes {
             }
         });
         this.mode('d2h', ['num number'], function (number) {
-            return number.toString(16);
+            return Math.trunc(number).toString(16);
         });
     }
 }

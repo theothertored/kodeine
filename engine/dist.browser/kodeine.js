@@ -16,6 +16,7 @@ export * from './evaluation/evaluables/formula.js';
 export * from './evaluation/evaluables/broken-evaluable.js';
 export * from './evaluation/implementations/base/kode-function-with-modes.js';
 export * from './evaluation/implementations/functions/unimplemented-functions.js';
+export * from './evaluation/implementations/functions/ce-function.js';
 export * from './evaluation/implementations/functions/cm-function.js';
 export * from './evaluation/implementations/functions/df-function.js';
 export * from './evaluation/implementations/functions/dp-function.js';

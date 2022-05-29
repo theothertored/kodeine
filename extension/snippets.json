@@ -6,7 +6,7 @@
         "body": [
             "fl(${1:0}, ${2:10}, ${3:\"i + 1\"}, $0)"
         ],
-        "description": "A for loop"
+        "description": "A basic fl() call."
     },
     "tc(utf, 0a) - new line": {
         "prefix": [
@@ -17,7 +17,25 @@
         ],
         "description": "A tc(utf) call returning a new line."
     },
-    "tc(utf, 22) - quotation mark": {
+    "tc(utf, 20) - space ( )": {
+        "prefix": [
+            "\\ "
+        ],
+        "body": [
+            "tc(utf, 20)"
+        ],
+        "description": "A tc(utf) call returning a space ( )."
+    },
+    "tc(utf, 21) - exclamation mark (!)": {
+        "prefix": [
+            "\\!"
+        ],
+        "body": [
+            "tc(utf, 21)"
+        ],
+        "description": "A tc(utf) call returning an exclamation mark (!)."
+    },
+    "tc(utf, 22) - quotation mark (\")": {
         "prefix": [
             "\\\""
         ],
@@ -26,22 +44,149 @@
         ],
         "description": "A tc(utf) call returning a quotation mark (\")."
     },
-    "tc(utf, 20) - space": {
+    "tc(utf, 24) - dollar sign ($)": {
         "prefix": [
-            "\\ "
+            "\\$"
         ],
         "body": [
-            "tc(utf, 20)"
+            "tc(utf, 24)"
         ],
-        "description": "A tc(utf) call returning a space."
+        "description": "A tc(utf) call returning a dollar sign ($)."
     },
-    "tc(utf, 2c) - comma": {
+    "tc(utf, 25) - percent sign (%)": {
+        "prefix": [
+            "\\%"
+        ],
+        "body": [
+            "tc(utf, 25)"
+        ],
+        "description": "A tc(utf) call returning a percent sign (%)."
+    },
+    "tc(utf, 26) - ampersand (&)": {
+        "prefix": [
+            "\\&"
+        ],
+        "body": [
+            "tc(utf, 26)"
+        ],
+        "description": "A tc(utf) call returning an ampersand (&)."
+    },
+    "tc(utf, 28) - opening parenthesis": {
+        "prefix": [
+            "\\("
+        ],
+        "body": [
+            "tc(utf, 28)"
+        ],
+        "description": "A tc(utf) call returning an opening parenthesis."
+    },
+    "tc(utf, 29) - closing parenthesis": {
+        "prefix": [
+            "\\)"
+        ],
+        "body": [
+            "tc(utf, 29)"
+        ],
+        "description": "A tc(utf) call returning a closing parenthesis."
+    },
+    "tc(utf, 2a) - asterisk (*)": {
+        "prefix": [
+            "\\*"
+        ],
+        "body": [
+            "tc(utf, 2a)"
+        ],
+        "description": "A tc(utf) call returning an asterisk (*)."
+    },
+    "tc(utf, 2b) - plus sign (+)": {
+        "prefix": [
+            "\\+"
+        ],
+        "body": [
+            "tc(utf, 2b)"
+        ],
+        "description": "A tc(utf) call returning a plus sign (+)."
+    },
+    "tc(utf, 2c) - comma (,)": {
         "prefix": [
             "\\,"
         ],
         "body": [
             "tc(utf, 2c)"
         ],
-        "description": "A tc(utf) call returning a comma."
+        "description": "A tc(utf) call returning a comma (,)."
+    },
+    "tc(utf, 2d) - minus (-)": {
+        "prefix": [
+            "\\-"
+        ],
+        "body": [
+            "tc(utf, 2d)"
+        ],
+        "description": "A tc(utf) call returning a minus (-)."
+    },
+    "tc(utf, 2f) - slash (/)": {
+        "prefix": [
+            "\\/"
+        ],
+        "body": [
+            "tc(utf, 2f)"
+        ],
+        "description": "A tc(utf) call returning a slash (/)."
+    },
+    "tc(utf, 3c) - less-than (<)": {
+        "prefix": [
+            "\\<"
+        ],
+        "body": [
+            "tc(utf, 3c)"
+        ],
+        "description": "A tc(utf) call returning a less-than sign (<)."
+    },
+    "tc(utf, 3d) - equals (=)": {
+        "prefix": [
+            "\\="
+        ],
+        "body": [
+            "tc(utf, 3d)"
+        ],
+        "description": "A tc(utf) call returning an equals sign (=)."
+    },
+    "tc(utf, 3e) - greater-than (>)": {
+        "prefix": [
+            "\\>"
+        ],
+        "body": [
+            "tc(utf, 2f)"
+        ],
+        "description": "A tc(utf) call returning a greater-than (>)."
+    },
+    "tc(utf, 5e) - exponentiation operator symbol (^)": {
+        "prefix": [
+            "\\^"
+        ],
+        "body": [
+            "tc(utf, 5e)"
+        ],
+        "description": "A tc(utf) call returning the exponentiation operator symbol (^)."
+    },
+    "tc(utf, 7c) - pipe (|)": {
+        "prefix": [
+            "\\|"
+        ],
+        "body": [
+            "tc(utf, 7c)"
+        ],
+        "description": "A tc(utf) call returning a pipe symbol (|)."
+    },
+    "tc(utf, 7e) - tilde (~)": {
+        "prefix": [
+            "\\~",
+            "\\~~"
+        ],
+        "body": [
+            "tc(utf, 7e)"
+        ],
+        "description": "A tc(utf) call returning a tilde (~)."
     }
 }

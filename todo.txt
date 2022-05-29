@@ -1,6 +1,4 @@
 TODO:
-- implement cm()
-- implement ce()
 - add a tips & tricks section to the readme
 - create a changelog file
 - release as 0.1.0-alpha
@@ -17,8 +15,13 @@ MAYBE IN THE FUTURE:
 - show evaluation steps tab automatically when active editor changes and it is opened beside
 - react to evaluation steps text document closing (onDidCloseTextDocument is not firing)
 - option to print gv() and fl() evaluation steps when printing evaluation steps
+- find out what is causing ce() to be off by around 1 sometimes (example: ce(#ff0000, sat, r10) => #FFFF1A1A in kustom, #FFFF1919 in kodeine)
 
 DONE:
+- implement ce()
+- fix values returned from tc() being numberified too early
+- implement cm()
+- add snippets for remaining special characters
 - implement tf()
 - fix syntax highlighting for unquoted strings with spaces
 - contribute settings for clock mode and first day of the week to vscode (not implementing eval ctx editor for now)

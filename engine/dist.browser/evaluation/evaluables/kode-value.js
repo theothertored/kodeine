@@ -36,12 +36,11 @@ export class KodeValue extends Evaluable {
             // the value is a number
             if (Number.isInteger(value)) {
                 // kustom internally limits integers to 32 bits
-                this.numericValue = Math.max(signedInt32Min, value, signedInt32Max);
+                this.numericValue = Math.max(signedInt32Min, Math.min(value, signedInt32Max));
             }
             else {
                 // kustom internally limits floats to something, not sure what though
-                let floatArr = new Float64Array([value]);
-                this.numericValue = floatArr[0];
+                this.numericValue = value;
             }
             this.text = value.toString();
             this.isNumeric = true;
