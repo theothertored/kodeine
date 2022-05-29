@@ -1,15 +1,16 @@
 TODO:
 - add a tips & tricks section to the readme
-- create a changelog file
 - release as 0.1.0-alpha
-- implement the scientific notation bug accurately
-- implement 5 decimal places limit for float literals (why)
-- implement int and float caps (seems like 32 bit int and float should be enforced because number works too well)
-- handle large numeric constants converting to Infinity
-- find a way to deal with timezones
+- should changing globals change printed evaluation steps as well?
+- add more documentation comments for newly implemented functions
 - design an eval ctx editor to prepare for remaining function implementations
 
 MAYBE IN THE FUTURE:
+- implement the scientific notation bug accurately
+- find a way to implement float -> string conversion in a properly weird way
+- implement int and float caps (seems like 32 bit int and float should be enforced because number works too well)
+- handle large numeric constants converting to Infinity
+- find a way to deal with timezones
 - find a way to not remove a global when an untitled file gets saved
 - persist text globals on vscode exit
 - show evaluation steps tab automatically when active editor changes and it is opened beside
@@ -18,6 +19,7 @@ MAYBE IN THE FUTURE:
 - find out what is causing ce() to be off by around 1 sometimes (example: ce(#ff0000, sat, r10) => #FFFF1A1A in kustom, #FFFF1919 in kodeine)
 
 DONE:
+- create a changelog file
 - implement ce()
 - fix values returned from tc() being numberified too early
 - implement cm()

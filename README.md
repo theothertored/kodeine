@@ -10,29 +10,37 @@ Get it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items
 
 ## Features
 
-- Syntax highlighting for kode
-- Live formula evaluation
-- Informative error and warning messages in the problems tab, highlighting the exact position of the problem
-- Basic text global support (read more below)
+- Syntax highlighting for kode.
+- Live formula evaluation.
+- Live evaluation steps (for debugging).
+- Informative error and warning messages in the problems tab, highlighting the exact position of the problem.
+- Basic text global support (read more below).
 - Snippets:
-    - `fl` (basic `fl()` call)
-    - `\n` (`tc(utf, 0a)`, returns a new line character)
-    - `\"` (`tc(utf, 22)`, returns a quotation mark)
-    - `\ ` (`tc(utf, 20)`, returns a space)
-    - `\,` (`tc(utf, 2c)`, returns a comma)
+    - `fl` - basic `fl()` call
+    - Special character `tc(utf)` snippets:
+        - `!`, `$`, `%`, `&`, `(`, `)`, `*`, `+`, `-`, `/`, `<`, `=`, `>`, `^`, `|`, `~`, `"`, `,`  
+        Prefix a special character with a backslash (`\`) to get the `tc(utf)` snippet for it (ex. `\$`).
+        - `\n` - new line character
+        - `\ ` - space
 
 
 ## Limitations
 
 - Currently implemented:
     - All operators: `+`, `-`, `*`, `/`, `^`, `%`, `=`, `!=`, `<`, `>`, `<=`, `>=`, `~=`, `|`, `&`
-    - Functions: `if()`, `mu()`, `tc()`, `gv()`, `fl()`
-    - Other functions are not (yet) implemented.
+    - Functions:  
+    `ce()`, `cm()`, `df()`, `dp()`, `fl()`, `gv()`, `if()`, `mu()`, `tc()`, `tf()`
+        - `df(Z)` and any other timezone related stuff is not implemented (yet).
+        - `df()` has two vscode settings related to it (read more below).
+    - Other functions are not implemented (yet).
 - Globals are not saved after VS Code is closed.
 - Currently in alpha, meaning the code might not be stable and you might find bugs.  
 Also, There are many features that would be cool to have but aren't implemented (yet).
 - The parsing & evaluation engine was written without access to the original source code and is not a 1:1 port. I am aware of some inconsistencies, but there might well be others I am not aware of.  
 I (obviously) recommend testing your formula in Kustom before releasing it in a preset.
+    - `ce()` results can be off by 1 or 2, the reason seems to be some float handling differences between Java and JavaScript (hard to confirm though).
+    - Floating point numbers in general don't work the same as in Kustom if you venture anywhere outside of the most basic use cases. If you want to know why, play around with them a bit in Kustom itself.
+
 
 
 ## Using the extension
@@ -63,6 +71,14 @@ Opening a file with its language set to `kode` should automatically bring up an 
 1. Hit `Ctrl + Shift + P` to open the Command Palette.
 2. Type `Show formula` - a command called `Show formula result window` will come up. Hit `Enter`.
 
+### Viewing live formula evaluation steps (debugging formulas)
+
+When a file with its language set to `kode` is active:
+
+1. Hit `Ctrl + Shift + P` to open the Command Palette. 
+2. Type `Show evaluation steps` - a command called `Show formula evaluation steps beside active editor` will come up. Hit `Enter`. 
+
+The evaluation steps will automatically refresh every time you edit your formula.
 
 ### Using globals
 
@@ -73,6 +89,7 @@ When a file with its language set to `kode` is active:
 1. Hit `Ctrl + Shift + P` to open the Command Palette. 
 2. Type `Add Global` - a command called `Add a text global from active document` will come up. Hit `Enter`.
 3. Enter a name for the global in the window that pops up and hit `Enter` again. 
+    + If an error message pops up, read it and fix your name accordingly (or type `!` after the name to override the warning).
 
 #### Viewing globals:
 
@@ -91,8 +108,16 @@ If you don't want to use the Global List GUI, You can also delete a global using
 
 ### Viewing the Formula Evaluation Tree
 
-The extension adds a view to your Run and Debug tab, called "Formula Evaluation Tree". This view shows what objects the kodeine parser created from your formula text.  
-*In the future this view might also display evaluation results for each object.*
+The extension adds a view to your Run and Debug tab, called "Formula Evaluation Tree". This view shows what objects the kodeine parser created from your formula text and what each element of your formula returned along the way.
+
+
+### Tips & Tricks
+
+- Use [scrcpy](https://github.com/Genymobile/scrcpy) to mirror your phone screen to your computer. `scrcpy` also supports clipboard mirroring, which makes transferring your formulas between vscode and your phone easy.
+- Until functions like `wi(icon)` are implemented, you can instead create globals like `gv(wi_icon)` to debug your formulas for different values.
+- Don't be afraid to add newlines, tabs and spaces to your formulas!  
+Whitespace between `$` is ignored during evaluation, but will be preserved in the evaluation steps window. It can help a ton with making your formula more readable and easier to debug.
+- Check out [vscode tips and tricks](https://github.com/microsoft/vscode-tips-and-tricks/blob/master/README.md) as well!
 
 
 ## What is Kustom and what are formulas?

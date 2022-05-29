@@ -97,7 +97,7 @@ export class DfFunction extends IKodeFunction {
             // timezone offset in seconds
             'Z': date => date.getTimezoneOffset() * 60,
 
-            // time (hours and minutes) as english text (ten past three)
+            // time (hours and minutes) as english text (Ten past Three)
             'W': date => {
 
                 let h = date.getHours();
@@ -124,11 +124,9 @@ export class DfFunction extends IKodeFunction {
         const multiTokens: Record<string, ((date: Date, match: string) => string | number) | undefined> = {
 
             // hour (0-23 regardless of mode)
-            // TODO: settings
             'H': (date, match) => pad(date.getHours(), match.length),
 
             // hour (12h: 1-12, 24h: 0-23)
-            // TODO: settings
             'h': (date, match) => {
 
                 if (resolveClockMode() == '12h')
