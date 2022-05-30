@@ -7,7 +7,14 @@ const clamp = (value, min, max) => value < min ? min : value > max ? max : value
 const simpleModes = {
     invert: color => color.invert(),
     comp: color => color.shiftHue(180),
-    contrast: color => color
+    contrast: color => {
+        const threshold = 149;
+        const lum = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b);
+        if (lum < threshold)
+            return new argb_color_js_1.ArgbColor(255, 255, 255, 255);
+        else
+            return new argb_color_js_1.ArgbColor(255, 0, 0, 0);
+    }
 };
 const complexModes = {
     alpha: (color, amountMode, amountValue) => amountMode === 's' ? color.setAlpha(amountValue)

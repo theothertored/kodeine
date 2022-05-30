@@ -14,7 +14,17 @@ const clamp = (value: number, min: number, max: number): number => value < min ?
 const simpleModes: Record<string, (color: ArgbColor) => ArgbColor> = {
     invert: color => color.invert(),
     comp: color => color.shiftHue(180),
-    contrast: color => color
+    contrast: color => {
+
+        const threshold = 149;
+        const lum = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b);
+        
+        if (lum < threshold)
+            return new ArgbColor(255, 255, 255, 255);
+        else
+            return new ArgbColor(255, 0, 0, 0);
+
+    }
 };
 
 type AmountMode = 's' | 'a' | 'r';
@@ -107,7 +117,7 @@ export class CeFunction extends IKodeFunction {
                     } else if (args[2].isNumeric) {
 
                         amountValue = args[2].numericValue;
-                    
+
                     } else if (/^.-?\d+\.?\d*$|^.-?\.\d+$/.test(args[2].text)) {
 
                         amountValue = Number(args[2].text.substring(1));
