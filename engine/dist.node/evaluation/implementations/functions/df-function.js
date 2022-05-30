@@ -59,10 +59,10 @@ function format(date, format, simpleTokens, multiTokens) {
                     output += nextChar;
                     // read chars until an singlequote is encountered or the format string ends
                     while (!eof() && peek() !== '\'') {
-                        output += consume(); // add read char to output
+                        output += consume(); // read char into output
                     }
                     if (!eof()) {
-                        // we reached an singlequote, consume it
+                        // consume ending '
                         consume();
                     }
                 }

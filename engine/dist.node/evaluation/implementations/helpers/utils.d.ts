@@ -24,3 +24,5 @@ export declare function rgb2hsv(r: number, g: number, b: number): [number, numbe
  * @see https://www.rapidtables.com/convert/color/hsv-to-rgb.html
  */
 export declare function hsv2rgb(h: number, s: number, v: number): [number, number, number];
+/** A utility function that returns how many days are in the given month of the given year. */
+export declare function getMonthDayCount(year: number, month: number): number;

@@ -80,3 +80,8 @@ export function hsv2rgb(h: number, s: number, v: number): [number, number, numbe
     return [rf, gf, bf].map(c => Math.round((c + m) * 255)) as [number, number, number];
 
 }
+
+/** A utility function that returns how many days are in the given month of the given year. */
+export function getMonthDayCount(year: number, month: number) {
+    return new Date(year, month + 1, 0).getDate();
+}

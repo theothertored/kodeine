@@ -1,5 +1,4 @@
 TODO:
-- add documentation comments for newly implemented functions
 - add a warning when a colour could not be parsed and default is used
 - find out what happens when the amount argument isn't given for complex ce() modes
 - should changing globals change printed evaluation steps as well?
@@ -20,6 +19,7 @@ MAYBE IN THE FUTURE:
 - find out what is causing ce() to be off by around 1 sometimes (example: ce(#ff0000, sat, r10) => #FFFF1A1A in kustom, #FFFF1919 in kodeine)
 
 DONE:
+- add documentation comments for newly implemented functions
 - standardize documentation comments to color instead of colour
 - implement ce(contrast)
 # 0.1.0 RELEASED

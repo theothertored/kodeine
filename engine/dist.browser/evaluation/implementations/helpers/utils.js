@@ -61,4 +61,8 @@ export function hsv2rgb(h, s, v) {
                         : [c, 0, x];
     return [rf, gf, bf].map(c => Math.round((c + m) * 255));
 }
+/** A utility function that returns how many days are in the given month of the given year. */
+export function getMonthDayCount(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
 //# sourceMappingURL=utils.js.map

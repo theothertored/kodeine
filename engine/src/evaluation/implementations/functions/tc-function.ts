@@ -13,8 +13,8 @@ import { TextCapitalizer } from "../helpers/text-capitalizer.js";
 
 /** Implementation of Kustom's tc() (text converter) function. */
 export class TcFunction extends KodeFunctionWithModes {
-    getName() { return 'tc'; }
 
+    getName() { return 'tc'; }
 
     /** Shared part of implementation for tc(cut) and tc(ell). */
     private static _cut(text: string, startOrLength: number, length?: number): string {

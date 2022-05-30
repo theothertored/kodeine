@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hsv2rgb = exports.rgb2hsv = exports.lerp = exports.padWithZeros = exports.daysIntoYear = exports.clamp = void 0;
+exports.getMonthDayCount = exports.hsv2rgb = exports.rgb2hsv = exports.lerp = exports.padWithZeros = exports.daysIntoYear = exports.clamp = void 0;
 /** A utility function that limits the given {@link value} between given {@link min} and {@link max}. */
 function clamp(value, min, max) {
     return value < min ? min : value > max ? max : value;
@@ -70,4 +70,9 @@ function hsv2rgb(h, s, v) {
     return [rf, gf, bf].map(c => Math.round((c + m) * 255));
 }
 exports.hsv2rgb = hsv2rgb;
+/** A utility function that returns how many days are in the given month of the given year. */
+function getMonthDayCount(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+}
+exports.getMonthDayCount = getMonthDayCount;
 //# sourceMappingURL=utils.js.map

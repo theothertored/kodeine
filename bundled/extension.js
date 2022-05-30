@@ -465,54 +465,108 @@ var require_evaluable = __commonJS({
   }
 });
 
+// engine/dist.node/evaluation/implementations/helpers/utils.js
+var require_utils = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/utils.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getMonthDayCount = exports.hsv2rgb = exports.rgb2hsv = exports.lerp = exports.padWithZeros = exports.daysIntoYear = exports.clamp = void 0;
+    function clamp2(value, min, max) {
+      return value < min ? min : value > max ? max : value;
+    }
+    exports.clamp = clamp2;
+    function daysIntoYear2(date) {
+      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
+    }
+    exports.daysIntoYear = daysIntoYear2;
+    function padWithZeros2(source, targetLength) {
+      const sourceString = source.toString();
+      if (sourceString.length >= targetLength)
+        return sourceString;
+      else
+        return "0".repeat(targetLength - sourceString.length) + sourceString;
+    }
+    exports.padWithZeros = padWithZeros2;
+    function lerp2(a, b, fraction) {
+      return Math.round(a + (b - a) * fraction);
+    }
+    exports.lerp = lerp2;
+    function rgb2hsv2(r, g, b) {
+      const rf = r / 255;
+      const gf = g / 255;
+      const bf = b / 255;
+      const cmax = Math.max(rf, gf, bf);
+      const cmin = Math.min(rf, gf, bf);
+      const delta = cmax - cmin;
+      let h = 60 * (delta === 0 ? 0 : cmax === rf ? (gf - bf) / delta % 6 : cmax === gf ? (bf - rf) / delta + 2 : (rf - gf) / delta + 4);
+      let s = cmax === 0 ? 0 : delta / cmax;
+      let v = cmax;
+      return [h, s, v];
+    }
+    exports.rgb2hsv = rgb2hsv2;
+    function hsv2rgb2(h, s, v) {
+      const c = v * s;
+      const x = c * (1 - Math.abs(h / 60 % 2 - 1));
+      const m = v - c;
+      const [rf, gf, bf] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+      return [rf, gf, bf].map((c2) => Math.round((c2 + m) * 255));
+    }
+    exports.hsv2rgb = hsv2rgb2;
+    function getMonthDayCount2(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+    exports.getMonthDayCount = getMonthDayCount2;
+  }
+});
+
 // engine/dist.node/evaluation/implementations/helpers/kustom-date-helper.js
 var require_kustom_date_helper = __commonJS({
   "engine/dist.node/evaluation/implementations/helpers/kustom-date-helper.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.KustomDateHelper = void 0;
+    var utils_1 = require_utils();
     exports.KustomDateHelper = (() => {
-      let padYear = (num) => num < 1e3 ? 2e3 + num : num;
-      let pad2 = (num) => num < 10 ? `0${num}` : num;
+      const treatYear = (num) => num < 1e3 ? 2e3 + num : num;
+      const pad2 = (num) => num < 10 ? `0${num}` : num;
       return {
         toKustomDateString: (date) => {
-          return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
+          return `${treatYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
         },
         parseKustomDateString: (date, kustomDateString) => {
-          let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
           let handlers = {
-            y: {
+            "y": {
               canSet: (val) => true,
-              set: (val) => date = new Date(val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds()),
-              add: (val) => date = new Date(date.getFullYear() + val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds())
+              set: (val) => date = new Date(val, date.getMonth(), Math.min(date.getDate(), (0, utils_1.getMonthDayCount)(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date = new Date(date.getFullYear() + val, date.getMonth(), Math.min(date.getDate(), (0, utils_1.getMonthDayCount)(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds())
             },
-            M: {
+            "M": {
               canSet: (val) => val >= 1 && val <= 12,
-              set: (val) => date = new Date(date.getFullYear(), val - 1, Math.min(date.getDate(), getMonthDayCount(date.getFullYear(), val - 1)), date.getHours(), date.getMinutes(), date.getSeconds()),
-              add: (val) => date = new Date(date.getFullYear() + Math.trunc(val / 12), date.getMonth() + val % 12, Math.min(date.getDate(), getMonthDayCount(val, date.getMonth() + val % 12)), date.getHours(), date.getMinutes(), date.getSeconds())
+              set: (val) => date = new Date(date.getFullYear(), val - 1, Math.min(date.getDate(), (0, utils_1.getMonthDayCount)(date.getFullYear(), val - 1)), date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date = new Date(date.getFullYear() + Math.trunc(val / 12), date.getMonth() + val % 12, Math.min(date.getDate(), (0, utils_1.getMonthDayCount)(val, date.getMonth() + val % 12)), date.getHours(), date.getMinutes(), date.getSeconds())
             },
-            d: {
-              canSet: (val) => val >= 1 && val <= getMonthDayCount(date.getFullYear(), date.getMonth()),
+            "d": {
+              canSet: (val) => val >= 1 && val <= (0, utils_1.getMonthDayCount)(date.getFullYear(), date.getMonth()),
               set: (val) => date = new Date(date.getFullYear(), date.getMonth(), val, date.getHours(), date.getMinutes(), date.getSeconds()),
               add: (val) => date.setDate(date.getDate() + val)
             },
-            h: {
+            "h": {
               canSet: (val) => val >= 0 && val < 24,
               set: (val) => date.setHours(val),
               add: (val) => date.setHours(date.getHours() + val)
             },
-            m: {
+            "m": {
               canSet: (val) => val >= 0 && val < 60,
               set: (val) => date.setMinutes(val),
               add: (val) => date.setMinutes(date.getMinutes() + val)
             },
-            s: {
+            "s": {
               canSet: (val) => val >= 0 && val < 60,
               set: (val) => date.setSeconds(val),
               add: (val) => date.setSeconds(date.getSeconds() + val)
             }
           };
-          let state = null;
+          let currentMode = null;
           let numberBuffer = 0;
           for (const char of kustomDateString) {
             let digit = "0123456789".indexOf(char);
@@ -520,14 +574,14 @@ var require_kustom_date_helper = __commonJS({
               numberBuffer = (numberBuffer != null ? numberBuffer : 0) * 10 + digit;
             } else {
               if (char === "a" || char === "r") {
-                state = char;
+                currentMode = char;
               } else if (char in handlers) {
-                if (state === null) {
+                if (currentMode === null) {
                   if (handlers[char].canSet(numberBuffer))
                     handlers[char].set(numberBuffer);
-                } else if (state === "a") {
+                } else if (currentMode === "a") {
                   handlers[char].add(numberBuffer);
-                } else if (state === "r") {
+                } else if (currentMode === "r") {
                   handlers[char].add(-numberBuffer);
                 }
               }
@@ -1143,56 +1197,6 @@ var require_unimplemented_functions = __commonJS({
       }
     };
     exports.TuFunction = TuFunction2;
-  }
-});
-
-// engine/dist.node/evaluation/implementations/helpers/utils.js
-var require_utils = __commonJS({
-  "engine/dist.node/evaluation/implementations/helpers/utils.js"(exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.hsv2rgb = exports.rgb2hsv = exports.lerp = exports.padWithZeros = exports.daysIntoYear = exports.clamp = void 0;
-    function clamp2(value, min, max) {
-      return value < min ? min : value > max ? max : value;
-    }
-    exports.clamp = clamp2;
-    function daysIntoYear2(date) {
-      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
-    }
-    exports.daysIntoYear = daysIntoYear2;
-    function padWithZeros2(source, targetLength) {
-      const sourceString = source.toString();
-      if (sourceString.length >= targetLength)
-        return sourceString;
-      else
-        return "0".repeat(targetLength - sourceString.length) + sourceString;
-    }
-    exports.padWithZeros = padWithZeros2;
-    function lerp2(a, b, fraction) {
-      return Math.round(a + (b - a) * fraction);
-    }
-    exports.lerp = lerp2;
-    function rgb2hsv2(r, g, b) {
-      const rf = r / 255;
-      const gf = g / 255;
-      const bf = b / 255;
-      const cmax = Math.max(rf, gf, bf);
-      const cmin = Math.min(rf, gf, bf);
-      const delta = cmax - cmin;
-      let h = 60 * (delta === 0 ? 0 : cmax === rf ? (gf - bf) / delta % 6 : cmax === gf ? (bf - rf) / delta + 2 : (rf - gf) / delta + 4);
-      let s = cmax === 0 ? 0 : delta / cmax;
-      let v = cmax;
-      return [h, s, v];
-    }
-    exports.rgb2hsv = rgb2hsv2;
-    function hsv2rgb2(h, s, v) {
-      const c = v * s;
-      const x = c * (1 - Math.abs(h / 60 % 2 - 1));
-      const m = v - c;
-      const [rf, gf, bf] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
-      return [rf, gf, bf].map((c2) => Math.round((c2 + m) * 255));
-    }
-    exports.hsv2rgb = hsv2rgb2;
   }
 });
 
@@ -4693,16 +4697,16 @@ var require_timespan = __commonJS({
         let dur = Math.min(Math.abs(this.totalSeconds), max);
         let boundaryI = 0;
         for (let i = 0; i < unitBoundaries2.length; i++) {
-          let boundary2 = unitBoundaries2[i];
-          if (dur >= boundary2[0]) {
+          const boundary = unitBoundaries2[i];
+          if (dur >= boundary[0]) {
             boundaryI = i;
           } else {
             break;
           }
         }
-        let boundary = unitBoundaries2[boundaryI];
-        let boundaryCount = Math.floor(dur / boundary[0]);
-        return `${boundaryCount} ${boundary[1]}${boundaryCount === 1 ? "" : "s"}`;
+        const unitBoundary = unitBoundaries2[boundaryI];
+        const unitCount = Math.floor(dur / unitBoundary[0]);
+        return `${unitCount} ${unitBoundary[1]}${unitCount === 1 ? "" : "s"}`;
       }
       prettyPrintRelative() {
         const max = 8 * 10 * 356 * 24 * 60 * 60;
@@ -5420,52 +5424,61 @@ var init_evaluable = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/helpers/utils.ts
+function getMonthDayCount(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+var init_utils = __esm({
+  "engine/src/evaluation/implementations/helpers/utils.ts"() {
+  }
+});
+
 // engine/src/evaluation/implementations/helpers/kustom-date-helper.ts
 var KustomDateHelper;
 var init_kustom_date_helper = __esm({
   "engine/src/evaluation/implementations/helpers/kustom-date-helper.ts"() {
+    init_utils();
     KustomDateHelper = (() => {
-      let padYear = (num) => num < 1e3 ? 2e3 + num : num;
-      let pad2 = (num) => num < 10 ? `0${num}` : num;
+      const treatYear = (num) => num < 1e3 ? 2e3 + num : num;
+      const pad2 = (num) => num < 10 ? `0${num}` : num;
       return {
         toKustomDateString: (date) => {
-          return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
+          return `${treatYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
         },
         parseKustomDateString: (date, kustomDateString) => {
-          let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
           let handlers = {
-            y: {
+            "y": {
               canSet: (val) => true,
               set: (val) => date = new Date(val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds()),
               add: (val) => date = new Date(date.getFullYear() + val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds())
             },
-            M: {
+            "M": {
               canSet: (val) => val >= 1 && val <= 12,
               set: (val) => date = new Date(date.getFullYear(), val - 1, Math.min(date.getDate(), getMonthDayCount(date.getFullYear(), val - 1)), date.getHours(), date.getMinutes(), date.getSeconds()),
               add: (val) => date = new Date(date.getFullYear() + Math.trunc(val / 12), date.getMonth() + val % 12, Math.min(date.getDate(), getMonthDayCount(val, date.getMonth() + val % 12)), date.getHours(), date.getMinutes(), date.getSeconds())
             },
-            d: {
+            "d": {
               canSet: (val) => val >= 1 && val <= getMonthDayCount(date.getFullYear(), date.getMonth()),
               set: (val) => date = new Date(date.getFullYear(), date.getMonth(), val, date.getHours(), date.getMinutes(), date.getSeconds()),
               add: (val) => date.setDate(date.getDate() + val)
             },
-            h: {
+            "h": {
               canSet: (val) => val >= 0 && val < 24,
               set: (val) => date.setHours(val),
               add: (val) => date.setHours(date.getHours() + val)
             },
-            m: {
+            "m": {
               canSet: (val) => val >= 0 && val < 60,
               set: (val) => date.setMinutes(val),
               add: (val) => date.setMinutes(date.getMinutes() + val)
             },
-            s: {
+            "s": {
               canSet: (val) => val >= 0 && val < 60,
               set: (val) => date.setSeconds(val),
               add: (val) => date.setSeconds(date.getSeconds() + val)
             }
           };
-          let state = null;
+          let currentMode = null;
           let numberBuffer = 0;
           for (const char of kustomDateString) {
             let digit = "0123456789".indexOf(char);
@@ -5473,14 +5486,14 @@ var init_kustom_date_helper = __esm({
               numberBuffer = (numberBuffer != null ? numberBuffer : 0) * 10 + digit;
             } else {
               if (char === "a" || char === "r") {
-                state = char;
+                currentMode = char;
               } else if (char in handlers) {
-                if (state === null) {
+                if (currentMode === null) {
                   if (handlers[char].canSet(numberBuffer))
                     handlers[char].set(numberBuffer);
-                } else if (state === "a") {
+                } else if (currentMode === "a") {
                   handlers[char].add(numberBuffer);
-                } else if (state === "r") {
+                } else if (currentMode === "r") {
                   handlers[char].add(-numberBuffer);
                 }
               }
@@ -5558,12 +5571,6 @@ var init_kode_function_with_modes = __esm({
 var init_unimplemented_functions = __esm({
   "engine/src/evaluation/implementations/functions/unimplemented-functions.ts"() {
     init_kodeine();
-  }
-});
-
-// engine/src/evaluation/implementations/helpers/utils.ts
-var init_utils = __esm({
-  "engine/src/evaluation/implementations/helpers/utils.ts"() {
   }
 });
 
