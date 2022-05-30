@@ -28,7 +28,7 @@ export class FlEvaluationError extends EvaluationError {
         this.internalError = internalError;
     }
 }
-/** Implementation of Kustom's `fl()` function. */
+/** Implementation of Kustom's `fl()` (for loop) function. */
 export class FlFunction extends IKodeFunction {
     static get maxIterationCount() { return 1000; }
     getName() { return 'fl'; }

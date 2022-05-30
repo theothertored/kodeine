@@ -35,7 +35,7 @@ class FlEvaluationError extends kodeine_js_1.EvaluationError {
     }
 }
 exports.FlEvaluationError = FlEvaluationError;
-/** Implementation of Kustom's `fl()` function. */
+/** Implementation of Kustom's `fl()` (for loop) function. */
 class FlFunction extends kodeine_js_1.IKodeFunction {
     static get maxIterationCount() { return 1000; }
     getName() { return 'fl'; }

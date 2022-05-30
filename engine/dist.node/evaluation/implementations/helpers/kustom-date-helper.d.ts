@@ -6,6 +6,6 @@ export declare const KustomDateHelper: {
      *  '2022y05M10d12h04m58s'
      */
     toKustomDateString: (date: Date) => string;
-    /** Converts a kustom */
-    parseKustomDateString: (now: Date, kustomDateString: string) => Date;
+    /** Converts a kustom date string into a JS date object. */
+    parseKustomDateString: (date: Date, kustomDateString: string) => Date;
 };

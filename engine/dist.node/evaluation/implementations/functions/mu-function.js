@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MuFunction = void 0;
 const kodeine_js_1 = require("../../../kodeine.js");
-/** Implementation of Kustom's mu() (math utilities) function. */
+/** Implementation of Kustom's `mu()` (math utilities) function. */
 class MuFunction extends kodeine_js_1.KodeFunctionWithModes {
     getName() { return 'mu'; }
     singleArgMode(name, func) {

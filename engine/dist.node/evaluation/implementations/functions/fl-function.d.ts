@@ -24,7 +24,7 @@ export declare class FlEvaluationError extends EvaluationError {
     readonly internalError: EvaluationError;
     constructor(formulaTextSource: Evaluable, iValue: KodeValue, inIncrement: boolean, internalError: EvaluationError);
 }
-/** Implementation of Kustom's `fl()` function. */
+/** Implementation of Kustom's `fl()` (for loop) function. */
 export declare class FlFunction extends IKodeFunction {
     static get maxIterationCount(): number;
     getName(): string;

@@ -73,7 +73,7 @@ export class FlEvaluationError extends EvaluationError {
 }
 
 
-/** Implementation of Kustom's `fl()` function. */
+/** Implementation of Kustom's `fl()` (for loop) function. */
 export class FlFunction extends IKodeFunction {
 
     static get maxIterationCount() { return 1000; }

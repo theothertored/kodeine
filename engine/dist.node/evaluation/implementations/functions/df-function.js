@@ -5,39 +5,126 @@ const kodeine_js_1 = require("../../../kodeine.js");
 const kustom_date_helper_js_1 = require("../helpers/kustom-date-helper.js");
 const number_to_text_converter_js_1 = require("../helpers/number-to-text-converter.js");
 const text_capitalizer_js_1 = require("../helpers/text-capitalizer.js");
-const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const utils_js_1 = require("../helpers/utils.js");
+/**
+ * An array containing full names for days of the week.
+ * `0 = Monday, 1 = Tuesday, ..., 6 = Sunday`
+ */
+const weekdaysFull = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+/**
+ * An array containing abbreviated names for days of the week.
+ * `0 = Mon, 1 = Tue, ..., 6 = Sun`
+ */
 const weekdaysAbbrev = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/**
+ * An array containing full names for months.
+ * `0 = January, 1 = February, ..., 11 = December`
+ */
 const monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+/**
+ * An array containing abbreviated names for months.
+ * `0 = Jan, 1 = Feb, ..., 11 = Dec`
+ */
 const monthsAbbrev = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-// https://stackoverflow.com/a/40975730/6796433
-function daysIntoYear(date) {
-    return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000;
+/**
+ * The core function for `df()`, extracted outside of the call so it is only initialized once.
+ * TODO: Also extract simple and multi token implementations like this.
+ */
+function format(date, format, simpleTokens, multiTokens) {
+    let output = '';
+    // a simple local string reader implementation
+    let i = 0;
+    let consume = () => format[i++];
+    let peek = () => format[i];
+    let eof = () => i >= format.length;
+    // go until the entire format string is consumed
+    while (!eof()) {
+        // consume a character
+        let char = consume();
+        if (char === '\'') {
+            // everything insde singlequotes is taken literally (without token replacement)
+            if (eof()) {
+                // singlequote at the end of the string, we're done - exit loop
+                break;
+            }
+            else {
+                // there is at least one character after the singlequote
+                let nextChar = consume();
+                if (nextChar === '\'') {
+                    // two singlequotes one after another, treat as escaped singlequote, add to output
+                    output += '\'';
+                }
+                else {
+                    // next char is not an singlequote
+                    output += nextChar;
+                    // read chars until an singlequote is encountered or the format string ends
+                    while (!eof() && peek() !== '\'') {
+                        output += consume(); // add read char to output
+                    }
+                    if (!eof()) {
+                        // we reached an singlequote, consume it
+                        consume();
+                    }
+                }
+            }
+        }
+        else {
+            // we are not inside singlequotes
+            // check if current character is a simple token
+            let simpleFunc = simpleTokens[char];
+            if (simpleFunc) {
+                // current character is a simple token, add simple token result to output
+                output += simpleFunc(date);
+            }
+            else {
+                // current character is not a simple token, check if it is a multitoken
+                let mutliFunc = multiTokens[char];
+                if (mutliFunc) {
+                    // current character is a multitoken, read all identical character into the buffer
+                    let buffer = char;
+                    while (!eof() && peek() === char) {
+                        buffer += consume();
+                    }
+                    // we have the entire multitoken block, add multitoken result to output
+                    output += mutliFunc(date, buffer);
+                }
+                else {
+                    // character is not a token, add it to output as plain text
+                    output += char;
+                }
+            }
+        }
+    }
+    return output;
 }
-function pad(source, targetLength) {
-    const sourceString = source.toString();
-    if (sourceString.length >= targetLength)
-        return sourceString;
-    else
-        return '0'.repeat(targetLength - sourceString.length) + sourceString;
-}
+;
+/** Implementation of Kustom's df() (date format) function. */
 class DfFunction extends kodeine_js_1.IKodeFunction {
     getName() { return 'df'; }
     call(evalCtx, call, args) {
+        // valid calls:
+        // txt format               prints current date according to the given format string
+        // txt format, any date     prints given date according to the given format string
         if (args.length === 0) {
             throw new kodeine_js_1.InvalidArgumentCountError(call, 'At least one argument required.');
         }
         else if (args.length > 2) {
             throw new kodeine_js_1.InvalidArgumentCountError(call, 'Expected one or two arguments.');
         }
+        /** A helper function that resolves the user's clock mode setting (`auto`, `12h`, `24h`) to a concrete setting (`12h` or `24h`) */
         const resolveClockMode = () => {
             if (evalCtx.clockMode === "auto") {
-                // detect 12h/24h mode based on toLocaleTimeString
+                // detect 12h/24h mode based on whether toLocaleTimeString contains am/pm
                 return /am|pm/.test(new Date().toLocaleTimeString()) ? '12h' : '24h';
             }
             else {
                 return evalCtx.clockMode;
             }
         };
+        /**
+         * An object containing tokens and functions returning a value to replace the tokens with.
+         * Every instance of a simple token is considered separately (ex. `fff` will print 111 on Monday).
+         */
         const simpleTokens = {
             // day of week (dependent on settings)
             'e': date => {
@@ -97,22 +184,26 @@ class DfFunction extends kodeine_js_1.IKodeFunction {
                 }
             }
         };
+        /**
+         * An object containing tokens and functions returning a value to replace the tokens with.
+         * Sequences of multitokens are treated as one match (ex. `HHHH` will print `0013` for `1 PM`).
+         */
         const multiTokens = {
             // hour (0-23 regardless of mode)
-            'H': (date, match) => pad(date.getHours(), match.length),
+            'H': (date, match) => (0, utils_js_1.padWithZeros)(date.getHours(), match.length),
             // hour (12h: 1-12, 24h: 0-23)
             'h': (date, match) => {
                 if (resolveClockMode() == '12h')
                     // hours % 12 is 0-11, replace 0 with 12, keep 1-11 as is
-                    return pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
+                    return (0, utils_js_1.padWithZeros)(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
                 else
                     // getHours() returns 0-23, which is good
-                    return pad(date.getHours(), match.length);
+                    return (0, utils_js_1.padWithZeros)(date.getHours(), match.length);
             },
             // minute
-            'm': (date, match) => pad(date.getMinutes(), match.length),
+            'm': (date, match) => (0, utils_js_1.padWithZeros)(date.getMinutes(), match.length),
             // second
-            's': (date, match) => pad(date.getSeconds(), match.length),
+            's': (date, match) => (0, utils_js_1.padWithZeros)(date.getSeconds(), match.length),
             // am/pm (empty in 24h)
             'a': (date, match) => resolveClockMode() === '24h' ? '' : date.getHours() < 12 ? 'am' : 'pm',
             // am/pm (shown regardless of mode)
@@ -121,20 +212,20 @@ class DfFunction extends kodeine_js_1.IKodeFunction {
             'k': (date, match) => {
                 if (resolveClockMode() == '12h')
                     // hours % 12 is 0-11, which is good
-                    return pad(date.getHours() % 12, match.length);
+                    return (0, utils_js_1.padWithZeros)(date.getHours() % 12, match.length);
                 else
                     // getHours() returns 0-23, replace 0 with 24, keep 1-23 as is
-                    return pad(date.getHours() === 0 ? 24 : date.getHours(), match.length);
+                    return (0, utils_js_1.padWithZeros)(date.getHours() === 0 ? 24 : date.getHours(), match.length);
             },
             // day of month
-            'd': (date, match) => pad(date.getDate(), match.length),
+            'd': (date, match) => (0, utils_js_1.padWithZeros)(date.getDate(), match.length),
             // day of year
-            'D': (date, match) => pad(daysIntoYear(date), match.length),
+            'D': (date, match) => (0, utils_js_1.padWithZeros)((0, utils_js_1.daysIntoYear)(date), match.length),
             // month of year
             'M': (date, match) => {
                 if (match.length < 3)
                     // M or MM, month number
-                    return pad(date.getMonth() + 1, match.length);
+                    return (0, utils_js_1.padWithZeros)(date.getMonth() + 1, match.length);
                 else if (match.length === 3)
                     // MMM, month abbreviated
                     return monthsAbbrev[date.getMonth()];
@@ -143,79 +234,29 @@ class DfFunction extends kodeine_js_1.IKodeFunction {
                     return monthsFull[date.getMonth()];
             },
             // year
-            'y': (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+            'y': (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : (0, utils_js_1.padWithZeros)(date.getFullYear(), match.length),
             'Y': (date, match) => multiTokens['y'](date, match),
             // day of week
-            'E': (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdays)[date.getDay()],
+            'E': (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdaysFull)[date.getDay()],
             // timezone indicator/description (ex. CEST/Central European Standard Time)
             // TODO: get timezone depending on evalCtx
             'z': (date, match) => 'NOT IMPLEMENTED'
         };
-        const format = (date, format) => {
-            let output = '';
-            let i = 0;
-            let consume = () => format[i++];
-            let peek = () => format[i];
-            let eof = () => i >= format.length;
-            while (!eof()) {
-                let char = consume();
-                if (char === '\'') {
-                    if (eof()) {
-                        break;
-                    }
-                    else {
-                        let nextChar = consume();
-                        if (nextChar === '\'') {
-                            output += '\'';
-                        }
-                        else {
-                            output += nextChar;
-                            while (!eof() && peek() !== '\'') {
-                                output += consume();
-                            }
-                            // consume ending '
-                            if (!eof()) {
-                                consume();
-                            }
-                        }
-                    }
-                }
-                else {
-                    let simpleFunc = simpleTokens[char];
-                    if (simpleFunc) {
-                        output += simpleFunc(date);
-                    }
-                    else {
-                        let mutliFunc = multiTokens[char];
-                        if (mutliFunc) {
-                            let buffer = char;
-                            while (!eof() && peek() === char) {
-                                buffer += consume();
-                            }
-                            output += mutliFunc(date, buffer);
-                        }
-                        else {
-                            output += char;
-                        }
-                    }
-                }
-            }
-            return output;
-        };
-        let now;
+        let dateToFormat;
         if (args.length === 1)
-            // no second argument, return now
-            now = evalCtx.getNow();
+            // no second argument, use now
+            dateToFormat = evalCtx.getNow();
         else if (args[0].isDate)
-            // second argument is a date
-            now = args[0].dateValue;
+            // second argument is a date, use it
+            dateToFormat = args[0].dateValue;
         else if (args[0].isNumeric)
-            // second argument is a number
-            now = new Date(args[0].numericValue * 1000);
+            // second argument is a number, treat as unix timestamp
+            dateToFormat = new Date(args[0].numericValue * 1000);
         else
-            // second argument is text
-            now = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx.getNow(), args[1].text);
-        return new kodeine_js_1.KodeValue(format(now, args[0].text), call.source);
+            // second argument is text, parse as kustom date string
+            dateToFormat = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx.getNow(), args[1].text);
+        // format and print the date
+        return new kodeine_js_1.KodeValue(format(dateToFormat, args[0].text, simpleTokens, multiTokens), call.source);
     }
 }
 exports.DfFunction = DfFunction;

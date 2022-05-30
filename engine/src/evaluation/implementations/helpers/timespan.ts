@@ -1,4 +1,5 @@
 
+/** A local helper function that floors a given number and then left-pads it with zeros to the given length. */
 function floorAndPad(source: number, targetLength: number) {
     const sourceString = Math.floor(source).toString();
     if (sourceString.length >= targetLength)
@@ -7,6 +8,7 @@ function floorAndPad(source: number, targetLength: number) {
         return '0'.repeat(targetLength - sourceString.length) + sourceString;
 }
 
+/** An object containing all possible format tokens for `tf()` and functions returning values they should be replaced with. */
 const formatTokens: Record<string, (timespan: TimeSpan, match: string) => string | number> = {
     'D': (timespan, match) => floorAndPad(timespan.totalDays, match.length),
     'H': (timespan, match) => floorAndPad(timespan.totalHours, match.length),
@@ -17,6 +19,7 @@ const formatTokens: Record<string, (timespan: TimeSpan, match: string) => string
     's': (timespan, match) => floorAndPad(timespan.totalSeconds % 60, match.length)
 };
 
+/** An array of thresholds at which each time unit starts, with that units name. */
 const unitBoundaries: [number, string][] = [
     [60, 'minute'],
     [60 * 60, 'hour'],

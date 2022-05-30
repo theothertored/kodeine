@@ -1,11 +1,12 @@
 TODO:
-- add a tips & tricks section to the readme
-- release as 0.1.0-alpha
+- add documentation comments for newly implemented functions
+- add a warning when a colour could not be parsed and default is used
+- find out what happens when the amount argument isn't given for complex ce() modes
 - should changing globals change printed evaluation steps as well?
-- add more documentation comments for newly implemented functions
 - design an eval ctx editor to prepare for remaining function implementations
 
 MAYBE IN THE FUTURE:
+- implement global lists
 - implement the scientific notation bug accurately
 - find a way to implement float -> string conversion in a properly weird way
 - implement int and float caps (seems like 32 bit int and float should be enforced because number works too well)
@@ -19,6 +20,11 @@ MAYBE IN THE FUTURE:
 - find out what is causing ce() to be off by around 1 sometimes (example: ce(#ff0000, sat, r10) => #FFFF1A1A in kustom, #FFFF1919 in kodeine)
 
 DONE:
+- standardize documentation comments to color instead of colour
+- implement ce(contrast)
+# 0.1.0 RELEASED
+- release as 0.1.0-alpha
+- add a tips & tricks section to the readme
 - create a changelog file
 - implement ce()
 - fix values returned from tc() being numberified too early

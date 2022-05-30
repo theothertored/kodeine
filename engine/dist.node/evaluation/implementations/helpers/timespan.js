@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TimeSpan = void 0;
+/** A local helper function that floors a given number and then left-pads it with zeros to the given length. */
 function floorAndPad(source, targetLength) {
     const sourceString = Math.floor(source).toString();
     if (sourceString.length >= targetLength)
@@ -8,6 +9,7 @@ function floorAndPad(source, targetLength) {
     else
         return '0'.repeat(targetLength - sourceString.length) + sourceString;
 }
+/** An object containing all possible format tokens for `tf()` and functions returning values they should be replaced with. */
 const formatTokens = {
     'D': (timespan, match) => floorAndPad(timespan.totalDays, match.length),
     'H': (timespan, match) => floorAndPad(timespan.totalHours, match.length),
@@ -17,6 +19,7 @@ const formatTokens = {
     'm': (timespan, match) => floorAndPad(timespan.totalMinutes % 60, match.length),
     's': (timespan, match) => floorAndPad(timespan.totalSeconds % 60, match.length)
 };
+/** An array of thresholds at which each time unit starts, with that units name. */
 const unitBoundaries = [
     [60, 'minute'],
     [60 * 60, 'hour'],

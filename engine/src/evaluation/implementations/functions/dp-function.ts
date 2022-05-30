@@ -8,6 +8,7 @@ import {
 } from "../../../kodeine.js";
 import { KustomDateHelper } from "../helpers/kustom-date-helper.js";
 
+/** Implementation of Kustom's dp() (date parser) function. */
 export class DpFunction extends IKodeFunction {
 
     getName() { return 'dp'; }
@@ -16,12 +17,12 @@ export class DpFunction extends IKodeFunction {
 
         if (args.length === 0) {
 
-            // 0 arguments, return now
+            // 0 arguments, return current date
             return new KodeValue(evalCtx.getNow(), call.source);
 
         } else if (args.length === 1) {
 
-            // 1 argument, parse as kustom date string
+            // 1 argument, parse it as kustom date string
             return new KodeValue(KustomDateHelper.parseKustomDateString(evalCtx.getNow(), args[0].text), call.source);
 
         } else {

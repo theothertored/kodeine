@@ -478,38 +478,38 @@ var require_kustom_date_helper = __commonJS({
         toKustomDateString: (date) => {
           return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
         },
-        parseKustomDateString: (now, kustomDateString) => {
+        parseKustomDateString: (date, kustomDateString) => {
           let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
           let handlers = {
             y: {
               canSet: (val) => true,
-              set: (val) => now = new Date(val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds()),
-              add: (val) => now = new Date(now.getFullYear() + val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds())
+              set: (val) => date = new Date(val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date = new Date(date.getFullYear() + val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds())
             },
             M: {
               canSet: (val) => val >= 1 && val <= 12,
-              set: (val) => now = new Date(now.getFullYear(), val - 1, Math.min(now.getDate(), getMonthDayCount(now.getFullYear(), val - 1)), now.getHours(), now.getMinutes(), now.getSeconds()),
-              add: (val) => now = new Date(now.getFullYear() + Math.trunc(val / 12), now.getMonth() + val % 12, Math.min(now.getDate(), getMonthDayCount(val, now.getMonth() + val % 12)), now.getHours(), now.getMinutes(), now.getSeconds())
+              set: (val) => date = new Date(date.getFullYear(), val - 1, Math.min(date.getDate(), getMonthDayCount(date.getFullYear(), val - 1)), date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date = new Date(date.getFullYear() + Math.trunc(val / 12), date.getMonth() + val % 12, Math.min(date.getDate(), getMonthDayCount(val, date.getMonth() + val % 12)), date.getHours(), date.getMinutes(), date.getSeconds())
             },
             d: {
-              canSet: (val) => val >= 1 && val <= getMonthDayCount(now.getFullYear(), now.getMonth()),
-              set: (val) => now = new Date(now.getFullYear(), now.getMonth(), val, now.getHours(), now.getMinutes(), now.getSeconds()),
-              add: (val) => now.setDate(now.getDate() + val)
+              canSet: (val) => val >= 1 && val <= getMonthDayCount(date.getFullYear(), date.getMonth()),
+              set: (val) => date = new Date(date.getFullYear(), date.getMonth(), val, date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date.setDate(date.getDate() + val)
             },
             h: {
               canSet: (val) => val >= 0 && val < 24,
-              set: (val) => now.setHours(val),
-              add: (val) => now.setHours(now.getHours() + val)
+              set: (val) => date.setHours(val),
+              add: (val) => date.setHours(date.getHours() + val)
             },
             m: {
               canSet: (val) => val >= 0 && val < 60,
-              set: (val) => now.setMinutes(val),
-              add: (val) => now.setMinutes(now.getMinutes() + val)
+              set: (val) => date.setMinutes(val),
+              add: (val) => date.setMinutes(date.getMinutes() + val)
             },
             s: {
               canSet: (val) => val >= 0 && val < 60,
-              set: (val) => now.setSeconds(val),
-              add: (val) => now.setSeconds(now.getSeconds() + val)
+              set: (val) => date.setSeconds(val),
+              add: (val) => date.setSeconds(date.getSeconds() + val)
             }
           };
           let state = null;
@@ -534,7 +534,7 @@ var require_kustom_date_helper = __commonJS({
               numberBuffer = 0;
             }
           }
-          return now;
+          return date;
         }
       };
     })();
@@ -1146,16 +1146,33 @@ var require_unimplemented_functions = __commonJS({
   }
 });
 
-// engine/dist.node/evaluation/implementations/helpers/argb-color.js
-var require_argb_color = __commonJS({
-  "engine/dist.node/evaluation/implementations/helpers/argb-color.js"(exports) {
+// engine/dist.node/evaluation/implementations/helpers/utils.js
+var require_utils = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/utils.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ArgbColor = void 0;
-    var pad = (s) => s.length === 1 ? "0" + s : s;
-    var lerp = (a, b, f) => Math.round(a + (b - a) * f);
-    var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
-    function rgb2hsv(r, g, b) {
+    exports.hsv2rgb = exports.rgb2hsv = exports.lerp = exports.padWithZeros = exports.daysIntoYear = exports.clamp = void 0;
+    function clamp2(value, min, max) {
+      return value < min ? min : value > max ? max : value;
+    }
+    exports.clamp = clamp2;
+    function daysIntoYear2(date) {
+      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
+    }
+    exports.daysIntoYear = daysIntoYear2;
+    function padWithZeros2(source, targetLength) {
+      const sourceString = source.toString();
+      if (sourceString.length >= targetLength)
+        return sourceString;
+      else
+        return "0".repeat(targetLength - sourceString.length) + sourceString;
+    }
+    exports.padWithZeros = padWithZeros2;
+    function lerp2(a, b, fraction) {
+      return Math.round(a + (b - a) * fraction);
+    }
+    exports.lerp = lerp2;
+    function rgb2hsv2(r, g, b) {
       const rf = r / 255;
       const gf = g / 255;
       const bf = b / 255;
@@ -1167,13 +1184,33 @@ var require_argb_color = __commonJS({
       let v = cmax;
       return [h, s, v];
     }
-    function hsv2rgb(h, s, v) {
+    exports.rgb2hsv = rgb2hsv2;
+    function hsv2rgb2(h, s, v) {
       const c = v * s;
       const x = c * (1 - Math.abs(h / 60 % 2 - 1));
       const m = v - c;
       const [rf, gf, bf] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
       return [rf, gf, bf].map((c2) => Math.round((c2 + m) * 255));
     }
+    exports.hsv2rgb = hsv2rgb2;
+  }
+});
+
+// engine/dist.node/evaluation/implementations/helpers/argb-color.js
+var require_argb_color = __commonJS({
+  "engine/dist.node/evaluation/implementations/helpers/argb-color.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ArgbColor = void 0;
+    var utils_js_1 = require_utils();
+    var pad2 = (s) => s.length === 1 ? "0" + s : s;
+    var parseHexOrThrow = (hexString) => {
+      let val = parseInt(hexString, 16);
+      if (isNaN(val))
+        throw "";
+      else
+        return val;
+    };
     var ArgbColor2 = class {
       constructor(a, r, g, b) {
         this.a = a;
@@ -1181,59 +1218,52 @@ var require_argb_color = __commonJS({
         this.g = g;
         this.b = b;
       }
-      invert() {
+      invertRGB() {
         return new ArgbColor2(this.a, 255 - this.r, 255 - this.g, 255 - this.b);
       }
       shiftHue(amount) {
-        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
-        return new ArgbColor2(this.a, ...hsv2rgb((h + amount) % 360, s, v));
+        const [h, s, v] = (0, utils_js_1.rgb2hsv)(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...(0, utils_js_1.hsv2rgb)((h + amount) % 360, s, v));
       }
       setAlpha(newAlpha) {
-        return new ArgbColor2(clamp(newAlpha, 0, 255), this.r, this.g, this.b);
+        return new ArgbColor2((0, utils_js_1.clamp)(newAlpha, 0, 255), this.r, this.g, this.b);
       }
       setSaturation(newSaturation) {
-        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
-        return new ArgbColor2(this.a, ...hsv2rgb(h, clamp(newSaturation, 0, 1), v));
+        const [h, s, v] = (0, utils_js_1.rgb2hsv)(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...(0, utils_js_1.hsv2rgb)(h, (0, utils_js_1.clamp)(newSaturation, 0, 1), v));
       }
       addSaturation(amount) {
-        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
-        return new ArgbColor2(this.a, ...hsv2rgb(h, clamp(s + amount, 0, 1), v));
+        const [h, s, v] = (0, utils_js_1.rgb2hsv)(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...(0, utils_js_1.hsv2rgb)(h, (0, utils_js_1.clamp)(s + amount, 0, 1), v));
       }
       setLuminance(newLuminance) {
-        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
-        return new ArgbColor2(this.a, ...hsv2rgb(h, s, clamp(newLuminance, 0, 1)));
+        const [h, s, v] = (0, utils_js_1.rgb2hsv)(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...(0, utils_js_1.hsv2rgb)(h, s, (0, utils_js_1.clamp)(newLuminance, 0, 1)));
       }
       addLuminance(amount) {
-        const [h, s, v] = rgb2hsv(this.r, this.g, this.b);
-        return new ArgbColor2(this.a, ...hsv2rgb(h, s, clamp(v + amount, 0, 1)));
+        const [h, s, v] = (0, utils_js_1.rgb2hsv)(this.r, this.g, this.b);
+        return new ArgbColor2(this.a, ...(0, utils_js_1.hsv2rgb)(h, s, (0, utils_js_1.clamp)(v + amount, 0, 1)));
       }
       toARGBString() {
-        let p = (c) => pad(c.toString(16).toUpperCase());
+        let p = (c) => pad2(c.toString(16).toUpperCase());
         return `#${p(this.a)}${p(this.r)}${p(this.g)}${p(this.b)}`;
       }
       static fromAHSV(a, h, s, v) {
-        return new ArgbColor2(a, ...hsv2rgb(h, s, v));
+        return new ArgbColor2(a, ...(0, utils_js_1.hsv2rgb)(h, s, v));
       }
-      static parse(str) {
-        const parse2 = (str2) => {
-          let val = parseInt(str2, 16);
-          if (isNaN(val))
-            throw "";
-          else
-            return val;
-        };
+      static parse(hexString) {
         try {
-          str = str.replace(/ |#|[^a-zA-Z0-9]/g, "");
-          if (str.length === 6) {
-            let r = parse2(str.substring(0, 2));
-            let g = parse2(str.substring(2, 4));
-            let b = parse2(str.substring(4, 6));
+          hexString = hexString.replace(/ |#|[^a-zA-Z0-9]/g, "");
+          if (hexString.length === 6) {
+            let r = parseHexOrThrow(hexString.substring(0, 2));
+            let g = parseHexOrThrow(hexString.substring(2, 4));
+            let b = parseHexOrThrow(hexString.substring(4, 6));
             return new ArgbColor2(255, r, g, b);
-          } else if (str.length === 8) {
-            let a = parse2(str.substring(0, 2));
-            let r = parse2(str.substring(2, 4));
-            let g = parse2(str.substring(4, 6));
-            let b = parse2(str.substring(6, 8));
+          } else if (hexString.length === 8) {
+            let a = parseHexOrThrow(hexString.substring(0, 2));
+            let r = parseHexOrThrow(hexString.substring(2, 4));
+            let g = parseHexOrThrow(hexString.substring(4, 6));
+            let b = parseHexOrThrow(hexString.substring(6, 8));
             return new ArgbColor2(255, r, g, b);
           }
         } catch (e) {
@@ -1243,11 +1273,11 @@ var require_argb_color = __commonJS({
       static default() {
         return new ArgbColor2(0, 0, 0, 0);
       }
-      static mix(color1, color2, factor) {
-        if (factor < 0) {
-          return new ArgbColor2(lerp(color2.a, color1.a, -factor), lerp(color2.r, color1.r, -factor), lerp(color2.g, color1.g, -factor), lerp(color2.b, color1.b, -factor));
+      static lerp(color1, color2, fraction) {
+        if (fraction < 0) {
+          return new ArgbColor2((0, utils_js_1.lerp)(color2.a, color1.a, -fraction), (0, utils_js_1.lerp)(color2.r, color1.r, -fraction), (0, utils_js_1.lerp)(color2.g, color1.g, -fraction), (0, utils_js_1.lerp)(color2.b, color1.b, -fraction));
         } else {
-          return new ArgbColor2(lerp(color1.a, color2.a, factor), lerp(color1.r, color2.r, factor), lerp(color1.g, color2.g, factor), lerp(color1.b, color2.b, factor));
+          return new ArgbColor2((0, utils_js_1.lerp)(color1.a, color2.a, fraction), (0, utils_js_1.lerp)(color1.r, color2.r, fraction), (0, utils_js_1.lerp)(color1.g, color2.g, fraction), (0, utils_js_1.lerp)(color1.b, color2.b, fraction));
         }
       }
     };
@@ -1263,9 +1293,9 @@ var require_ce_function = __commonJS({
     exports.CeFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var argb_color_js_1 = require_argb_color();
-    var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+    var utils_js_1 = require_utils();
     var simpleModes = {
-      invert: (color) => color.invert(),
+      invert: (color) => color.invertRGB(),
       comp: (color) => color.shiftHue(180),
       contrast: (color) => {
         const threshold = 149;
@@ -1305,7 +1335,7 @@ var require_ce_function = __commonJS({
                 let amountText = args.length < 3 ? "" : args[2].text.trim().toLowerCase();
                 if (/^.-?\d+\.?\d*$|^.-?\.\d+$/.test(amountText)) {
                   let amountMode = amountText[0] === "a" ? "a" : amountText[0] === "r" ? "r" : "s";
-                  let amountValue = Number(amountText.substring(1));
+                  let amountValue = Math.trunc(Number(amountText.substring(1)));
                   if (amountValue < 0)
                     return new kodeine_js_1.KodeValue(color.toARGBString(), call.source);
                   else
@@ -1315,17 +1345,17 @@ var require_ce_function = __commonJS({
                 }
               }
             } else {
-              let amountValue;
+              let percentageValue;
               if (args.length < 3) {
-                amountValue = 0;
+                percentageValue = 0;
               } else if (args[2].isNumeric) {
-                amountValue = args[2].numericValue;
+                percentageValue = args[2].numericValue;
               } else if (/^.-?\d+\.?\d*$|^.-?\.\d+$/.test(args[2].text)) {
-                amountValue = Number(args[2].text.substring(1));
+                percentageValue = Number(args[2].text.substring(1));
               } else {
                 throw new kodeine_js_1.InvalidArgumentError(`ce(${mode})`, "amount", 2, call.args[2], args[2], "The amount should be a number optionally preceded by one letter (a or r).");
               }
-              return new kodeine_js_1.KodeValue(argb_color_js_1.ArgbColor.mix(color, argb_color_js_1.ArgbColor.parse(args[1].text), clamp(amountValue, -100, 100) / 100).toARGBString(), call.source);
+              return new kodeine_js_1.KodeValue(argb_color_js_1.ArgbColor.lerp(color, argb_color_js_1.ArgbColor.parse(args[1].text), (0, utils_js_1.clamp)(percentageValue, -100, 100) / 100).toARGBString(), call.source);
             }
           }
         }
@@ -1343,7 +1373,7 @@ var require_cm_function = __commonJS({
     exports.CmFunction = void 0;
     var kodeine_js_1 = require_kodeine();
     var argb_color_js_1 = require_argb_color();
-    var clamp = (value, min, max) => value < min ? min : value > max ? max : value;
+    var utils_js_1 = require_utils();
     var CmFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
         return "cm";
@@ -1351,7 +1381,7 @@ var require_cm_function = __commonJS({
       call(evalCtx2, call, args) {
         const checkNumeric = (index, argNames, max = 255) => {
           if (args[index].isNumeric)
-            return clamp(Math.round(args[index].numericValue), 0, max);
+            return (0, utils_js_1.clamp)(Math.round(args[index].numericValue), 0, max);
           else
             throw new kodeine_js_1.InvalidArgumentError("cm()", argNames[index], index, call.args[index], args[index], "Argument must be numeric.");
         };
@@ -1361,10 +1391,10 @@ var require_cm_function = __commonJS({
         } else if (args.length > 5) {
           throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected at most 5 arguments.");
         } else if (args.length === 3) {
-          let argNames = ["r", "g", "b"];
+          const argNames = ["r", "g", "b"];
           color = new argb_color_js_1.ArgbColor(255, checkNumeric(0, argNames), checkNumeric(1, argNames), checkNumeric(2, argNames));
         } else if (args.length === 4 || args[4].text !== "h") {
-          let argNames = ["a", "r", "g", "b"];
+          const argNames = ["a", "r", "g", "b"];
           color = new argb_color_js_1.ArgbColor(checkNumeric(0, argNames), checkNumeric(1, argNames), checkNumeric(2, argNames), checkNumeric(3, argNames));
         } else {
           let argNames = ["a", "h", "s", "v"];
@@ -1517,19 +1547,55 @@ var require_df_function = __commonJS({
     var kustom_date_helper_js_1 = require_kustom_date_helper();
     var number_to_text_converter_js_1 = require_number_to_text_converter();
     var text_capitalizer_js_1 = require_text_capitalizer();
-    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    var utils_js_1 = require_utils();
+    var weekdaysFull = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     var weekdaysAbbrev = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     var monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     var monthsAbbrev = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    function daysIntoYear(date) {
-      return (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(date.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1e3;
-    }
-    function pad(source, targetLength) {
-      const sourceString = source.toString();
-      if (sourceString.length >= targetLength)
-        return sourceString;
-      else
-        return "0".repeat(targetLength - sourceString.length) + sourceString;
+    function format(date, format2, simpleTokens, multiTokens) {
+      let output = "";
+      let i = 0;
+      let consume = () => format2[i++];
+      let peek = () => format2[i];
+      let eof = () => i >= format2.length;
+      while (!eof()) {
+        let char = consume();
+        if (char === "'") {
+          if (eof()) {
+            break;
+          } else {
+            let nextChar = consume();
+            if (nextChar === "'") {
+              output += "'";
+            } else {
+              output += nextChar;
+              while (!eof() && peek() !== "'") {
+                output += consume();
+              }
+              if (!eof()) {
+                consume();
+              }
+            }
+          }
+        } else {
+          let simpleFunc = simpleTokens[char];
+          if (simpleFunc) {
+            output += simpleFunc(date);
+          } else {
+            let mutliFunc = multiTokens[char];
+            if (mutliFunc) {
+              let buffer = char;
+              while (!eof() && peek() === char) {
+                buffer += consume();
+              }
+              output += mutliFunc(date, buffer);
+            } else {
+              output += char;
+            }
+          }
+        }
+      }
+      return output;
     }
     var DfFunction2 = class extends kodeine_js_1.IKodeFunction {
       getName() {
@@ -1593,93 +1659,48 @@ var require_df_function = __commonJS({
           }
         };
         const multiTokens = {
-          "H": (date, match) => pad(date.getHours(), match.length),
+          "H": (date, match) => (0, utils_js_1.padWithZeros)(date.getHours(), match.length),
           "h": (date, match) => {
             if (resolveClockMode() == "12h")
-              return pad(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
+              return (0, utils_js_1.padWithZeros)(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12, match.length);
             else
-              return pad(date.getHours(), match.length);
+              return (0, utils_js_1.padWithZeros)(date.getHours(), match.length);
           },
-          "m": (date, match) => pad(date.getMinutes(), match.length),
-          "s": (date, match) => pad(date.getSeconds(), match.length),
+          "m": (date, match) => (0, utils_js_1.padWithZeros)(date.getMinutes(), match.length),
+          "s": (date, match) => (0, utils_js_1.padWithZeros)(date.getSeconds(), match.length),
           "a": (date, match) => resolveClockMode() === "24h" ? "" : date.getHours() < 12 ? "am" : "pm",
           "A": (date, match) => date.getHours() < 12 ? "am" : "pm",
           "k": (date, match) => {
             if (resolveClockMode() == "12h")
-              return pad(date.getHours() % 12, match.length);
+              return (0, utils_js_1.padWithZeros)(date.getHours() % 12, match.length);
             else
-              return pad(date.getHours() === 0 ? 24 : date.getHours(), match.length);
+              return (0, utils_js_1.padWithZeros)(date.getHours() === 0 ? 24 : date.getHours(), match.length);
           },
-          "d": (date, match) => pad(date.getDate(), match.length),
-          "D": (date, match) => pad(daysIntoYear(date), match.length),
+          "d": (date, match) => (0, utils_js_1.padWithZeros)(date.getDate(), match.length),
+          "D": (date, match) => (0, utils_js_1.padWithZeros)((0, utils_js_1.daysIntoYear)(date), match.length),
           "M": (date, match) => {
             if (match.length < 3)
-              return pad(date.getMonth() + 1, match.length);
+              return (0, utils_js_1.padWithZeros)(date.getMonth() + 1, match.length);
             else if (match.length === 3)
               return monthsAbbrev[date.getMonth()];
             else
               return monthsFull[date.getMonth()];
           },
-          "y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : pad(date.getFullYear(), match.length),
+          "y": (date, match) => match.length == 2 ? date.getFullYear().toString().substring(2) : (0, utils_js_1.padWithZeros)(date.getFullYear(), match.length),
           "Y": (date, match) => multiTokens["y"](date, match),
-          "E": (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdays)[date.getDay()],
+          "E": (date, match) => (match.length < 4 ? weekdaysAbbrev : weekdaysFull)[date.getDay()],
           "z": (date, match) => "NOT IMPLEMENTED"
         };
-        const format = (date, format2) => {
-          let output = "";
-          let i = 0;
-          let consume = () => format2[i++];
-          let peek = () => format2[i];
-          let eof = () => i >= format2.length;
-          while (!eof()) {
-            let char = consume();
-            if (char === "'") {
-              if (eof()) {
-                break;
-              } else {
-                let nextChar = consume();
-                if (nextChar === "'") {
-                  output += "'";
-                } else {
-                  output += nextChar;
-                  while (!eof() && peek() !== "'") {
-                    output += consume();
-                  }
-                  if (!eof()) {
-                    consume();
-                  }
-                }
-              }
-            } else {
-              let simpleFunc = simpleTokens[char];
-              if (simpleFunc) {
-                output += simpleFunc(date);
-              } else {
-                let mutliFunc = multiTokens[char];
-                if (mutliFunc) {
-                  let buffer = char;
-                  while (!eof() && peek() === char) {
-                    buffer += consume();
-                  }
-                  output += mutliFunc(date, buffer);
-                } else {
-                  output += char;
-                }
-              }
-            }
-          }
-          return output;
-        };
-        let now;
+        let dateToFormat;
         if (args.length === 1)
-          now = evalCtx2.getNow();
+          dateToFormat = evalCtx2.getNow();
         else if (args[0].isDate)
-          now = args[0].dateValue;
+          dateToFormat = args[0].dateValue;
         else if (args[0].isNumeric)
-          now = new Date(args[0].numericValue * 1e3);
+          dateToFormat = new Date(args[0].numericValue * 1e3);
         else
-          now = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
-        return new kodeine_js_1.KodeValue(format(now, args[0].text), call.source);
+          dateToFormat = kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[1].text);
+        return new kodeine_js_1.KodeValue(format(dateToFormat, args[0].text, simpleTokens, multiTokens), call.source);
       }
     };
     exports.DfFunction = DfFunction2;
@@ -4731,8 +4752,7 @@ var require_tf_function = __commonJS({
           let date = args[0].isDate ? args[0].dateValue : kustom_date_helper_js_1.KustomDateHelper.parseKustomDateString(evalCtx2.getNow(), args[0].text);
           let timespan = new timespan_js_1.TimeSpan(Math.trunc((date.valueOf() - evalCtx2.getNow().valueOf()) / 1e3));
           if (args.length === 2) {
-            let format = args[1].text;
-            return new kodeine_js_1.KodeValue(timespan.format(format), call.source);
+            return new kodeine_js_1.KodeValue(timespan.format(args[1].text), call.source);
           } else {
             return new kodeine_js_1.KodeValue(timespan.prettyPrintRelative(), call.source);
           }
@@ -4740,8 +4760,7 @@ var require_tf_function = __commonJS({
           let duration = args[0].numericValue;
           let timespan = new timespan_js_1.TimeSpan(duration);
           if (args.length === 2) {
-            let format = args[1].text;
-            return new kodeine_js_1.KodeValue(timespan.format(format), call.source);
+            return new kodeine_js_1.KodeValue(timespan.format(args[1].text), call.source);
           } else {
             return new kodeine_js_1.KodeValue(timespan.prettyPrintAbsolute(), call.source);
           }
@@ -5412,38 +5431,38 @@ var init_kustom_date_helper = __esm({
         toKustomDateString: (date) => {
           return `${padYear(date.getFullYear())}y${pad2(date.getMonth() + 1)}M${pad2(date.getDate())}d${pad2(date.getHours())}h${pad2(date.getMinutes())}m${pad2(date.getSeconds())}s`;
         },
-        parseKustomDateString: (now, kustomDateString) => {
+        parseKustomDateString: (date, kustomDateString) => {
           let getMonthDayCount = (year, month) => new Date(year, month + 1, 0).getDate();
           let handlers = {
             y: {
               canSet: (val) => true,
-              set: (val) => now = new Date(val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds()),
-              add: (val) => now = new Date(now.getFullYear() + val, now.getMonth(), Math.min(now.getDate(), getMonthDayCount(val, now.getMonth())), now.getHours(), now.getMinutes(), now.getSeconds())
+              set: (val) => date = new Date(val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date = new Date(date.getFullYear() + val, date.getMonth(), Math.min(date.getDate(), getMonthDayCount(val, date.getMonth())), date.getHours(), date.getMinutes(), date.getSeconds())
             },
             M: {
               canSet: (val) => val >= 1 && val <= 12,
-              set: (val) => now = new Date(now.getFullYear(), val - 1, Math.min(now.getDate(), getMonthDayCount(now.getFullYear(), val - 1)), now.getHours(), now.getMinutes(), now.getSeconds()),
-              add: (val) => now = new Date(now.getFullYear() + Math.trunc(val / 12), now.getMonth() + val % 12, Math.min(now.getDate(), getMonthDayCount(val, now.getMonth() + val % 12)), now.getHours(), now.getMinutes(), now.getSeconds())
+              set: (val) => date = new Date(date.getFullYear(), val - 1, Math.min(date.getDate(), getMonthDayCount(date.getFullYear(), val - 1)), date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date = new Date(date.getFullYear() + Math.trunc(val / 12), date.getMonth() + val % 12, Math.min(date.getDate(), getMonthDayCount(val, date.getMonth() + val % 12)), date.getHours(), date.getMinutes(), date.getSeconds())
             },
             d: {
-              canSet: (val) => val >= 1 && val <= getMonthDayCount(now.getFullYear(), now.getMonth()),
-              set: (val) => now = new Date(now.getFullYear(), now.getMonth(), val, now.getHours(), now.getMinutes(), now.getSeconds()),
-              add: (val) => now.setDate(now.getDate() + val)
+              canSet: (val) => val >= 1 && val <= getMonthDayCount(date.getFullYear(), date.getMonth()),
+              set: (val) => date = new Date(date.getFullYear(), date.getMonth(), val, date.getHours(), date.getMinutes(), date.getSeconds()),
+              add: (val) => date.setDate(date.getDate() + val)
             },
             h: {
               canSet: (val) => val >= 0 && val < 24,
-              set: (val) => now.setHours(val),
-              add: (val) => now.setHours(now.getHours() + val)
+              set: (val) => date.setHours(val),
+              add: (val) => date.setHours(date.getHours() + val)
             },
             m: {
               canSet: (val) => val >= 0 && val < 60,
-              set: (val) => now.setMinutes(val),
-              add: (val) => now.setMinutes(now.getMinutes() + val)
+              set: (val) => date.setMinutes(val),
+              add: (val) => date.setMinutes(date.getMinutes() + val)
             },
             s: {
               canSet: (val) => val >= 0 && val < 60,
-              set: (val) => now.setSeconds(val),
-              add: (val) => now.setSeconds(now.getSeconds() + val)
+              set: (val) => date.setSeconds(val),
+              add: (val) => date.setSeconds(date.getSeconds() + val)
             }
           };
           let state = null;
@@ -5468,7 +5487,7 @@ var init_kustom_date_helper = __esm({
               numberBuffer = 0;
             }
           }
-          return now;
+          return date;
         }
       };
     })();
@@ -5542,9 +5561,16 @@ var init_unimplemented_functions = __esm({
   }
 });
 
+// engine/src/evaluation/implementations/helpers/utils.ts
+var init_utils = __esm({
+  "engine/src/evaluation/implementations/helpers/utils.ts"() {
+  }
+});
+
 // engine/src/evaluation/implementations/helpers/argb-color.ts
 var init_argb_color = __esm({
   "engine/src/evaluation/implementations/helpers/argb-color.ts"() {
+    init_utils();
   }
 });
 
@@ -5553,6 +5579,7 @@ var init_ce_function = __esm({
   "engine/src/evaluation/implementations/functions/ce-function.ts"() {
     init_kodeine();
     init_argb_color();
+    init_utils();
   }
 });
 
@@ -5561,6 +5588,7 @@ var init_cm_function = __esm({
   "engine/src/evaluation/implementations/functions/cm-function.ts"() {
     init_kodeine();
     init_argb_color();
+    init_utils();
   }
 });
 
@@ -5697,6 +5725,7 @@ var init_df_function = __esm({
     init_kustom_date_helper();
     init_number_to_text_converter();
     init_text_capitalizer();
+    init_utils();
   }
 });
 
