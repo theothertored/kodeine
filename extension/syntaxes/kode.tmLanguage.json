@@ -45,17 +45,17 @@
 				}
 			}
 		},
-		"unquoted-string": {
-			"name": "string.unquoted.kode",
-			"match": "(?<=^\\s*|[\\^*/%+\\-=!<>~|&$(),]\\s*)[^\"\\s]+?([^\\^*/%+\\-=!<>~|&$(),\"]+)*?(?=\\s*[\\^*/%+\\-=!<>~|&$(),\"]|\\s*\\S+\\s*\\(|\\s*$)"
+		"numeric-literal": {
+			"name": "constant.numeric.kode",
+			"match": "(?<=^|[\\^*/%+\\-=!<>~|&$(),])(?:\\s*)(\\d+\\.?\\d*|\\.\\d+)(?=\\s*[\\^*/%+\\-=!<>~|&$(),\"]|\\s*\\S+\\s*\\(|\\s*$)"
 		},
 		"problematic-char": {
 			"name": "constant.character.kode",
 			"match": "[!~](?!=)"
 		},
-		"numeric-literal": {
-			"name": "constant.numeric.kode",
-			"match": "(?<=^\\s*|[\\^*/%+\\-=!<>~|&$(),]\\s*)(\\d+\\.?\\d*|\\.\\d+)(?=\\s*[\\^*/%+\\-=!<>~|&$(),\"]|\\s*\\S+\\s*\\(|\\s*$)"
+		"unquoted-string": {
+			"name": "string.unquoted.kode",
+			"match": "(?<=^|[\\^*/%+\\-=!<>~|&$(),])[^\\^*/%+\\-=!<>~|&$(),\"]+(?=\\s*[\\^*/%+\\-=!<>~|&$(),\"]|\\s*\\S+\\s*\\(|\\s*$)"
 		},
 		"operator": {
 			"name": "keyword.operator.kode",

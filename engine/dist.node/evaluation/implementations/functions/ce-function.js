@@ -12,7 +12,7 @@ const simpleModes = {
         const threshold = 149;
         // calculate fast perceived luminance
         const lum = (0.299 * color.r + 0.587 * color.g + 0.114 * color.b);
-        if (lum < threshold)
+        if (lum <= threshold)
             // color is considered dark, return white
             return new argb_color_js_1.ArgbColor(255, 255, 255, 255);
         else
