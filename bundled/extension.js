@@ -1827,10 +1827,10 @@ var require_fl_function = __commonJS({
           }
         }
         parsingCtx2.sideEffects.errors.forEach((err) => {
-          evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
+          evalCtx2.sideEffects.errors.push(new FlParsingError(call.args[3], false, err));
         });
         parsingCtx2.sideEffects.warnings.forEach((warn) => {
-          evalCtx2.sideEffects.warnings.push(new FlParsingWarning(call.args[2], true, warn));
+          evalCtx2.sideEffects.warnings.push(new FlParsingWarning(call.args[3], false, warn));
         });
         let eqOperator = parsingCtx2.findBinaryOperator("=");
         if (eqOperator === null) {

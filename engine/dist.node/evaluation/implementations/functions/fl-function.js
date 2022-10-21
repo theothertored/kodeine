@@ -114,11 +114,11 @@ class FlFunction extends kodeine_js_1.IKodeFunction {
         }
         // pass errors to parent evalCtx
         parsingCtx.sideEffects.errors.forEach(err => {
-            evalCtx.sideEffects.errors.push(new FlParsingError(call.args[2], true, err));
+            evalCtx.sideEffects.errors.push(new FlParsingError(call.args[3], false, err));
         });
         // pass warnings to parent evalCtx
         parsingCtx.sideEffects.warnings.forEach(warn => {
-            evalCtx.sideEffects.warnings.push(new FlParsingWarning(call.args[2], true, warn));
+            evalCtx.sideEffects.warnings.push(new FlParsingWarning(call.args[3], false, warn));
         });
         // not the cleanest way to get an equality operator implementation
         let eqOperator = parsingCtx.findBinaryOperator('=');
