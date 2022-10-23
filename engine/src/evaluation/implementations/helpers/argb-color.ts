@@ -172,34 +172,30 @@ export class ArgbColor {
     /** Parses a given ARGB hex string into an {@link ArgbColor}. */
     static parse(hexString: string): ArgbColor {
 
-        try {
+            // Remove # and spaces from the hex string.
+            let treatedHexString = hexString.replace(/ |#/g, '');
 
-            // Remove #, spaces and everything that is not a letter or number from the hex string.
-            hexString = hexString.replace(/ |#|[^a-zA-Z0-9]/g, '');
-
-            if (hexString.length === 6) {
+            if (treatedHexString.length === 6) {
 
                 // RRGGBB
-                let r = parseHexOrThrow(hexString.substring(0, 2));
-                let g = parseHexOrThrow(hexString.substring(2, 4));
-                let b = parseHexOrThrow(hexString.substring(4, 6));
+                let r = parseHexOrThrow(treatedHexString.substring(0, 2));
+                let g = parseHexOrThrow(treatedHexString.substring(2, 4));
+                let b = parseHexOrThrow(treatedHexString.substring(4, 6));
                 return new ArgbColor(255, r, g, b);
 
-            } else if (hexString.length === 8) {
+            } else if (treatedHexString.length === 8) {
 
                 // AARRGGBB
-                let a = parseHexOrThrow(hexString.substring(0, 2));
-                let r = parseHexOrThrow(hexString.substring(2, 4));
-                let g = parseHexOrThrow(hexString.substring(4, 6));
-                let b = parseHexOrThrow(hexString.substring(6, 8));
+                let a = parseHexOrThrow(treatedHexString.substring(0, 2));
+                let r = parseHexOrThrow(treatedHexString.substring(2, 4));
+                let g = parseHexOrThrow(treatedHexString.substring(4, 6));
+                let b = parseHexOrThrow(treatedHexString.substring(6, 8));
                 return new ArgbColor(255, r, g, b);
 
+            } else {
+                // invalid format
+                throw new Error(`Value ${hexString} could not be parsed as a color.`);
             }
-
-        } catch { }
-
-        // if we got here, something about the hex string is invalid
-        return ArgbColor.default();
 
     }
 

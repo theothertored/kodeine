@@ -1256,23 +1256,21 @@ var require_argb_color = __commonJS({
         return new ArgbColor2(a, ...(0, utils_js_1.hsv2rgb)(h, s, v));
       }
       static parse(hexString) {
-        try {
-          hexString = hexString.replace(/ |#|[^a-zA-Z0-9]/g, "");
-          if (hexString.length === 6) {
-            let r = parseHexOrThrow(hexString.substring(0, 2));
-            let g = parseHexOrThrow(hexString.substring(2, 4));
-            let b = parseHexOrThrow(hexString.substring(4, 6));
-            return new ArgbColor2(255, r, g, b);
-          } else if (hexString.length === 8) {
-            let a = parseHexOrThrow(hexString.substring(0, 2));
-            let r = parseHexOrThrow(hexString.substring(2, 4));
-            let g = parseHexOrThrow(hexString.substring(4, 6));
-            let b = parseHexOrThrow(hexString.substring(6, 8));
-            return new ArgbColor2(255, r, g, b);
-          }
-        } catch (e) {
+        let treatedHexString = hexString.replace(/ |#/g, "");
+        if (treatedHexString.length === 6) {
+          let r = parseHexOrThrow(treatedHexString.substring(0, 2));
+          let g = parseHexOrThrow(treatedHexString.substring(2, 4));
+          let b = parseHexOrThrow(treatedHexString.substring(4, 6));
+          return new ArgbColor2(255, r, g, b);
+        } else if (treatedHexString.length === 8) {
+          let a = parseHexOrThrow(treatedHexString.substring(0, 2));
+          let r = parseHexOrThrow(treatedHexString.substring(2, 4));
+          let g = parseHexOrThrow(treatedHexString.substring(4, 6));
+          let b = parseHexOrThrow(treatedHexString.substring(6, 8));
+          return new ArgbColor2(255, r, g, b);
+        } else {
+          throw new Error(`Value ${hexString} could not be parsed as a color.`);
         }
-        return ArgbColor2.default();
       }
       static default() {
         return new ArgbColor2(0, 0, 0, 0);
@@ -1325,7 +1323,13 @@ var require_ce_function = __commonJS({
         } else if (args.length > 3) {
           throw new kodeine_js_1.InvalidArgumentCountError(call, "Expected at most three arguments.");
         } else {
-          let color = argb_color_js_1.ArgbColor.parse(args[0].text);
+          let color;
+          try {
+            color = argb_color_js_1.ArgbColor.parse(args[0].text);
+          } catch (e) {
+            color = new argb_color_js_1.ArgbColor(0, 0, 0, 0);
+            evalCtx2.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(call.args[0], `Failed to parse "${args[0].text}" as color. Using default color (${color.toARGBString()}).`));
+          }
           let mode = args[1].text;
           let simpleModeImplementation = simpleModes[mode];
           if (simpleModeImplementation) {
@@ -1359,7 +1363,14 @@ var require_ce_function = __commonJS({
               } else {
                 throw new kodeine_js_1.InvalidArgumentError(`ce(${mode})`, "amount", 2, call.args[2], args[2], "The amount should be a number optionally preceded by one letter (a or r).");
               }
-              return new kodeine_js_1.KodeValue(argb_color_js_1.ArgbColor.lerp(color, argb_color_js_1.ArgbColor.parse(args[1].text), (0, utils_js_1.clamp)(percentageValue, -100, 100) / 100).toARGBString(), call.source);
+              let color2;
+              try {
+                color2 = argb_color_js_1.ArgbColor.parse(args[1].text);
+              } catch (e) {
+                color2 = new argb_color_js_1.ArgbColor(0, 0, 0, 0);
+                evalCtx2.sideEffects.warnings.push(new kodeine_js_1.EvaluationWarning(call.args[1], `Failed to parse "${args[1].text}" as color. Using default color (${color2.toARGBString()}).`));
+              }
+              return new kodeine_js_1.KodeValue(argb_color_js_1.ArgbColor.lerp(color, color2, (0, utils_js_1.clamp)(percentageValue, -100, 100) / 100).toARGBString(), call.source);
             }
           }
         }

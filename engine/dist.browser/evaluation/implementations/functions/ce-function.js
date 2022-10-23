@@ -1,4 +1,4 @@
-import { KodeValue, IKodeFunction, InvalidArgumentCountError, InvalidArgumentError } from "../../../kodeine.js";
+import { KodeValue, IKodeFunction, EvaluationWarning, InvalidArgumentCountError, InvalidArgumentError } from "../../../kodeine.js";
 import { ArgbColor } from "../helpers/argb-color.js";
 import { clamp } from "../helpers/utils.js";
 /** An object containing implementations of all simple `ce()` modes. */
@@ -46,7 +46,14 @@ export class CeFunction extends IKodeFunction {
         else {
             // got 2 or 3 arguments
             // the first argument is always interpreted as a color, if it can't be parsed, the default is transparent black (#00000000)
-            let color = ArgbColor.parse(args[0].text);
+            let color;
+            try {
+                color = ArgbColor.parse(args[0].text);
+            }
+            catch (_a) {
+                color = new ArgbColor(0, 0, 0, 0);
+                evalCtx.sideEffects.warnings.push(new EvaluationWarning(call.args[0], `Failed to parse "${args[0].text}" as color. Using default color (${color.toARGBString()}).`));
+            }
             let mode = args[1].text;
             // try to get a simple mode implementation
             let simpleModeImplementation = simpleModes[mode];
@@ -107,8 +114,16 @@ export class CeFunction extends IKodeFunction {
                         // percentage argument does not match the amount format
                         throw new InvalidArgumentError(`ce(${mode})`, 'amount', 2, call.args[2], args[2], 'The amount should be a number optionally preceded by one letter (a or r).');
                     }
+                    let color2;
+                    try {
+                        color2 = ArgbColor.parse(args[1].text);
+                    }
+                    catch (_b) {
+                        color2 = new ArgbColor(0, 0, 0, 0);
+                        evalCtx.sideEffects.warnings.push(new EvaluationWarning(call.args[1], `Failed to parse "${args[1].text}" as color. Using default color (${color2.toARGBString()}).`));
+                    }
                     // lineraly interpolate between given colors
-                    return new KodeValue(ArgbColor.lerp(color, ArgbColor.parse(args[1].text), clamp(percentageValue, -100, 100) / 100).toARGBString(), call.source);
+                    return new KodeValue(ArgbColor.lerp(color, color2, clamp(percentageValue, -100, 100) / 100).toARGBString(), call.source);
                 }
             }
         }

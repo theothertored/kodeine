@@ -2,6 +2,7 @@ import {
     KodeValue,
     IKodeFunction,
     EvaluationError,
+    EvaluationWarning,
     EvaluationContext,
     FunctionCall,
     InvalidArgumentCountError,
@@ -80,7 +81,16 @@ export class CeFunction extends IKodeFunction {
 
             // got 2 or 3 arguments
             // the first argument is always interpreted as a color, if it can't be parsed, the default is transparent black (#00000000)
-            let color = ArgbColor.parse(args[0].text);
+            let color: ArgbColor;
+
+            try {
+                color = ArgbColor.parse(args[0].text);
+            } catch {
+                color = new ArgbColor(0, 0, 0, 0);
+                evalCtx.sideEffects.warnings.push(new EvaluationWarning(call.args[0], `Failed to parse "${args[0].text}" as color. Using default color (${color.toARGBString()}).`));
+            }
+
+
             let mode = args[1].text;
 
             // try to get a simple mode implementation
@@ -103,8 +113,8 @@ export class CeFunction extends IKodeFunction {
                     if (args.length < 3 || args[2].isNumeric) {
 
                         // amount argument was not given or was given and is numeric
-                        // TODO: find out what happens when the 3rd argument is not given
-                        return new KodeValue(complexModeImplementation(color, 's', args.length < 3 ? 0 : args[2].numericValue).toARGBString(), call.source);
+                        // if the amount was not given, 100 is the default value
+                        return new KodeValue(complexModeImplementation(color, 's', args.length < 3 ? 100 : args[2].numericValue).toARGBString(), call.source);
 
                     } else {
 
@@ -167,8 +177,21 @@ export class CeFunction extends IKodeFunction {
 
                     }
 
+                    let color2: ArgbColor;
+                    try {
+                        color2 = ArgbColor.parse(args[1].text);
+                    } catch {
+                        color2 = new ArgbColor(0, 0, 0, 0);
+                        evalCtx.sideEffects.warnings.push(
+                            new EvaluationWarning(
+                                call.args[1],
+                                `Failed to parse "${args[1].text}" as color. Using default color (${color2.toARGBString()}).`
+                            )
+                        );
+                    }
+
                     // lineraly interpolate between given colors
-                    return new KodeValue(ArgbColor.lerp(color, ArgbColor.parse(args[1].text), clamp(percentageValue, -100, 100) / 100).toARGBString(), call.source);
+                    return new KodeValue(ArgbColor.lerp(color, color2, clamp(percentageValue, -100, 100) / 100).toARGBString(), call.source);
 
                 }
 
