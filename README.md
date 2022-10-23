@@ -66,7 +66,7 @@ When you set a file's language is set to `kode`, you should see syntax highlight
 
 ### Viewing live formula evaluation results
 
-Opening a file with its language set to `kode` should automatically bring up an output channel showing live evaluation result. You can always bring that output channel up easily using a command:
+Opening a file with its language set to `kode` should automatically bring up an output channel showing live evaluation results. You can always bring that output channel up easily using a command:
 
 1. Hit `Ctrl + Shift + P` to open the Command Palette.
 2. Type `Show formula` - a command called `Show formula result window` will come up. Hit `Enter`.
