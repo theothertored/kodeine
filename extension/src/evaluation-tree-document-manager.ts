@@ -18,14 +18,14 @@ export class EvaluationTreeDocumentManager {
 
     constructor(extCtx: vscode.ExtensionContext) {
 
-        this.initCommands(extCtx);
-        this.initEvalTreeView(extCtx);
-        this.initEvalStepsTextDocContentProvider(extCtx);
-        this.initEvents(extCtx);
+        this._initCommands(extCtx);
+        this._initEvalTreeView(extCtx);
+        this._initEvalStepsTextDocContentProvider(extCtx);
+        this._initEvents(extCtx);
 
     }
 
-    initCommands(extCtx: vscode.ExtensionContext) {
+    private _initCommands(extCtx: vscode.ExtensionContext) {
 
         // register commands from this._commands
         for (const commandName in this._commands) {
@@ -36,7 +36,7 @@ export class EvaluationTreeDocumentManager {
 
     }
 
-    initEvalTreeView(extCtx: vscode.ExtensionContext) {
+    private _initEvalTreeView(extCtx: vscode.ExtensionContext) {
 
         // register the formula tree view data provider
         extCtx.subscriptions.push(
@@ -45,7 +45,7 @@ export class EvaluationTreeDocumentManager {
 
     }
 
-    initEvalStepsTextDocContentProvider(extCtx: vscode.ExtensionContext) {
+    private _initEvalStepsTextDocContentProvider(extCtx: vscode.ExtensionContext) {
 
         extCtx.subscriptions.push(
             vscode.workspace.registerTextDocumentContentProvider(
@@ -56,10 +56,10 @@ export class EvaluationTreeDocumentManager {
 
     }
 
-    initEvents(extCtx: vscode.ExtensionContext) {
+    private _initEvents(extCtx: vscode.ExtensionContext) {
 
         extCtx.subscriptions.push(
-            vscode.workspace.onDidCloseTextDocument(doc => this.onDidCloseTextDocument(doc))
+            vscode.workspace.onDidCloseTextDocument(doc => this._onDidCloseTextDocument(doc))
         );
 
     }
@@ -67,7 +67,7 @@ export class EvaluationTreeDocumentManager {
 
     // EVENTS
 
-    onDidCloseTextDocument(doc: vscode.TextDocument): any {
+    private _onDidCloseTextDocument(doc: vscode.TextDocument): any {
 
         if (
             doc.languageId === 'kode'

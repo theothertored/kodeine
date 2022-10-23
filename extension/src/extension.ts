@@ -47,7 +47,6 @@ export function activate(extCtx: vscode.ExtensionContext) {
     diagColl = vscode.languages.createDiagnosticCollection('Formula diagnostics');
     extCtx.subscriptions.push(diagColl); // register it as disposable
 
-
     extCtx.subscriptions.push(
 
         // register commands
@@ -57,7 +56,8 @@ export function activate(extCtx: vscode.ExtensionContext) {
         vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)),
         vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)),
         vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)),
-        vscode.workspace.onDidChangeConfiguration(ev => onConfigurationChanged(ev))
+        vscode.workspace.onDidChangeConfiguration(ev => onConfigurationChanged(ev)),
+        vscode.workspace.onDidSaveTextDocument(doc => onSomethingDocumentRelated(doc))
 
     );
 
@@ -92,9 +92,7 @@ function onSomethingDocumentRelated(document?: vscode.TextDocument) {
         && document.languageId === 'kode'  // only evaluate kode documents
         && document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme // don't evaluate evaluation steps
     ) {
-
         evaluateToOutput(document);
-
     }
 }
 

@@ -195,5 +195,8 @@
     },
     "devDependencies": {
         "esbuild": "^0.14.38"
+    },
+    "dependencies": {
+        "@types/vscode": "^1.72.0"
     }
 }

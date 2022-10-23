@@ -1,10 +1,10 @@
 TODO:
-- auto-refresh formulas every second (for proper testing of anything that can change)
-- clean up df(), dp() and tf()
-- should changing globals change printed evaluation steps as well?
+- when a document linked to a global is changed, reevaluate open evaluation steps
 - design an eval ctx editor to prepare for remaining function implementations
 
 MAYBE IN THE FUTURE:
+- clean up df(), dp() and tf() (not sure why I added this to the todo)
+- auto-refresh formulas every second
 - implement global lists
 - implement the scientific notation bug accurately
 - find a way to implement float -> string conversion in a properly weird way
@@ -21,6 +21,7 @@ MAYBE IN THE FUTURE:
 - find a way to not match leading whitespace into unquoted string and numeric literals
 
 DONE:
+- re-evaluate formula on save (works even without any new changes)
 - find out what happens when the amount argument isn't given for complex ce() modes (100 is used as a default value)
 - add a warning when a colour could not be parsed and default is used
 - stop ARGB colour parsing from tolerating invalid characters

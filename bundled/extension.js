@@ -9203,26 +9203,26 @@ var _EvaluationTreeDocumentManager = class {
         }
       }
     };
-    this.initCommands(extCtx);
-    this.initEvalTreeView(extCtx);
-    this.initEvalStepsTextDocContentProvider(extCtx);
-    this.initEvents(extCtx);
+    this._initCommands(extCtx);
+    this._initEvalTreeView(extCtx);
+    this._initEvalStepsTextDocContentProvider(extCtx);
+    this._initEvents(extCtx);
   }
-  initCommands(extCtx) {
+  _initCommands(extCtx) {
     for (const commandName in this._commands) {
       extCtx.subscriptions.push(vscode3.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
     }
   }
-  initEvalTreeView(extCtx) {
+  _initEvalTreeView(extCtx) {
     extCtx.subscriptions.push(vscode3.window.registerTreeDataProvider(_EvaluationTreeDocumentManager.evalTreeViewId, this._evalTreeDataProvider));
   }
-  initEvalStepsTextDocContentProvider(extCtx) {
+  _initEvalStepsTextDocContentProvider(extCtx) {
     extCtx.subscriptions.push(vscode3.workspace.registerTextDocumentContentProvider(EvaluationStepsTextDocumentContentProvider.scheme, this._evalStepsTextDocContentProvider));
   }
-  initEvents(extCtx) {
-    extCtx.subscriptions.push(vscode3.workspace.onDidCloseTextDocument((doc) => this.onDidCloseTextDocument(doc)));
+  _initEvents(extCtx) {
+    extCtx.subscriptions.push(vscode3.workspace.onDidCloseTextDocument((doc) => this._onDidCloseTextDocument(doc)));
   }
-  onDidCloseTextDocument(doc) {
+  _onDidCloseTextDocument(doc) {
     if (doc.languageId === "kode" && doc.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme) {
       this.removeEvaluationTreeFor(doc);
     }
@@ -9559,7 +9559,7 @@ function activate(extCtx) {
   outChannel.show(true);
   diagColl = vscode6.languages.createDiagnosticCollection("Formula diagnostics");
   extCtx.subscriptions.push(diagColl);
-  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode6.workspace.onDidChangeConfiguration((ev) => onConfigurationChanged(ev)));
+  extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode6.window.onDidChangeActiveTextEditor((ev) => onSomethingDocumentRelated(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => onSomethingDocumentRelated(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => onSomethingDocumentRelated(doc)), vscode6.workspace.onDidChangeConfiguration((ev) => onConfigurationChanged(ev)), vscode6.workspace.onDidSaveTextDocument((doc) => onSomethingDocumentRelated(doc)));
   globalDocManager = new GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
   globalDocManager.onGlobalAdded((globalDocument) => evalCtx.globals.set(globalDocument.globalName, parser.parse(globalDocument.doc.getText())));
   globalDocManager.onGlobalRemoved((globalDocument) => evalCtx.globals.delete(globalDocument.globalName));

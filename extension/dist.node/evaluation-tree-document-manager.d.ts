@@ -11,11 +11,11 @@ export declare class EvaluationTreeDocumentManager {
     /** A {@link vscode.TextDocumentContentProvider} for displaying virtual documents with evaluation steps. */
     private readonly _evalStepsTextDocContentProvider;
     constructor(extCtx: vscode.ExtensionContext);
-    initCommands(extCtx: vscode.ExtensionContext): void;
-    initEvalTreeView(extCtx: vscode.ExtensionContext): void;
-    initEvalStepsTextDocContentProvider(extCtx: vscode.ExtensionContext): void;
-    initEvents(extCtx: vscode.ExtensionContext): void;
-    onDidCloseTextDocument(doc: vscode.TextDocument): any;
+    private _initCommands;
+    private _initEvalTreeView;
+    private _initEvalStepsTextDocContentProvider;
+    private _initEvents;
+    private _onDidCloseTextDocument;
     /**
      * Updates the evaluation tree for a given source document.
      * Also updates evaluation steps documents and the evaluation steps tree view.

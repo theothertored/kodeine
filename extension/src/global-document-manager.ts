@@ -50,20 +50,20 @@ export class GlobalDocumentManager {
         this._operatorSymbols = operatorSymbols;
         this._functionNames = functionNames;
 
-        this.initGlobalsMap(extCtx);
-        this.initCommands(extCtx);
-        this.initGlobalListUI(extCtx);
-        this.initEvents(extCtx);
+        this._initGlobalsMap(extCtx);
+        this._initCommands(extCtx);
+        this._initGlobalListUI(extCtx);
+        this._initEvents(extCtx);
 
     }
 
-    initGlobalsMap(extCtx: vscode.ExtensionContext) {
+    private _initGlobalsMap(extCtx: vscode.ExtensionContext) {
 
         // TODO: load globals from storage
 
     }
 
-    initCommands(extCtx: vscode.ExtensionContext) {
+    private _initCommands(extCtx: vscode.ExtensionContext) {
 
         // register commands from this._commands
         for (const commandName in this._commands) {
@@ -74,7 +74,7 @@ export class GlobalDocumentManager {
 
     }
 
-    initGlobalListUI(extCtx: vscode.ExtensionContext) {
+    private _initGlobalListUI(extCtx: vscode.ExtensionContext) {
 
         // load globals into the global tree data provider
         this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
@@ -85,16 +85,16 @@ export class GlobalDocumentManager {
 
     }
 
-    initEvents(extCtx: vscode.ExtensionContext) {
+    private _initEvents(extCtx: vscode.ExtensionContext) {
         extCtx.subscriptions.push(
-            vscode.workspace.onDidCloseTextDocument(doc => this.onDidCloseTextDocument(doc))
+            vscode.workspace.onDidCloseTextDocument(doc => this._onDidCloseTextDocument(doc))
         );
     }
 
 
     // EVENTS
 
-    onDidCloseTextDocument(doc: vscode.TextDocument): any {
+    private _onDidCloseTextDocument(doc: vscode.TextDocument): any {
 
         if (
             doc.isUntitled

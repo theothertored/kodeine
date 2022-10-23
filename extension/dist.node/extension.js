@@ -34,7 +34,7 @@ function activate(extCtx) {
     // register commands
     vscode.commands.registerCommand('kodeine.formulaResult', command_formulaResult), 
     // listen to document-related events
-    vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)), vscode.workspace.onDidChangeConfiguration(ev => onConfigurationChanged(ev)));
+    vscode.window.onDidChangeActiveTextEditor(ev => onSomethingDocumentRelated(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => onSomethingDocumentRelated(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => onSomethingDocumentRelated(doc)), vscode.workspace.onDidChangeConfiguration(ev => onConfigurationChanged(ev)), vscode.workspace.onDidSaveTextDocument(doc => onSomethingDocumentRelated(doc)));
     // initialize a global document manager to handle globals
     globalDocManager = new global_document_manager_js_1.GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
     // react to globals changing

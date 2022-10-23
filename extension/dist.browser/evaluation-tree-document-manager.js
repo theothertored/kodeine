@@ -30,29 +30,29 @@ class EvaluationTreeDocumentManager {
                 }
             }
         };
-        this.initCommands(extCtx);
-        this.initEvalTreeView(extCtx);
-        this.initEvalStepsTextDocContentProvider(extCtx);
-        this.initEvents(extCtx);
+        this._initCommands(extCtx);
+        this._initEvalTreeView(extCtx);
+        this._initEvalStepsTextDocContentProvider(extCtx);
+        this._initEvents(extCtx);
     }
-    initCommands(extCtx) {
+    _initCommands(extCtx) {
         // register commands from this._commands
         for (const commandName in this._commands) {
             extCtx.subscriptions.push(vscode.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
         }
     }
-    initEvalTreeView(extCtx) {
+    _initEvalTreeView(extCtx) {
         // register the formula tree view data provider
         extCtx.subscriptions.push(vscode.window.registerTreeDataProvider(EvaluationTreeDocumentManager.evalTreeViewId, this._evalTreeDataProvider));
     }
-    initEvalStepsTextDocContentProvider(extCtx) {
+    _initEvalStepsTextDocContentProvider(extCtx) {
         extCtx.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider.scheme, this._evalStepsTextDocContentProvider));
     }
-    initEvents(extCtx) {
-        extCtx.subscriptions.push(vscode.workspace.onDidCloseTextDocument(doc => this.onDidCloseTextDocument(doc)));
+    _initEvents(extCtx) {
+        extCtx.subscriptions.push(vscode.workspace.onDidCloseTextDocument(doc => this._onDidCloseTextDocument(doc)));
     }
     // EVENTS
-    onDidCloseTextDocument(doc) {
+    _onDidCloseTextDocument(doc) {
         if (doc.languageId === 'kode'
             && doc.uri.scheme === evaluation_steps_text_document_content_provider_js_1.EvaluationStepsTextDocumentContentProvider.scheme) {
             this.removeEvaluationTreeFor(doc);
