@@ -36,8 +36,13 @@ class FormulaDocumentEvaluationManager {
             this.reevaluateLastEvaluatedDocument();
             this.reevaluateDocumentsWithOpenEvaluationSteps();
         });
+        extCtx.subscriptions.push(
+        // register commands
+        vscode.commands.registerCommand('kodeine.reevaluateLastFormula', (...args) => {
+            this.reevaluateLastEvaluatedDocument();
+        }), 
         // listen to document-related events
-        extCtx.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(ev => this._reactToDocumentChange(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => this._reactToDocumentChange(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => this._reactToDocumentChange(doc)), vscode.workspace.onDidSaveTextDocument(doc => this._reactToDocumentChange(doc)));
+        vscode.window.onDidChangeActiveTextEditor(ev => this._reactToDocumentChange(ev?.document)), vscode.workspace.onDidChangeTextDocument(ev => this._reactToDocumentChange(ev.document)), vscode.workspace.onDidOpenTextDocument(doc => this._reactToDocumentChange(doc)), vscode.workspace.onDidSaveTextDocument(doc => this._reactToDocumentChange(doc)));
     }
     /** Should be called when a text document changes, is opened, is activated etc. */
     _reactToDocumentChange(document) {

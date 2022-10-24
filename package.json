@@ -107,6 +107,10 @@
                 "title": "Show formula result window"
             },
             {
+                "command": "kodeine.reevaluateLastFormula",
+                "title": "Reevaluate last formula"
+            },
+            {
                 "command": "kodeine.showEvaluationSteps",
                 "title": "Show formula evaluation steps beside active editor"
             },
@@ -185,6 +189,13 @@
             {
                 "view": "formulaEvaluationTree",
                 "contents": "No formula was parsed yet. Open a kode document to automatically parse it."
+            }
+        ],
+        "keybindings": [
+            {
+                "key": "F5",
+                "command": "kodeine.reevaluateLastFormula",
+                "when": "editorLangId == kode"
             }
         ]
     },

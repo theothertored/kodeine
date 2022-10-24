@@ -68,12 +68,19 @@ export class FormulaDocumentEvaluationManager {
             this.reevaluateDocumentsWithOpenEvaluationSteps();
         });
 
-        // listen to document-related events
         extCtx.subscriptions.push(
+            
+            // register commands
+            vscode.commands.registerCommand('kodeine.reevaluateLastFormula', (...args: any[]) => {
+                   this.reevaluateLastEvaluatedDocument();
+            }),
+            
+            // listen to document-related events
             vscode.window.onDidChangeActiveTextEditor(ev => this._reactToDocumentChange(ev?.document)),
             vscode.workspace.onDidChangeTextDocument(ev => this._reactToDocumentChange(ev.document)),
             vscode.workspace.onDidOpenTextDocument(doc => this._reactToDocumentChange(doc)),
             vscode.workspace.onDidSaveTextDocument(doc => this._reactToDocumentChange(doc))
+
         );
     }
 
@@ -319,6 +326,7 @@ export class FormulaDocumentEvaluationManager {
      * Should be called when something in the environment changes and the evaluation result could be affected (ex. globals).
      */
     public reevaluateDocumentsWithOpenEvaluationSteps() {
+
         vscode.workspace.textDocuments
             .filter(d => d.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme)
             .forEach(stepsDoc => {
@@ -327,5 +335,6 @@ export class FormulaDocumentEvaluationManager {
                     this._evaluate(sourceDoc, true);
                 });
             });
+
     }
 }

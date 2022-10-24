@@ -9587,7 +9587,9 @@ var FormulaDocumentEvaluationManager = class {
       this.reevaluateLastEvaluatedDocument();
       this.reevaluateDocumentsWithOpenEvaluationSteps();
     });
-    extCtx.subscriptions.push(vscode6.window.onDidChangeActiveTextEditor((ev) => this._reactToDocumentChange(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => this._reactToDocumentChange(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => this._reactToDocumentChange(doc)), vscode6.workspace.onDidSaveTextDocument((doc) => this._reactToDocumentChange(doc)));
+    extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.reevaluateLastFormula", (...args) => {
+      this.reevaluateLastEvaluatedDocument();
+    }), vscode6.window.onDidChangeActiveTextEditor((ev) => this._reactToDocumentChange(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => this._reactToDocumentChange(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => this._reactToDocumentChange(doc)), vscode6.workspace.onDidSaveTextDocument((doc) => this._reactToDocumentChange(doc)));
   }
   _reactToDocumentChange(document) {
     if (document && document.languageId === "kode" && document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
@@ -9723,14 +9725,14 @@ var evalTreeDocManager;
 var formulaDocEvalManager;
 function activate(extCtx) {
   var _a, _b;
-  parsingCtx = import_kodeine34.ParsingContextBuilder.buildDefault();
-  parser = new import_kodeine34.KodeineParser(parsingCtx);
-  evalCtx = new import_kodeine34.EvaluationContext();
-  evalCtx.buildEvaluationTree = true;
   outChannel = vscode7.window.createOutputChannel("Formula Result");
   outChannel.show(true);
   diagColl = vscode7.languages.createDiagnosticCollection("Formula Diagnostics");
   extCtx.subscriptions.push(outChannel, diagColl, vscode7.commands.registerCommand("kodeine.formulaResult", command_formulaResult), vscode7.workspace.onDidChangeConfiguration((ev) => onConfigurationChanged(ev)));
+  parsingCtx = import_kodeine34.ParsingContextBuilder.buildDefault();
+  parser = new import_kodeine34.KodeineParser(parsingCtx);
+  evalCtx = new import_kodeine34.EvaluationContext();
+  evalCtx.buildEvaluationTree = true;
   globalDocManager = new GlobalDocumentManager(extCtx, parsingCtx.getOperatorSymbolsLongestFirst(), parsingCtx.getFunctionNames());
   evalTreeDocManager = new EvaluationTreeDocumentManager(extCtx);
   formulaDocEvalManager = new FormulaDocumentEvaluationManager(extCtx, outChannel, diagColl, globalDocManager, evalTreeDocManager, parsingCtx, parser, evalCtx);
