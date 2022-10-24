@@ -15,34 +15,45 @@ import { EvaluationStepsTextDocumentContentProvider } from './evaluation-steps-t
 import { GlobalDocumentManager } from './global-document-manager.js';
 import { Utils } from './utils.js';
 
+/** Options for {@link FormulaDocumentEvaluationManager._evaluate}. */
+type DocumentEvaluationOptions = {
+    /** Set to true to parse the document even if a parsed formula is cached. */
+    forceReparse?: boolean,
+    /** Set to true to disable printing to output and disable dependent formula reevaluation for globals. */
+    silentMode?: boolean
+};
+
 /** Handles evaluating formula documents and the side effects of doing so. */
 export class FormulaDocumentEvaluationManager {
 
-    private readonly outChannel: vscode.OutputChannel;
-    private readonly diagColl: vscode.DiagnosticCollection;
-    private readonly globalDocManager: GlobalDocumentManager;
-    private readonly evalTreeDocManager: EvaluationTreeDocumentManager;
+    private readonly _outChannel: vscode.OutputChannel;
+    private readonly _diagColl: vscode.DiagnosticCollection;
+    private readonly _globalDocManager: GlobalDocumentManager;
+    private readonly _evalTreeDocManager: EvaluationTreeDocumentManager;
 
-    private readonly parsingCtx: ParsingContext;
-    private readonly parser: KodeineParser;
-    private readonly evalCtx: EvaluationContext;
+    private readonly _parsingCtx: ParsingContext;
+    private readonly _parser: KodeineParser;
+    private readonly _evalCtx: EvaluationContext;
 
-    private lastFormula: Formula | null = null;
-    private lastEvaluatedDoc: vscode.TextDocument | null = null;
+    private readonly _documentFormulaMap: Map<vscode.TextDocument, Formula>;
+
+    private _lastEvaluatedDoc: vscode.TextDocument | null = null;
 
     constructor(
         extCtx: vscode.ExtensionContext, outChannel: vscode.OutputChannel, diagColl: vscode.DiagnosticCollection,
         globalDocManager: GlobalDocumentManager, evalTreeDocManager: EvaluationTreeDocumentManager,
         parsingCtx: ParsingContext, parser: KodeineParser, evalCtx: EvaluationContext
     ) {
-        this.outChannel = outChannel;
-        this.diagColl = diagColl;
-        this.globalDocManager = globalDocManager;
-        this.evalTreeDocManager = evalTreeDocManager;
+        this._outChannel = outChannel;
+        this._diagColl = diagColl;
+        this._globalDocManager = globalDocManager;
+        this._evalTreeDocManager = evalTreeDocManager;
 
-        this.parsingCtx = parsingCtx;
-        this.parser = parser;
-        this.evalCtx = evalCtx;
+        this._parsingCtx = parsingCtx;
+        this._parser = parser;
+        this._evalCtx = evalCtx;
+
+        this._documentFormulaMap = new Map<vscode.TextDocument, Formula>();
 
         this._initEvents(extCtx);
     }
@@ -50,49 +61,50 @@ export class FormulaDocumentEvaluationManager {
     private _initEvents(extCtx: vscode.ExtensionContext) {
 
         // react to the global list changing
-        this.globalDocManager.onGlobalAdded(globalDocument => {
-            this.evalCtx.globals.set(globalDocument.globalName, this.parser.parse(globalDocument.doc.getText()))
+        this._globalDocManager.onGlobalAdded(globalDocument => {
+            this._evalCtx.globals.set(globalDocument.globalName, this._parser.parse(globalDocument.doc.getText()))
             this.reevaluateLastEvaluatedDocument();
             this.reevaluateDocumentsWithOpenEvaluationSteps();
         });
 
-        this.globalDocManager.onGlobalRemoved(globalDocument => {
-            this.evalCtx.globals.delete(globalDocument.globalName)
+        this._globalDocManager.onGlobalRemoved(globalDocument => {
+            this._evalCtx.globals.delete(globalDocument.globalName)
             this.reevaluateLastEvaluatedDocument();
             this.reevaluateDocumentsWithOpenEvaluationSteps();
         });
 
-        this.globalDocManager.onGlobalsCleared(() => {
-            this.evalCtx.globals.clear()
+        this._globalDocManager.onGlobalsCleared(() => {
+            this._evalCtx.globals.clear()
             this.reevaluateLastEvaluatedDocument();
             this.reevaluateDocumentsWithOpenEvaluationSteps();
         });
 
         extCtx.subscriptions.push(
-            
+
             // register commands
             vscode.commands.registerCommand('kodeine.reevaluateLastFormula', (...args: any[]) => {
-                   this.reevaluateLastEvaluatedDocument();
+                this.reevaluateLastEvaluatedDocument();
             }),
-            
+
             // listen to document-related events
             vscode.window.onDidChangeActiveTextEditor(ev => this._reactToDocumentChange(ev?.document)),
-            vscode.workspace.onDidChangeTextDocument(ev => this._reactToDocumentChange(ev.document)),
-            vscode.workspace.onDidOpenTextDocument(doc => this._reactToDocumentChange(doc)),
-            vscode.workspace.onDidSaveTextDocument(doc => this._reactToDocumentChange(doc))
+            vscode.workspace.onDidChangeTextDocument(ev => this._reactToDocumentChange(ev.document, true)),
+            vscode.workspace.onDidOpenTextDocument(doc => this._reactToDocumentChange(doc, true)),
+            vscode.workspace.onDidSaveTextDocument(doc => this._reactToDocumentChange(doc)),
+            vscode.workspace.onDidCloseTextDocument(doc => this._documentFormulaMap.delete(doc)) // clear cached formula on document close
 
         );
     }
 
     /** Should be called when a text document changes, is opened, is activated etc. */
-    private _reactToDocumentChange(document?: vscode.TextDocument) {
+    private _reactToDocumentChange(document?: vscode.TextDocument, forceReparse: boolean = false) {
 
         if (
             document
             && document.languageId === 'kode'  // only evaluate kode documents
             && document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme // don't evaluate evaluation steps
         ) {
-            this.evaluateToOutput(document);
+            this.evaluateToOutput(document, forceReparse);
         }
 
     }
@@ -101,61 +113,73 @@ export class FormulaDocumentEvaluationManager {
      * Evaluates a given kode document to the formula result output channel.
      * Also handles updating the evaluation tree, evaluation steps and dependent formulas.
      */
-    public evaluateToOutput(document: vscode.TextDocument) {
-        this._evaluate(document);
+    public evaluateToOutput(document: vscode.TextDocument, forceReparse: boolean = false) {
+        this._evaluate(document, { forceReparse });
     }
 
     /** Reevaluates the most recently evaluated document, if exists. */
     public reevaluateLastEvaluatedDocument() {
-        if (this.lastEvaluatedDoc)
-            this._evaluate(this.lastEvaluatedDoc);
+        if (this._lastEvaluatedDoc)
+            this._evaluate(this._lastEvaluatedDoc);
     }
 
     /**
      * Internal implementation for evaluating a document.
-     * @param silentMode Setting to true disables printing to output and updating dependent formulas.
+     * @param forceReparse Set to true to reparse the formula, even if cached.
+     * @param silentMode Set to true to disable printing to output and updating dependent formulas.
      */
-    private _evaluate(document: vscode.TextDocument, silentMode: boolean = false) {
+    private _evaluate(document: vscode.TextDocument, options?: DocumentEvaluationOptions) {
 
         try {
 
-            // create a list of diagnostics (warnings, errors etc.) that will replace the current list for the evaluated document
-            let diags: vscode.Diagnostic[] = [];
-
             // get formula text from the document
             let formulaText = document.getText();
+            
+            // first, we need to obtain 
+            let parsedFormula: Formula;
+            
+            if ((options?.forceReparse ?? false) || !this._documentFormulaMap.has(document)) {
 
-            // load configuration
-            let config = vscode.workspace.getConfiguration('kodeine', vscode.window.activeTextEditor!.document.uri);
-            this.evalCtx.clockMode = Utils.enforceValue(ValidClockModes, config.get('clockMode')) as ClockMode;
-            this.evalCtx.firstDayOfTheWeek = Utils.enforceValue(ValidWeekdays, config.get('firstDayOfTheWeek'), 1) as Weekday;
+                // force reparse was enabled or there is no cached formula
+                // parse the formula text into an evaluable formula
+                parsedFormula = this._parser.parse(formulaText);
+                this._documentFormulaMap.set(document, parsedFormula);
+                
+            } else {
 
-            // parse the formula text into an evaluable formula
-            let parsedFormula = this.parser.parse(formulaText);
+                // get cached formula (if condition ensures there is one)
+                parsedFormula = this._documentFormulaMap.get(document)!;
+                
+            }
+            
+                        // load configuration
+                        let config = vscode.workspace.getConfiguration('kodeine', vscode.window.activeTextEditor!.document.uri);
+                        this._evalCtx.clockMode = Utils.enforceValue(ValidClockModes, config.get('clockMode')) as ClockMode;
+                        this._evalCtx.firstDayOfTheWeek = Utils.enforceValue(ValidWeekdays, config.get('firstDayOfTheWeek'), 1) as Weekday;
 
             // clear eval side effects first
-            this.evalCtx.clearSideEffects();
+            this._evalCtx.clearSideEffects();
 
             // try to get a global for the current document
-            let globalName = this.globalDocManager.getGlobalNameFor(document);
+            let globalName = this._globalDocManager.getGlobalNameFor(document);
 
             if (globalName) {
 
                 // we are evaluating a document that is a global
                 // add this global's name to the global name chain
                 // the chain is there to prevent infinite reference loops
-                this.evalCtx.sideEffects.globalNameStack.push(globalName);
+                this._evalCtx.sideEffects.globalNameStack.push(globalName);
 
                 // store the parsed formula in the global
-                this.evalCtx.globals.set(globalName, parsedFormula);
+                this._evalCtx.globals.set(globalName, parsedFormula);
             }
 
             // evaluate the parsed formula
-            let result = parsedFormula.evaluate(this.evalCtx);
+            let result = parsedFormula.evaluate(this._evalCtx);
             let resultOutputString = result.toOutputString();
 
             // count how many parsing and evaluation errors popped up
-            let errCount = this.parsingCtx.sideEffects.errors.length + this.evalCtx.sideEffects.errors.length;
+            let errCount = this._parsingCtx.sideEffects.errors.length + this._evalCtx.sideEffects.errors.length;
 
             if (errCount > 0) {
 
@@ -168,56 +192,59 @@ export class FormulaDocumentEvaluationManager {
                 for (let i = 0; i < errCount; i++) {
 
                     if (
-                        pi < this.parsingCtx.sideEffects.errors.length
+                        pi < this._parsingCtx.sideEffects.errors.length
                         && (
-                            ei >= this.evalCtx.sideEffects.errors.length
-                            || this.parsingCtx.sideEffects.errors[pi].token.getStartIndex() < this.evalCtx.sideEffects.errors[ei].evaluable.source!.getStartIndex()
+                            ei >= this._evalCtx.sideEffects.errors.length
+                            || this._parsingCtx.sideEffects.errors[pi].token.getStartIndex() < this._evalCtx.sideEffects.errors[ei].evaluable.source!.getStartIndex()
                         )
                     ) {
 
                         // parsing index is in range of parsing error list and current parsing error starts earlier than current eval error
-                        errorMessages.push(this.parsingCtx.sideEffects.errors[pi].message);
+                        errorMessages.push(this._parsingCtx.sideEffects.errors[pi].message);
                         pi++
 
                     } else {
 
                         // parsing index out of range of parsing error list or current eval error starts earlier than current parsing error
-                        errorMessages.push(this.evalCtx.sideEffects.errors[ei].message);
+                        errorMessages.push(this._evalCtx.sideEffects.errors[ei].message);
                         ei++
 
                     }
 
                 }
 
-                if (!silentMode) {
+                if (!(options?.silentMode)) {
 
                     if (resultOutputString) {
 
                         // there is a result besides the error messages
-                        this.outChannel.replace(`${resultOutputString}\n\nFormula contains ${errCount} error${errCount === 1 ? '' : 's'}:\n${errorMessages.join('\n')}`);
+                        this._outChannel.replace(`${resultOutputString}\n\nFormula contains ${errCount} error${errCount === 1 ? '' : 's'}:\n${errorMessages.join('\n')}`);
 
                     } else {
 
                         // no result, just error messages
-                        this.outChannel.replace(errorMessages.join('\n'));
+                        this._outChannel.replace(errorMessages.join('\n'));
 
                     }
 
                 }
 
-            } else if (!silentMode) {
+            } else if (!(options?.silentMode)) {
 
                 // no errors encountered, simply output the result
-                this.outChannel.replace(resultOutputString);
+                this._outChannel.replace(resultOutputString);
 
             }
 
             // convert side effects to diags
 
-            if (this.parsingCtx.sideEffects.warnings.length > 0) {
+            // create a list of diagnostics (warnings, errors etc.) that will replace the current list for the evaluated document
+            let diags: vscode.Diagnostic[] = [];
+
+            if (this._parsingCtx.sideEffects.warnings.length > 0) {
 
                 // got some warnings, convert to diags
-                this.parsingCtx.sideEffects.warnings.forEach(warning => {
+                this._parsingCtx.sideEffects.warnings.forEach(warning => {
 
                     diags.push({
                         severity: vscode.DiagnosticSeverity.Warning,
@@ -233,10 +260,10 @@ export class FormulaDocumentEvaluationManager {
 
             }
 
-            if (this.parsingCtx.sideEffects.errors.length > 0) {
+            if (this._parsingCtx.sideEffects.errors.length > 0) {
 
                 // got some errors, convert to diags
-                this.parsingCtx.sideEffects.errors.forEach(error => {
+                this._parsingCtx.sideEffects.errors.forEach(error => {
 
                     diags.push({
                         severity: vscode.DiagnosticSeverity.Error,
@@ -252,10 +279,10 @@ export class FormulaDocumentEvaluationManager {
 
             }
 
-            if (this.evalCtx.sideEffects.warnings.length > 0) {
+            if (this._evalCtx.sideEffects.warnings.length > 0) {
 
                 // got some warnings, convert to diags
-                this.evalCtx.sideEffects.warnings.forEach(warning => {
+                this._evalCtx.sideEffects.warnings.forEach(warning => {
 
                     diags.push({
                         severity: vscode.DiagnosticSeverity.Warning,
@@ -271,10 +298,10 @@ export class FormulaDocumentEvaluationManager {
 
             }
 
-            if (this.evalCtx.sideEffects.errors.length > 0) {
+            if (this._evalCtx.sideEffects.errors.length > 0) {
 
                 // got some errors, convert to diags
-                this.evalCtx.sideEffects.errors.forEach(error => {
+                this._evalCtx.sideEffects.errors.forEach(error => {
 
                     diags.push({
                         severity: vscode.DiagnosticSeverity.Error,
@@ -291,19 +318,19 @@ export class FormulaDocumentEvaluationManager {
             }
 
             // apply the created list to the problems panel
-            this.diagColl.set(document.uri, diags);
+            this._diagColl.set(document.uri, diags);
 
             // refresh evaluation tree
-            this.evalTreeDocManager.updateEvaluationTreeFor(document, this.evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
+            this._evalTreeDocManager.updateEvaluationTreeFor(document, this._evalCtx.sideEffects.lastEvaluationTreeNode as FormulaEvaluationTree);
 
-            if (!silentMode) {
+            if (!(options?.silentMode)) {
 
-                // we're not in silent mode, remember this document and the parsed formula
-                this.lastEvaluatedDoc = document;
-                this.lastFormula = parsedFormula;
-
+                // we're not in silent mode, remember this document
+                this._lastEvaluatedDoc = document;
+                
                 if (globalName) {
-                    // if we're not reevaluating after another external change, reevaluate all documents with open evaluation steps
+                    // if we're not reevaluating after another external change and this document backs a global,
+                    // reevaluate all documents with open evaluation steps
                     this.reevaluateDocumentsWithOpenEvaluationSteps();
                 }
 
@@ -312,11 +339,10 @@ export class FormulaDocumentEvaluationManager {
         } catch (err: any) {
 
             // unexpected error, print to output
-            this.outChannel.replace('kodeine crashed: ' + err?.toString());
+            this._outChannel.replace('kodeine crashed: ' + err?.toString());
 
             // since we crashed, there is no formula to show in the tree view
-            this.lastFormula = null;
-
+            
         }
 
     }
@@ -332,7 +358,7 @@ export class FormulaDocumentEvaluationManager {
             .forEach(stepsDoc => {
                 let sourceDocUri = EvaluationStepsTextDocumentContentProvider.getSourceDocUriFrom(stepsDoc.uri);
                 vscode.workspace.openTextDocument(sourceDocUri).then(sourceDoc => {
-                    this._evaluate(sourceDoc, true);
+                    this._evaluate(sourceDoc, { silentMode: true });
                 });
             });
 

@@ -9560,94 +9560,101 @@ var Utils = {
 // extension/src/formula-document-evaluation-manager.ts
 var FormulaDocumentEvaluationManager = class {
   constructor(extCtx, outChannel2, diagColl2, globalDocManager2, evalTreeDocManager2, parsingCtx2, parser2, evalCtx2) {
-    this.lastFormula = null;
-    this.lastEvaluatedDoc = null;
-    this.outChannel = outChannel2;
-    this.diagColl = diagColl2;
-    this.globalDocManager = globalDocManager2;
-    this.evalTreeDocManager = evalTreeDocManager2;
-    this.parsingCtx = parsingCtx2;
-    this.parser = parser2;
-    this.evalCtx = evalCtx2;
+    this._lastEvaluatedDoc = null;
+    this._outChannel = outChannel2;
+    this._diagColl = diagColl2;
+    this._globalDocManager = globalDocManager2;
+    this._evalTreeDocManager = evalTreeDocManager2;
+    this._parsingCtx = parsingCtx2;
+    this._parser = parser2;
+    this._evalCtx = evalCtx2;
+    this._documentFormulaMap = /* @__PURE__ */ new Map();
     this._initEvents(extCtx);
   }
   _initEvents(extCtx) {
-    this.globalDocManager.onGlobalAdded((globalDocument) => {
-      this.evalCtx.globals.set(globalDocument.globalName, this.parser.parse(globalDocument.doc.getText()));
+    this._globalDocManager.onGlobalAdded((globalDocument) => {
+      this._evalCtx.globals.set(globalDocument.globalName, this._parser.parse(globalDocument.doc.getText()));
       this.reevaluateLastEvaluatedDocument();
       this.reevaluateDocumentsWithOpenEvaluationSteps();
     });
-    this.globalDocManager.onGlobalRemoved((globalDocument) => {
-      this.evalCtx.globals.delete(globalDocument.globalName);
+    this._globalDocManager.onGlobalRemoved((globalDocument) => {
+      this._evalCtx.globals.delete(globalDocument.globalName);
       this.reevaluateLastEvaluatedDocument();
       this.reevaluateDocumentsWithOpenEvaluationSteps();
     });
-    this.globalDocManager.onGlobalsCleared(() => {
-      this.evalCtx.globals.clear();
+    this._globalDocManager.onGlobalsCleared(() => {
+      this._evalCtx.globals.clear();
       this.reevaluateLastEvaluatedDocument();
       this.reevaluateDocumentsWithOpenEvaluationSteps();
     });
     extCtx.subscriptions.push(vscode6.commands.registerCommand("kodeine.reevaluateLastFormula", (...args) => {
       this.reevaluateLastEvaluatedDocument();
-    }), vscode6.window.onDidChangeActiveTextEditor((ev) => this._reactToDocumentChange(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => this._reactToDocumentChange(ev.document)), vscode6.workspace.onDidOpenTextDocument((doc) => this._reactToDocumentChange(doc)), vscode6.workspace.onDidSaveTextDocument((doc) => this._reactToDocumentChange(doc)));
+    }), vscode6.window.onDidChangeActiveTextEditor((ev) => this._reactToDocumentChange(ev == null ? void 0 : ev.document)), vscode6.workspace.onDidChangeTextDocument((ev) => this._reactToDocumentChange(ev.document, true)), vscode6.workspace.onDidOpenTextDocument((doc) => this._reactToDocumentChange(doc, true)), vscode6.workspace.onDidSaveTextDocument((doc) => this._reactToDocumentChange(doc)), vscode6.workspace.onDidCloseTextDocument((doc) => this._documentFormulaMap.delete(doc)));
   }
-  _reactToDocumentChange(document) {
+  _reactToDocumentChange(document, forceReparse = false) {
     if (document && document.languageId === "kode" && document.uri.scheme !== EvaluationStepsTextDocumentContentProvider.scheme) {
-      this.evaluateToOutput(document);
+      this.evaluateToOutput(document, forceReparse);
     }
   }
-  evaluateToOutput(document) {
-    this._evaluate(document);
+  evaluateToOutput(document, forceReparse = false) {
+    this._evaluate(document, { forceReparse });
   }
   reevaluateLastEvaluatedDocument() {
-    if (this.lastEvaluatedDoc)
-      this._evaluate(this.lastEvaluatedDoc);
+    if (this._lastEvaluatedDoc)
+      this._evaluate(this._lastEvaluatedDoc);
   }
-  _evaluate(document, silentMode = false) {
+  _evaluate(document, options) {
+    var _a;
     try {
-      let diags = [];
       let formulaText = document.getText();
-      let config = vscode6.workspace.getConfiguration("kodeine", vscode6.window.activeTextEditor.document.uri);
-      this.evalCtx.clockMode = Utils.enforceValue(import_kodeine33.ValidClockModes, config.get("clockMode"));
-      this.evalCtx.firstDayOfTheWeek = Utils.enforceValue(import_kodeine33.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
-      let parsedFormula = this.parser.parse(formulaText);
-      this.evalCtx.clearSideEffects();
-      let globalName = this.globalDocManager.getGlobalNameFor(document);
-      if (globalName) {
-        this.evalCtx.sideEffects.globalNameStack.push(globalName);
-        this.evalCtx.globals.set(globalName, parsedFormula);
+      let parsedFormula;
+      if (((_a = options == null ? void 0 : options.forceReparse) != null ? _a : false) || !this._documentFormulaMap.has(document)) {
+        parsedFormula = this._parser.parse(formulaText);
+        this._documentFormulaMap.set(document, parsedFormula);
+      } else {
+        parsedFormula = this._documentFormulaMap.get(document);
       }
-      let result = parsedFormula.evaluate(this.evalCtx);
+      let config = vscode6.workspace.getConfiguration("kodeine", vscode6.window.activeTextEditor.document.uri);
+      this._evalCtx.clockMode = Utils.enforceValue(import_kodeine33.ValidClockModes, config.get("clockMode"));
+      this._evalCtx.firstDayOfTheWeek = Utils.enforceValue(import_kodeine33.ValidWeekdays, config.get("firstDayOfTheWeek"), 1);
+      this._evalCtx.clearSideEffects();
+      let globalName = this._globalDocManager.getGlobalNameFor(document);
+      if (globalName) {
+        this._evalCtx.sideEffects.globalNameStack.push(globalName);
+        this._evalCtx.globals.set(globalName, parsedFormula);
+      }
+      let result = parsedFormula.evaluate(this._evalCtx);
       let resultOutputString = result.toOutputString();
-      let errCount = this.parsingCtx.sideEffects.errors.length + this.evalCtx.sideEffects.errors.length;
+      let errCount = this._parsingCtx.sideEffects.errors.length + this._evalCtx.sideEffects.errors.length;
       if (errCount > 0) {
         let errorMessages = [];
         let pi = 0;
         let ei = 0;
         for (let i = 0; i < errCount; i++) {
-          if (pi < this.parsingCtx.sideEffects.errors.length && (ei >= this.evalCtx.sideEffects.errors.length || this.parsingCtx.sideEffects.errors[pi].token.getStartIndex() < this.evalCtx.sideEffects.errors[ei].evaluable.source.getStartIndex())) {
-            errorMessages.push(this.parsingCtx.sideEffects.errors[pi].message);
+          if (pi < this._parsingCtx.sideEffects.errors.length && (ei >= this._evalCtx.sideEffects.errors.length || this._parsingCtx.sideEffects.errors[pi].token.getStartIndex() < this._evalCtx.sideEffects.errors[ei].evaluable.source.getStartIndex())) {
+            errorMessages.push(this._parsingCtx.sideEffects.errors[pi].message);
             pi++;
           } else {
-            errorMessages.push(this.evalCtx.sideEffects.errors[ei].message);
+            errorMessages.push(this._evalCtx.sideEffects.errors[ei].message);
             ei++;
           }
         }
-        if (!silentMode) {
+        if (!(options == null ? void 0 : options.silentMode)) {
           if (resultOutputString) {
-            this.outChannel.replace(`${resultOutputString}
+            this._outChannel.replace(`${resultOutputString}
 
 Formula contains ${errCount} error${errCount === 1 ? "" : "s"}:
 ${errorMessages.join("\n")}`);
           } else {
-            this.outChannel.replace(errorMessages.join("\n"));
+            this._outChannel.replace(errorMessages.join("\n"));
           }
         }
-      } else if (!silentMode) {
-        this.outChannel.replace(resultOutputString);
+      } else if (!(options == null ? void 0 : options.silentMode)) {
+        this._outChannel.replace(resultOutputString);
       }
-      if (this.parsingCtx.sideEffects.warnings.length > 0) {
-        this.parsingCtx.sideEffects.warnings.forEach((warning) => {
+      let diags = [];
+      if (this._parsingCtx.sideEffects.warnings.length > 0) {
+        this._parsingCtx.sideEffects.warnings.forEach((warning) => {
           diags.push({
             severity: vscode6.DiagnosticSeverity.Warning,
             range: new vscode6.Range(document.positionAt(warning.tokens[0].getStartIndex()), document.positionAt(warning.tokens[warning.tokens.length - 1].getEndIndex())),
@@ -9657,8 +9664,8 @@ ${errorMessages.join("\n")}`);
           });
         });
       }
-      if (this.parsingCtx.sideEffects.errors.length > 0) {
-        this.parsingCtx.sideEffects.errors.forEach((error) => {
+      if (this._parsingCtx.sideEffects.errors.length > 0) {
+        this._parsingCtx.sideEffects.errors.forEach((error) => {
           diags.push({
             severity: vscode6.DiagnosticSeverity.Error,
             range: new vscode6.Range(document.positionAt(error.token.getStartIndex()), document.positionAt(error.token.getEndIndex())),
@@ -9668,8 +9675,8 @@ ${errorMessages.join("\n")}`);
           });
         });
       }
-      if (this.evalCtx.sideEffects.warnings.length > 0) {
-        this.evalCtx.sideEffects.warnings.forEach((warning) => {
+      if (this._evalCtx.sideEffects.warnings.length > 0) {
+        this._evalCtx.sideEffects.warnings.forEach((warning) => {
           diags.push({
             severity: vscode6.DiagnosticSeverity.Warning,
             range: new vscode6.Range(document.positionAt(warning.evaluable.source.getStartIndex()), document.positionAt(warning.evaluable.source.getEndIndex())),
@@ -9679,8 +9686,8 @@ ${errorMessages.join("\n")}`);
           });
         });
       }
-      if (this.evalCtx.sideEffects.errors.length > 0) {
-        this.evalCtx.sideEffects.errors.forEach((error) => {
+      if (this._evalCtx.sideEffects.errors.length > 0) {
+        this._evalCtx.sideEffects.errors.forEach((error) => {
           diags.push({
             severity: vscode6.DiagnosticSeverity.Error,
             range: new vscode6.Range(document.positionAt(error.evaluable.source.getStartIndex()), document.positionAt(error.evaluable.source.getEndIndex())),
@@ -9690,25 +9697,23 @@ ${errorMessages.join("\n")}`);
           });
         });
       }
-      this.diagColl.set(document.uri, diags);
-      this.evalTreeDocManager.updateEvaluationTreeFor(document, this.evalCtx.sideEffects.lastEvaluationTreeNode);
-      if (!silentMode) {
-        this.lastEvaluatedDoc = document;
-        this.lastFormula = parsedFormula;
+      this._diagColl.set(document.uri, diags);
+      this._evalTreeDocManager.updateEvaluationTreeFor(document, this._evalCtx.sideEffects.lastEvaluationTreeNode);
+      if (!(options == null ? void 0 : options.silentMode)) {
+        this._lastEvaluatedDoc = document;
         if (globalName) {
           this.reevaluateDocumentsWithOpenEvaluationSteps();
         }
       }
     } catch (err) {
-      this.outChannel.replace("kodeine crashed: " + (err == null ? void 0 : err.toString()));
-      this.lastFormula = null;
+      this._outChannel.replace("kodeine crashed: " + (err == null ? void 0 : err.toString()));
     }
   }
   reevaluateDocumentsWithOpenEvaluationSteps() {
     vscode6.workspace.textDocuments.filter((d) => d.uri.scheme === EvaluationStepsTextDocumentContentProvider.scheme).forEach((stepsDoc) => {
       let sourceDocUri = EvaluationStepsTextDocumentContentProvider.getSourceDocUriFrom(stepsDoc.uri);
       vscode6.workspace.openTextDocument(sourceDocUri).then((sourceDoc) => {
-        this._evaluate(sourceDoc, true);
+        this._evaluate(sourceDoc, { silentMode: true });
       });
     });
   }
