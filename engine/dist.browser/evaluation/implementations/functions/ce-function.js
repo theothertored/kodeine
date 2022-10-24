@@ -68,8 +68,8 @@ export class CeFunction extends IKodeFunction {
                     // complex mode implementation found
                     if (args.length < 3 || args[2].isNumeric) {
                         // amount argument was not given or was given and is numeric
-                        // TODO: find out what happens when the 3rd argument is not given
-                        return new KodeValue(complexModeImplementation(color, 's', args.length < 3 ? 0 : args[2].numericValue).toARGBString(), call.source);
+                        // if the amount was not given, 100 is the default value
+                        return new KodeValue(complexModeImplementation(color, 's', args.length < 3 ? 100 : args[2].numericValue).toARGBString(), call.source);
                     }
                     else {
                         // amount argument was given and is not numeric

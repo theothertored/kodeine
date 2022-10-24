@@ -16,14 +16,14 @@ export class EvaluationStepsTextDocumentContentProvider implements vscode.TextDo
     private readonly _sourceUriToEvaluationTreeMap = new Map<string, FormulaEvaluationTree>();
 
     /** Extracts a source document URI from the URI of a steps document. */
-    private _getSourceDocUriFrom(stepsUri: vscode.Uri): vscode.Uri {
+    public static getSourceDocUriFrom(stepsUri: vscode.Uri): vscode.Uri {
         return vscode.Uri.parse(decodeURIComponent(stepsUri.query.split('=')[1]))
     }
 
     /** Consumed by vscode. Returns a string containing the evaluation steps for a formula source document passed in {@link stepsUri}. */
     provideTextDocumentContent(stepsUri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string> {
 
-        let sourceUriString = this._getSourceDocUriFrom(stepsUri).toString();
+        let sourceUriString = EvaluationStepsTextDocumentContentProvider.getSourceDocUriFrom(stepsUri).toString();
 
         let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
 

@@ -10,7 +10,7 @@ export declare class EvaluationStepsTextDocumentContentProvider implements vscod
     /** Maps source URIs (stringified) to their latest evaluation trees. */
     private readonly _sourceUriToEvaluationTreeMap;
     /** Extracts a source document URI from the URI of a steps document. */
-    private _getSourceDocUriFrom;
+    static getSourceDocUriFrom(stepsUri: vscode.Uri): vscode.Uri;
     /** Consumed by vscode. Returns a string containing the evaluation steps for a formula source document passed in {@link stepsUri}. */
     provideTextDocumentContent(stepsUri: vscode.Uri, token: vscode.CancellationToken): vscode.ProviderResult<string>;
     /**

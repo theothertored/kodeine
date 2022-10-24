@@ -37,11 +37,11 @@ export declare class GlobalDocumentManager {
      * @param functionNames An array of function names to check added global names against.
      */
     constructor(extCtx: vscode.ExtensionContext, operatorSymbols: string[], functionNames: string[]);
-    initGlobalsMap(extCtx: vscode.ExtensionContext): void;
-    initCommands(extCtx: vscode.ExtensionContext): void;
-    initGlobalListUI(extCtx: vscode.ExtensionContext): void;
-    initEvents(extCtx: vscode.ExtensionContext): void;
-    onDidCloseTextDocument(doc: vscode.TextDocument): any;
+    private _initGlobalsMap;
+    private _initCommands;
+    private _initGlobalListUI;
+    private _initEvents;
+    private _onDidCloseTextDocument;
     getGlobalNameFor(doc: vscode.TextDocument): string | undefined;
     getGlobalDocuments(): GlobalDocument[];
     getIsValidGlobalDocument(doc?: vscode.TextDocument): boolean;

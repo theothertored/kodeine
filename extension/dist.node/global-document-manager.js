@@ -151,30 +151,30 @@ class GlobalDocumentManager {
         };
         this._operatorSymbols = operatorSymbols;
         this._functionNames = functionNames;
-        this.initGlobalsMap(extCtx);
-        this.initCommands(extCtx);
-        this.initGlobalListUI(extCtx);
-        this.initEvents(extCtx);
+        this._initGlobalsMap(extCtx);
+        this._initCommands(extCtx);
+        this._initGlobalListUI(extCtx);
+        this._initEvents(extCtx);
     }
-    initGlobalsMap(extCtx) {
+    _initGlobalsMap(extCtx) {
         // TODO: load globals from storage
     }
-    initCommands(extCtx) {
+    _initCommands(extCtx) {
         // register commands from this._commands
         for (const commandName in this._commands) {
             extCtx.subscriptions.push(vscode.commands.registerCommand(`kodeine.${commandName}`, this._commands[commandName]));
         }
     }
-    initGlobalListUI(extCtx) {
+    _initGlobalListUI(extCtx) {
         // load globals into the global tree data provider
         this._globalTreeDataProvider.updateGlobalDocuments(this.getGlobalDocuments());
         extCtx.subscriptions.push(vscode.window.registerTreeDataProvider(GlobalDocumentManager.globalListViewId, this._globalTreeDataProvider));
     }
-    initEvents(extCtx) {
-        extCtx.subscriptions.push(vscode.workspace.onDidCloseTextDocument(doc => this.onDidCloseTextDocument(doc)));
+    _initEvents(extCtx) {
+        extCtx.subscriptions.push(vscode.workspace.onDidCloseTextDocument(doc => this._onDidCloseTextDocument(doc)));
     }
     // EVENTS
-    onDidCloseTextDocument(doc) {
+    _onDidCloseTextDocument(doc) {
         if (doc.isUntitled
             && doc.languageId === 'kode'
             && this._globalsMap.hasB(doc)) {

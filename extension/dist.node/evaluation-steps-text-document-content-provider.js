@@ -12,12 +12,12 @@ class EvaluationStepsTextDocumentContentProvider {
         this._sourceUriToEvaluationTreeMap = new Map();
     }
     /** Extracts a source document URI from the URI of a steps document. */
-    _getSourceDocUriFrom(stepsUri) {
+    static getSourceDocUriFrom(stepsUri) {
         return vscode.Uri.parse(decodeURIComponent(stepsUri.query.split('=')[1]));
     }
     /** Consumed by vscode. Returns a string containing the evaluation steps for a formula source document passed in {@link stepsUri}. */
     provideTextDocumentContent(stepsUri, token) {
-        let sourceUriString = this._getSourceDocUriFrom(stepsUri).toString();
+        let sourceUriString = EvaluationStepsTextDocumentContentProvider.getSourceDocUriFrom(stepsUri).toString();
         let evaluationTree = this._sourceUriToEvaluationTreeMap.get(sourceUriString);
         return evaluationTree?.printEvaluationSteps() ?? '';
     }
