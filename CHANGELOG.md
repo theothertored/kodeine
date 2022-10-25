@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.1.1-alpha](https://github.com/theothertored/kodeine/releases/tag/v0.1.0-alpha) - 2022-10-24
+
+Improved reevaluation, local variables!
+
+### Added
+
++ New implementations:
+    + `ce(contrast)` implementation.
+    + TODO: `lv()` implementation.
+        + 
++ Formula evaluation improvements:
+    + Formulas now reevaluate on document save.
+    + New command: `kodeine.reevaluateLastFormula`. Bound to `F5` by default in `kode` documents.
+    + Parsed formulas are now cached, so reevaluation should be ever so slightly faster.
+    + Evaluating a document that backs a global will now reevaluate all open evaluation steps documents.
+
+### Fixed
+
+- Syntax highlighting:
+    - Opening parentheses after dollar signs (`$(`) should no longer be wrongly marked as unquoted strings.
+    - Numeric literals should no longer be wrongly marked as unquoted strings.
+    - Function names should no longer be wrongly marked as unquoted strings.
+- `fl()` 
+    - Errors thrown when parsing and evaluating the loop body formula string are no longer misatrributed to the increment formula.
+- `ce()`: 
+    - Color parsing is no longer more tolerant of invalid characters than Kustom.
+    - Attempting to parse an invalid color now produces a warning.
+    - Modes requiring an amount argument (`ce(alpha)`, `ce(sat)`, `ce(lum)`) now default to 100 instead of 0 when an amount argument is not given.
+
+### Changed
+
+- The code has received even more documentation comments.
+- Documentation comments now use color instead of colour. Sorry, Brits!
+
+
 ## [0.1.0-alpha](https://github.com/theothertored/kodeine/releases/tag/v0.1.0-alpha) - 2022-05-29
 
 Debug your kustom formulas!

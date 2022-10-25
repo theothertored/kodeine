@@ -1,7 +1,8 @@
 TODO:
+- implement lv()
 - design an eval ctx editor to prepare for remaining function implementations
 
-MAYBE IN THE FUTURE:6
+MAYBE IN THE FUTURE:
 - clean up df(), dp() and tf() (not sure why I added this to the todo)
 - auto-refresh formulas every second
 - implement global lists
