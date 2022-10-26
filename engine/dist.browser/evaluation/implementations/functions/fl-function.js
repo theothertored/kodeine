@@ -146,8 +146,9 @@ export class FlFunction extends IKodeFunction {
                 childEvalCtx.sideEffects.warnings.forEach(warn => {
                     evalCtx.sideEffects.warnings.push(new FlEvaluationError(call.args[3], i, false, warn));
                 });
-                // clear side effects after adding them to parent evalCtx
-                childEvalCtx.clearSideEffects();
+                // clear errors and warnings, since they've been transferred to parent evalCtx
+                childEvalCtx.sideEffects.errors = [];
+                childEvalCtx.sideEffects.warnings = [];
             }
             else {
                 results.push('');
@@ -178,15 +179,19 @@ export class FlFunction extends IKodeFunction {
                 childEvalCtx.sideEffects.warnings.forEach(warn => {
                     evalCtx.sideEffects.warnings.push(new FlEvaluationError(call.args[2], i, true, warn));
                 });
-                // clear side effects after adding them to parent evalCtx
-                childEvalCtx.clearSideEffects();
+                // clear errors and warnings, since they've been transferred to parent evalCtx
+                childEvalCtx.sideEffects.errors = [];
+                childEvalCtx.sideEffects.warnings = [];
             }
             else {
                 // no valid increment formula, set i to empty string
                 i = new KodeValue('');
             }
         }
-        // loop finished, add results together using the separator
+        // loop finished
+        // copy local variables to parent evalCtx (childEvalCtx will be discarded, so we don't need to create a copy of the map)
+        evalCtx.sideEffects.localVariables = childEvalCtx.sideEffects.localVariables;
+        // add results together using the separator
         return new KodeValue(results.join(separator), call.source);
     }
 }

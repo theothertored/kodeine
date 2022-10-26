@@ -36,6 +36,7 @@ export declare class EvaluationSideEffects {
     errors: EvaluationError[];
     globalNameStack: string[];
     lastEvaluationTreeNode: FormulaEvaluationTreeNode | null;
+    localVariables: Map<string, KodeValue>;
 }
 /** A warning produced during evaluation. */
 export declare class EvaluationWarning {

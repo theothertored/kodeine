@@ -169,7 +169,6 @@ export class FlFunction extends IKodeFunction {
 
         parsingCtx.clearSideEffects();
 
-
         try {
 
             // try to parse the eval formula
@@ -267,8 +266,9 @@ export class FlFunction extends IKodeFunction {
                     ));
                 });
 
-                // clear side effects after adding them to parent evalCtx
-                childEvalCtx.clearSideEffects();
+                // clear errors and warnings, since they've been transferred to parent evalCtx
+                childEvalCtx.sideEffects.errors = [];
+                childEvalCtx.sideEffects.warnings = [];
 
             } else {
 
@@ -323,8 +323,9 @@ export class FlFunction extends IKodeFunction {
                     ));
                 });
 
-                // clear side effects after adding them to parent evalCtx
-                childEvalCtx.clearSideEffects();
+                // clear errors and warnings, since they've been transferred to parent evalCtx
+                childEvalCtx.sideEffects.errors = [];
+                childEvalCtx.sideEffects.warnings = [];
 
             } else {
 
@@ -335,7 +336,12 @@ export class FlFunction extends IKodeFunction {
 
         }
 
-        // loop finished, add results together using the separator
+        // loop finished
+
+        // copy local variables to parent evalCtx (childEvalCtx will be discarded, so we don't need to create a copy of the map)
+        evalCtx.sideEffects.localVariables = childEvalCtx.sideEffects.localVariables;
+
+        // add results together using the separator
         return new KodeValue(results.join(separator), call.source);
     }
 }

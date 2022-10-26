@@ -23,15 +23,15 @@ Get it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items
         - `\n` - new line character
         - `\ ` - space
 
-
 ## Limitations
 
 - Currently implemented:
     - All operators: `+`, `-`, `*`, `/`, `^`, `%`, `=`, `!=`, `<`, `>`, `<=`, `>=`, `~=`, `|`, `&`
     - Functions:  
-    `ce()`, `cm()`, `df()`, `dp()`, `fl()`, `gv()`, `if()`, `mu()`, `tc()`, `tf()`
+    `ce()`, `cm()`, `df()`, `dp()`, `fl()`, `gv()`, `if()`, `mu()`, `tc()`, `tf()`, `lv()`
         - `df(Z)` and any other timezone related stuff is not implemented (yet).
         - `df()` has two vscode settings related to it (read more below).
+        - Local variables are not fully realized in Kustom yet. See section on local variables below for details on the current `lv()` implementation in kodeine.
     - Other functions are not implemented (yet).
 - Globals are not saved after VS Code is closed.
 - Currently in alpha, meaning the code might not be stable and you might find bugs.  
@@ -41,6 +41,29 @@ I (obviously) recommend testing your formula in Kustom before releasing it in a 
     - `ce()` results can be off by 1 or 2, the reason seems to be some float handling differences between Java and JavaScript (hard to confirm though).
     - Floating point numbers in general don't work the same as in Kustom if you venture anywhere outside of the most basic use cases. If you want to know why, play around with them a bit in Kustom itself.
 
+
+### About local variables (`lv()`)
+
+Because local variables (`lv()`) are not fully realized in Kustom at the time of writing, they have been implemented based on intentions stated by the developer, instead of the current, buggy implementation:
+
+- `lv([name], [value])` - sets the value of a local variable named `[name]` to `[value]`
+- `lv([name])` or `#name` or `"#name"` - gets the value of a local variable named `[name]`
+- Local variables transfer into `fl()` and back out of body and increment forumlas.
+    - `lv(a, @) + fl(0,0,0, "#a") => @`  
+    (if locals didn't transfer into `fl()`, this would return `#a` instead)  
+    - `fl(0,0,0, "lv(a, @)") + #a => @`  
+    (if locals didn't transfer out of `fl()`, this would return `#a` instead)
+- Local variables for a parent formula are directly used when evaluating globals.  
+    - For example:  
+    Create `gv(global)` and have it access a local variable named `a`:  
+    `$#a$`  
+    This will return `#a` in its own results, because the local variable was never set before being accessed.  
+    Now, let's create another formula, where we set `lv(a)` and then access the value of `gv(global)`:  
+    `$lv(a, @) + gv(global)$ => @`  
+    If parent formula locals weren't used when evaluating globals, this would return `#a` instead.
+    - This behavior is, at the time of writing, pure speculation - `lv()` throws an error when used in a text global in Kustom. If a future update implements this in a different way, or it is confirmed to not be a feature by the developer, it might be changed or removed. For now, I think this is how it should work.  
+    - SIDENOTE:  
+    This implementation allows you to turn text globals into functions - use `lv([argument])` or `#argument` in the global, and then, before calling `gv([function])`, set argument values using `lv([argument], [value])`.
 
 
 ## Using the extension

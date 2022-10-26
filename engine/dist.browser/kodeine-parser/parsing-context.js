@@ -1,4 +1,4 @@
-import { IBinaryOperator, IKodeFunction, IUnaryOperator, NegationOperator, ExponentiationOperator, MultiplicationOperator, DivisionOperator, ModuloOperator, AdditionOperator, SubtractionOperator, EqualityOperator, InequalityOperator, LesserThanOperator, GreaterThanOperator, LesserThanOrEqualToOperator, GreaterThanOrEqualToOperator, RegexMatchOperator, LogicalOrOperator, LogicalAndOperator, IfFunction, TcFunction, MuFunction, FlFunction, GvFunction, LiFunction, AqFunction, NcFunction, NiFunction, RmFunction, CeFunction, WgFunction, WiFunction, ShFunction, BiFunction, SiFunction, MqFunction, TfFunction, BpFunction, CmFunction, BrFunction, DfFunction, MiFunction, WfFunction, UcFunction, AiFunction, FdFunction, DpFunction, TuFunction, TsFunction, CiFunction } from "../kodeine.js";
+import { IBinaryOperator, IKodeFunction, IUnaryOperator, NegationOperator, ExponentiationOperator, MultiplicationOperator, DivisionOperator, ModuloOperator, AdditionOperator, SubtractionOperator, EqualityOperator, InequalityOperator, LesserThanOperator, GreaterThanOperator, LesserThanOrEqualToOperator, GreaterThanOrEqualToOperator, RegexMatchOperator, LogicalOrOperator, LogicalAndOperator, IfFunction, TcFunction, MuFunction, FlFunction, GvFunction, LiFunction, AqFunction, NcFunction, NiFunction, RmFunction, CeFunction, WgFunction, WiFunction, ShFunction, BiFunction, SiFunction, MqFunction, TfFunction, BpFunction, CmFunction, BrFunction, DfFunction, MiFunction, WfFunction, UcFunction, AiFunction, FdFunction, DpFunction, TuFunction, TsFunction, CiFunction, LvFunction } from "../kodeine.js";
 /**
  * Exposes function and operator implementations.
  * {@link ParsingContextBuilder} provides convenient functions to construct an instance of this class.
@@ -158,7 +158,7 @@ export class ParsingContextBuilder {
             // implemented operators
             .addAll(NegationOperator, ExponentiationOperator, MultiplicationOperator, DivisionOperator, ModuloOperator, AdditionOperator, SubtractionOperator, EqualityOperator, InequalityOperator, LesserThanOperator, GreaterThanOperator, LesserThanOrEqualToOperator, GreaterThanOrEqualToOperator, RegexMatchOperator, LogicalOrOperator, LogicalAndOperator)
             // implemented functions
-            .addAll(IfFunction, TcFunction, MuFunction, FlFunction, GvFunction)
+            .addAll(IfFunction, TcFunction, MuFunction, FlFunction, GvFunction, LvFunction)
             // unimplemented functions
             .addAll(LiFunction, AqFunction, NcFunction, NiFunction, WgFunction, RmFunction, CiFunction, ShFunction, WiFunction, BiFunction, SiFunction, MqFunction, TsFunction, BpFunction, CmFunction, BrFunction, DfFunction, MiFunction, WfFunction, TfFunction, UcFunction, CeFunction, AiFunction, FdFunction, DpFunction, TuFunction);
     }

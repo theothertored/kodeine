@@ -34,6 +34,10 @@ class EvaluationContext {
         newCtx.iReplacement = this.iReplacement;
         // clone globals map
         newCtx.globals = new Map(this.globals);
+        // clone global name stack to prevent global evaluation loops in subformulas
+        newCtx.sideEffects.globalNameStack = this.sideEffects.globalNameStack.slice();
+        // clone local variables to subformulas
+        newCtx.sideEffects.localVariables = new Map(this.sideEffects.localVariables);
         return newCtx;
     }
     /** Gets the current date. Return a value different from `new Date()` to preview a formula's evaluation result at different dates & times. */
@@ -49,6 +53,7 @@ class EvaluationSideEffects {
         this.errors = [];
         this.globalNameStack = [];
         this.lastEvaluationTreeNode = null;
+        this.localVariables = new Map();
     }
 }
 exports.EvaluationSideEffects = EvaluationSideEffects;

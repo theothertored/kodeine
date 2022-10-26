@@ -53,6 +53,12 @@ export class EvaluationContext {
         // clone globals map
         newCtx.globals = new Map(this.globals);
 
+        // clone global name stack to prevent global evaluation loops in subformulas
+        newCtx.sideEffects.globalNameStack = this.sideEffects.globalNameStack.slice();
+        
+        // clone local variables to subformulas
+        newCtx.sideEffects.localVariables = new Map<string, KodeValue>(this.sideEffects.localVariables);
+
         return newCtx;
 
     }
@@ -80,6 +86,8 @@ export class EvaluationSideEffects {
     public globalNameStack: string[] = [];
 
     public lastEvaluationTreeNode: FormulaEvaluationTreeNode | null = null;
+
+    public localVariables: Map<string, KodeValue> = new Map<string, KodeValue>();
 
 }
 

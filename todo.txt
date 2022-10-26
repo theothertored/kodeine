@@ -1,5 +1,4 @@
 TODO:
-- implement lv()
 - design an eval ctx editor to prepare for remaining function implementations
 
 MAYBE IN THE FUTURE:
@@ -21,6 +20,7 @@ MAYBE IN THE FUTURE:
 - find a way to not match leading whitespace into unquoted string and numeric literals
 
 DONE:
+- implement lv()
 - avoid reparsing formulas when unnecessary (reevaluate without reparsing on global changes)
 - add a command to reevaluate current formula, bind to f5 by default if possible
 - when a document linked to a global is changed, reevaluate open evaluation steps (implement FormulaDocumentEvaluationManager)

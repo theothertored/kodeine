@@ -150,19 +150,46 @@ export class KodeValue extends Evaluable {
 
             }
 
-            return evalCtx.iReplacement;
+            return new KodeValue(evalCtx.iReplacement, this.source);
 
         } else {
 
-            // return self by default
+            let localVariableValue: KodeValue | undefined = undefined;
 
-            if (evalCtx.buildEvaluationTree) {
+            if (evalCtx.sideEffects.localVariables.size > 0 && this.text && this.text[0] == '#') {
 
-                evalCtx.sideEffects.lastEvaluationTreeNode = literal;
+                // get local variable name (everything after #)
+                let localName = this.text.substring(1);
+                localVariableValue = evalCtx.sideEffects.localVariables.get(localName);
+
 
             }
 
-            return this;
+            if (localVariableValue) {
+
+                if (evalCtx.buildEvaluationTree) {
+
+                    evalCtx.sideEffects.lastEvaluationTreeNode = new LiteralReplacement(
+                        localVariableValue, literal
+                    );
+
+                }
+
+                return new KodeValue(localVariableValue, this.source);
+
+            } else {
+
+                // return self by default
+
+                if (evalCtx.buildEvaluationTree) {
+
+                    evalCtx.sideEffects.lastEvaluationTreeNode = literal;
+
+                }
+
+                return this;
+
+            }
 
         }
 

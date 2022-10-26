@@ -85,14 +85,28 @@ class KodeValue extends kodeine_js_1.Evaluable {
             if (evalCtx.buildEvaluationTree) {
                 evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.LiteralReplacement(evalCtx.iReplacement, literal);
             }
-            return evalCtx.iReplacement;
+            return new KodeValue(evalCtx.iReplacement, this.source);
         }
         else {
-            // return self by default
-            if (evalCtx.buildEvaluationTree) {
-                evalCtx.sideEffects.lastEvaluationTreeNode = literal;
+            let localVariableValue = undefined;
+            if (evalCtx.sideEffects.localVariables.size > 0 && this.text && this.text[0] == '#') {
+                // get local variable name (everything after #)
+                let localName = this.text.substring(1);
+                localVariableValue = evalCtx.sideEffects.localVariables.get(localName);
             }
-            return this;
+            if (localVariableValue) {
+                if (evalCtx.buildEvaluationTree) {
+                    evalCtx.sideEffects.lastEvaluationTreeNode = new kodeine_js_1.LiteralReplacement(localVariableValue, literal);
+                }
+                return new KodeValue(localVariableValue, this.source);
+            }
+            else {
+                // return self by default
+                if (evalCtx.buildEvaluationTree) {
+                    evalCtx.sideEffects.lastEvaluationTreeNode = literal;
+                }
+                return this;
+            }
         }
     }
     /** Checks whether this value is equal to another value. */

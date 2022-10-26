@@ -48,7 +48,8 @@ import {
     DpFunction,
     TuFunction,
     TsFunction,
-    CiFunction
+    CiFunction,
+    LvFunction
 } from "../kodeine.js";
 
 /** 
@@ -284,7 +285,8 @@ export class ParsingContextBuilder {
                 TcFunction,
                 MuFunction,
                 FlFunction,
-                GvFunction
+                GvFunction,
+                LvFunction
             )
 
             // unimplemented functions

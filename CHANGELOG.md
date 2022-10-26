@@ -8,8 +8,7 @@ Improved reevaluation, local variables!
 
 + New implementations:
     + `ce(contrast)` implementation.
-    + TODO: `lv()` implementation.
-        + 
+    + `lv()` implementation
 + Formula evaluation improvements:
     + Formulas now reevaluate on document save.
     + New command: `kodeine.reevaluateLastFormula`. Bound to `F5` by default in `kode` documents.
@@ -33,6 +32,32 @@ Improved reevaluation, local variables!
 
 - The code has received even more documentation comments.
 - Documentation comments now use color instead of colour. Sorry, Brits!
+
+
+### About local variables (`lv()`)
+
+*This section has also been added to the readme.*
+
+Because local variables (`lv()`) are not fully realized in Kustom at the time of writing, they have been implemented based on intentions stated by the developer, instead of the current, buggy implementation:
+
+- `lv([name], [value])` - sets the value of a local variable named `[name]` to `[value]`
+- `lv([name])` or `#name` or `"#name"` - gets the value of a local variable named `[name]`
+- Local variables transfer into `fl()` and back out of body and increment forumlas.
+    - `lv(a, @) + fl(0,0,0, "#a") => @`  
+    (if locals didn't transfer into `fl()`, this would return `#a` instead)  
+    - `fl(0,0,0, "lv(a, @)") + #a => @`  
+    (if locals didn't transfer out of `fl()`, this would return `#a` instead)
+- Local variables for a parent formula are directly used when evaluating globals.  
+    - For example:  
+    Create `gv(global)` and have it access a local variable named `a`:  
+    `$#a$`  
+    This will return `#a` in its own results, because the local variable was never set before being accessed.  
+    Now, let's create another formula, where we set `lv(a)` and then access the value of `gv(global)`:  
+    `$lv(a, @) + gv(global)$ => @`  
+    If parent formula locals weren't used when evaluating globals, this would return `#a` instead.
+    - This behavior is, at the time of writing, pure speculation - `lv()` throws an error when used in a text global in Kustom. If a future update implements this in a different way, or it is confirmed to not be a feature by the developer, it might be changed or removed. For now, I think this is how it should work.  
+    - SIDENOTE:  
+    This implementation allows you to turn text globals into functions - use `lv([argument])` or `#argument` in the global, and then, before calling `gv([function])`, set argument values using `lv([argument], [value])`.
 
 
 ## [0.1.0-alpha](https://github.com/theothertored/kodeine/releases/tag/v0.1.0-alpha) - 2022-05-29
