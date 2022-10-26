@@ -20,6 +20,7 @@ MAYBE IN THE FUTURE:
 - find a way to not match leading whitespace into unquoted string and numeric literals
 
 DONE:
+# 0.1.1 RELEASED
 - implement lv()
 - avoid reparsing formulas when unnecessary (reevaluate without reparsing on global changes)
 - add a command to reevaluate current formula, bind to f5 by default if possible
