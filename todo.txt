@@ -1,5 +1,9 @@
 TODO:
-- design an eval ctx editor to prepare for remaining function implementations
+- build provider interfaces for evalCtx
+- implement static providers in evalCtx and functions using those providers
+- build UI for changing the value returning by static providers
+- implement real providers where possible
+- add option to swap providers to the UI
 
 MAYBE IN THE FUTURE:
 - clean up df(), dp() and tf() (not sure why I added this to the todo)
@@ -17,7 +21,6 @@ MAYBE IN THE FUTURE:
 - option to print gv() and fl() evaluation steps when printing evaluation steps
 - find out what is causing ce() to be off by around 1 sometimes (example: ce(#ff0000, sat, r10) => #FFFF1A1A in kustom, #FFFF1919 in kodeine)
 - create an interactive kode guide
-- find a way to not match leading whitespace into unquoted string and numeric literals
 
 DONE:
 # 0.1.1 RELEASED
@@ -33,6 +36,7 @@ DONE:
 - fix fl() errors being misattributed to the increment formula instead of the loop body formula
 - fix numeric literals sometimes being marked as regular unquoted strings
 - fix opening parenthesis after $ being recognized as unquoted string
+- find a way to not match leading whitespace into unquoted string and numeric literals
 - add documentation comments for newly implemented functions
 - standardize documentation comments to color instead of colour
 - implement ce(contrast)
