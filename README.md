@@ -180,7 +180,7 @@ Most properties in that editor can be set to a formula, meaning they can dynamic
 
 Have any questions about the extension? Spotted a bug? It crashed? You like it a lot?
 - Preferred method: [kodeine Discord server](https://discord.gg/ZPvjV7sxEP)
-- But you can also email me: [thetored@gmail.com](mailto:thetored@gmail.com)
+- But you can also email me: [theothertored@gmail.com](mailto:theothertored@gmail.com)
 
 ## Using the engine in your own project
 
